@@ -1,0 +1,23 @@
+version: "3.7"
+services:
+
+  minio:
+    build:
+      context: .
+      dockerfile: Dockerfile-minio
+    ports:
+      - "9000:9000"
+
+  mongo:
+    build:
+      context: .
+      dockerfile: Dockerfile-mongo
+    ports:
+      - "27017:27017"
+
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile-redis
+    ports:
+      - "6379:6379"

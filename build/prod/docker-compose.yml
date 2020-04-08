@@ -1,0 +1,45 @@
+version: "3.7"
+services:
+
+  app:
+    build:
+      context: ./../../
+      dockerfile: ./build/prod/Dockerfile-app
+    ports:
+      - "80:8000"
+      - "443:8001"
+    volumes:
+      - ./../../assets/:/assets/
+    depends_on:
+      - minio
+      - mongo
+      - redis
+
+  minio:
+    build:
+      context: .
+      dockerfile: Dockerfile-minio
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./minio/data/:/data/
+
+  mongo:
+    build:
+      context: .
+      dockerfile: Dockerfile-mongo
+    # volumes:
+    #   - ./mongo/data/db/:/data/db/
+    #   - ./mongo/data/configdb/:/data/configdb/
+
+   # WARNING (Windows & OS X): The default Docker setup on Windows and
+   # OS X uses a VirtualBox VM to host the Docker daemon. Unfortunately,
+   # the mechanism VirtualBox uses to share folders between the host
+   # system and the Docker container is not compatible with the memory
+   # mapped files used by MongoDB. This means that it is not possible to
+   # run a MongoDB container with the data directory mapped to the host.
+
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile-redis

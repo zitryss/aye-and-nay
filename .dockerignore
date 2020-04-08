@@ -1,0 +1,3 @@
+/.git/
+/build/prod/minio/
+/build/prod/mongo/

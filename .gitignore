@@ -1,0 +1,13 @@
+# go
+*.dll
+*.dylib
+*.exe
+*.exe~
+*.out
+*.so
+*.test
+
+# aye-and-nay
+/assets/tls/
+/build/prod/minio/
+/build/prod/mongo/

@@ -96,7 +96,7 @@ func main() {
 		cache = &mem
 	}
 
-	sched := service.NewScheduler()
+	sched := service.NewScheduler("calculation", cache)
 	sched.Monitor(ctx)
 
 	serv := service.NewService(comp, stor, pers, cache, &sched)

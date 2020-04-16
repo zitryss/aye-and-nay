@@ -32,8 +32,23 @@ type Persister interface {
 }
 
 type Cacher interface {
-	PopPair(ctx context.Context, album string) (string, string, error)
-	PushPair(ctx context.Context, album string, pairs [][2]string) error
-	GetImageId(ctx context.Context, album string, token string) (string, error)
-	SetToken(ctx context.Context, album string, token string, image string) error
+	Queuer
+	Stacker
+	Tokener
+}
+
+type Queuer interface {
+	Add(ctx context.Context, queue string, album string) error
+	Poll(ctx context.Context, queue string) (string, error)
+	Size(ctx context.Context, queue string) (int, error)
+}
+
+type Stacker interface {
+	Push(ctx context.Context, album string, pairs [][2]string) error
+	Pop(ctx context.Context, album string) (string, string, error)
+}
+
+type Tokener interface {
+	Set(ctx context.Context, album string, token string, image string) error
+	Get(ctx context.Context, album string, token string) (string, error)
 }

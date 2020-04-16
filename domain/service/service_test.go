@@ -32,7 +32,7 @@ func TestServiceAlbum(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		data := database.NewMem()
-		sched := NewScheduler()
+		sched := NewScheduler("VK4dE8CgS82B8yC7", &data)
 		serv := NewService(&comp, &stor, &data, &data, &sched)
 		files := [][]byte{nil, nil}
 		_, err := serv.Album(ctx, files)
@@ -60,7 +60,7 @@ func TestServiceAlbum(t *testing.T) {
 		comp := compressor.NewFail()
 		stor := storage.NewMock()
 		data := database.NewMem()
-		sched := NewScheduler()
+		sched := NewScheduler("DgWwCAxe2JUpJbHt", &data)
 		serv := NewService(&comp, &stor, &data, &data, &sched)
 		files := [][]byte{nil, nil}
 		_, err := serv.Album(ctx, files)
@@ -97,7 +97,7 @@ func TestServicePair(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		data := database.NewMem()
-		sched := NewScheduler()
+		sched := NewScheduler("766fFt8nuJ5qRek2", &data)
 		serv := NewService(&comp, &stor, &data, &data, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
@@ -158,7 +158,7 @@ func TestServicePair(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		data := database.NewMem()
-		sched := NewScheduler()
+		sched := NewScheduler("kRneghVzdmtScFYG", &data)
 		serv := NewService(&comp, &stor, &data, &data, &sched)
 		_, _, err := serv.Pair(ctx, "A755jF7tvnTJrPCD")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
@@ -183,7 +183,7 @@ func TestServiceVote(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		data := database.NewMem()
-		sched := NewScheduler()
+		sched := NewScheduler("8eDkyz293xggaUpr", &data)
 		serv := NewService(&comp, &stor, &data, &data, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
@@ -214,7 +214,7 @@ func TestServiceVote(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		data := database.NewMem()
-		sched := NewScheduler()
+		sched := NewScheduler("b8mKspbYz5FjQ7Mf", &data)
 		serv := NewService(&comp, &stor, &data, &data, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
@@ -245,7 +245,7 @@ func TestServiceVote(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		data := database.NewMem()
-		sched := NewScheduler()
+		sched := NewScheduler("nRQynzFJvPvcRZUt", &data)
 		serv := NewService(&comp, &stor, &data, &data, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
@@ -279,7 +279,7 @@ func TestServiceTop(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		data := database.NewMem()
-		sched := NewScheduler()
+		sched := NewScheduler("RKvUKsDj7whcrpzA", &data)
 		serv := NewService(&comp, &stor, &data, &data, &sched)
 		g, ctx := errgroup.WithContext(ctx)
 		heartbeat := make(chan struct{})
@@ -323,7 +323,7 @@ func TestServiceTop(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		data := database.NewMem()
-		sched := NewScheduler()
+		sched := NewScheduler("YNhuDMs3jKpVBM7E", &data)
 		serv := NewService(&comp, &stor, &data, &data, &sched)
 		_, err := serv.Top(ctx, "XXAzCcc6EHr6mpcH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {

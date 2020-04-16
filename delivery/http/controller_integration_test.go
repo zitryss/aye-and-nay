@@ -68,7 +68,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("HVyMn8HuDa8rdkyr", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -114,7 +114,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("mEdFrvE3549LDFzx", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -160,7 +160,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("xQWGJjTtetde2DdB", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -206,7 +206,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("eQupRzAY56Qp5E4U", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -252,7 +252,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("Au4DBRQhyEJV99wh", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -306,7 +306,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("UcNgY7Acvep8XqCc", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -392,7 +392,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("93P3AU2V6RMcFND4", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -443,7 +443,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("WTuVh4YDCdZM4af6", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handlePair()
@@ -482,7 +482,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("3L8E2zrdQtmJKEwa", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -550,7 +550,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("xGgXp5Pg5nKvGmBY", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -618,7 +618,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("RkAD9BHx8mTUBYRj", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -690,7 +690,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("qCzDFPuY53Y34mdS", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		g, ctx := errgroup.WithContext(ctx)
 		heartbeat := make(chan struct{})
@@ -770,7 +770,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
+		sched := service.NewScheduler("732qurKQkxYDsG6L", &redis)
 		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleTop()

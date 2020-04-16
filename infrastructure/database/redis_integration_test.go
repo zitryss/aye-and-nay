@@ -11,6 +11,96 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
+func TestRedisQueue(t *testing.T) {
+	cache, err := NewRedis(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	n, err := cache.Size(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 0 {
+		t.Error("n != 0")
+	}
+	err = cache.Add(context.Background(), "8wwEdmRqQnQ6Yhjy", "MMJ9P9r7qbbMrjmx")
+	if err != nil {
+		t.Error(err)
+	}
+	err = cache.Add(context.Background(), "8wwEdmRqQnQ6Yhjy", "MMJ9P9r7qbbMrjmx")
+	if err != nil {
+		t.Error(err)
+	}
+	err = cache.Add(context.Background(), "8wwEdmRqQnQ6Yhjy", "YrEQ85fcDzzTd5fS")
+	if err != nil {
+		t.Error(err)
+	}
+	err = cache.Add(context.Background(), "8wwEdmRqQnQ6Yhjy", "58ZNTHsAErKuU7Sk")
+	if err != nil {
+		t.Error(err)
+	}
+	err = cache.Add(context.Background(), "8wwEdmRqQnQ6Yhjy", "YrEQ85fcDzzTd5fS")
+	if err != nil {
+		t.Error(err)
+	}
+	n, err = cache.Size(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 3 {
+		t.Error("n != 3")
+	}
+	album, err := cache.Poll(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if err != nil {
+		t.Error(err)
+	}
+	if album != "MMJ9P9r7qbbMrjmx" {
+		t.Error("album != \"MMJ9P9r7qbbMrjmx\"")
+	}
+	n, err = cache.Size(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 2 {
+		t.Error("n != 2")
+	}
+	album, err = cache.Poll(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if err != nil {
+		t.Error(err)
+	}
+	if album != "YrEQ85fcDzzTd5fS" {
+		t.Error("album != \"YrEQ85fcDzzTd5fS\"")
+	}
+	album, err = cache.Poll(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if err != nil {
+		t.Error(err)
+	}
+	if album != "58ZNTHsAErKuU7Sk" {
+		t.Error("album != \"58ZNTHsAErKuU7Sk\"")
+	}
+	n, err = cache.Size(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 0 {
+		t.Error("n != 0")
+	}
+	album, err = cache.Poll(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if err == nil {
+		t.Error(err)
+	}
+	if album != "" {
+		t.Error("album != \"\"")
+	}
+	n, err = cache.Size(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 0 {
+		t.Error("n != 0")
+	}
+}
+
 func TestRedisPair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		cache, err := NewRedis(context.Background())
@@ -19,11 +109,11 @@ func TestRedisPair(t *testing.T) {
 		}
 		image1 := "RcBj3m9vuYPbntAE"
 		image2 := "Q3NafBGuDH9PAtS4"
-		err = cache.PushPair(context.Background(), "Pa6YTumLBRMFa7cX", [][2]string{{image1, image2}})
+		err = cache.Push(context.Background(), "Pa6YTumLBRMFa7cX", [][2]string{{image1, image2}})
 		if err != nil {
 			t.Error(err)
 		}
-		image3, image4, err := cache.PopPair(context.Background(), "Pa6YTumLBRMFa7cX")
+		image3, image4, err := cache.Pop(context.Background(), "Pa6YTumLBRMFa7cX")
 		if err != nil {
 			t.Error(err)
 		}
@@ -39,7 +129,7 @@ func TestRedisPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, _, err = cache.PopPair(context.Background(), "hP4tQHZr55JXMdnG")
+		_, _, err = cache.Pop(context.Background(), "hP4tQHZr55JXMdnG")
 		if !errors.Is(err, model.ErrPairNotFound) {
 			t.Error(err)
 		}
@@ -51,15 +141,15 @@ func TestRedisPair(t *testing.T) {
 		}
 		image1 := "5t2AMJ7NWAxBDDe4"
 		image2 := "cPp7xeV4EMka5SpM"
-		err = cache.PushPair(context.Background(), "5dVZ5tVm7QKtRjVA", [][2]string{{image1, image2}})
+		err = cache.Push(context.Background(), "5dVZ5tVm7QKtRjVA", [][2]string{{image1, image2}})
 		if err != nil {
 			t.Error(err)
 		}
-		_, _, err = cache.PopPair(context.Background(), "5dVZ5tVm7QKtRjVA")
+		_, _, err = cache.Pop(context.Background(), "5dVZ5tVm7QKtRjVA")
 		if err != nil {
 			t.Error(err)
 		}
-		_, _, err = cache.PopPair(context.Background(), "5dVZ5tVm7QKtRjVA")
+		_, _, err = cache.Pop(context.Background(), "5dVZ5tVm7QKtRjVA")
 		if !errors.Is(err, model.ErrPairNotFound) {
 			t.Error(err)
 		}
@@ -74,11 +164,11 @@ func TestRedisToken(t *testing.T) {
 		}
 		image1 := "gTwdSTUDmz9LBerC"
 		token := "kqsEDug6rK6BcHHy"
-		err = cache.SetToken(context.Background(), "A55vmoMMLWX0g1KW", token, image1)
+		err = cache.Set(context.Background(), "A55vmoMMLWX0g1KW", token, image1)
 		if err != nil {
 			t.Error(err)
 		}
-		image2, err := cache.GetImageId(context.Background(), "A55vmoMMLWX0g1KW", token)
+		image2, err := cache.Get(context.Background(), "A55vmoMMLWX0g1KW", token)
 		if err != nil {
 			t.Error(err)
 		}
@@ -93,11 +183,11 @@ func TestRedisToken(t *testing.T) {
 		}
 		image := "FvEfGeXG7xEuLREm"
 		token := "a3MmBWHGMDC7LeN9"
-		err = cache.SetToken(context.Background(), "b919qD42qhC4201o", token, image)
+		err = cache.Set(context.Background(), "b919qD42qhC4201o", token, image)
 		if err != nil {
 			t.Error(err)
 		}
-		err = cache.SetToken(context.Background(), "b919qD42qhC4201o", token, image)
+		err = cache.Set(context.Background(), "b919qD42qhC4201o", token, image)
 		if !errors.Is(err, model.ErrTokenAlreadyExists) {
 			t.Error(err)
 		}
@@ -108,7 +198,7 @@ func TestRedisToken(t *testing.T) {
 			t.Fatal(err)
 		}
 		token := "wmnAznYhVg6e8jHk"
-		_, err = cache.GetImageId(context.Background(), "b919qD42qhC4201o", token)
+		_, err = cache.Get(context.Background(), "b919qD42qhC4201o", token)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}
@@ -120,15 +210,15 @@ func TestRedisToken(t *testing.T) {
 		}
 		image := "QWfqTS8S4Hp2BzKn"
 		token := "PK4dWeYgnY9vunmp"
-		err = cache.SetToken(context.Background(), "0nq95EBOTH8I79LR", token, image)
+		err = cache.Set(context.Background(), "0nq95EBOTH8I79LR", token, image)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = cache.GetImageId(context.Background(), "0nq95EBOTH8I79LR", token)
+		_, err = cache.Get(context.Background(), "0nq95EBOTH8I79LR", token)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = cache.GetImageId(context.Background(), "0nq95EBOTH8I79LR", token)
+		_, err = cache.Get(context.Background(), "0nq95EBOTH8I79LR", token)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}

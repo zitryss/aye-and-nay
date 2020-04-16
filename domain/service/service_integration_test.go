@@ -65,7 +65,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
+		sched := NewScheduler("VK4dE8CgS82B8yC7", &redis)
 		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		_, err = serv.Album(ctx, files)
@@ -103,7 +103,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
+		sched := NewScheduler("DgWwCAxe2JUpJbHt", &redis)
 		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		_, err = serv.Album(ctx, files)
@@ -150,7 +150,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
+		sched := NewScheduler("766fFt8nuJ5qRek2", &redis)
 		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
@@ -221,7 +221,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
+		sched := NewScheduler("kRneghVzdmtScFYG", &redis)
 		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
 		_, _, err = serv.Pair(ctx, "A755jF7tvnTJrPCD")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
@@ -256,7 +256,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
+		sched := NewScheduler("8eDkyz293xggaUpr", &redis)
 		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
@@ -297,7 +297,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
+		sched := NewScheduler("b8mKspbYz5FjQ7Mf", &redis)
 		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
@@ -338,7 +338,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
+		sched := NewScheduler("nRQynzFJvPvcRZUt", &redis)
 		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
@@ -382,7 +382,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
+		sched := NewScheduler("RKvUKsDj7whcrpzA", &redis)
 		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
 		g, ctx := errgroup.WithContext(ctx)
 		heartbeat := make(chan struct{})
@@ -436,7 +436,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
+		sched := NewScheduler("YNhuDMs3jKpVBM7E", &redis)
 		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
 		_, err = serv.Top(ctx, "XXAzCcc6EHr6mpcH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {

@@ -33,7 +33,65 @@ type redis struct {
 	client *redisdb.Client
 }
 
-func (r *redis) PopPair(_ context.Context, album string) (string, string, error) {
+func (r *redis) Add(_ context.Context, queue string, album string) error {
+	key1 := "queue:" + queue + ":set"
+	ok, err := r.client.SIsMember(key1, album).Result()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	if ok {
+		return nil
+	}
+	_, err = r.client.SAdd(key1, album).Result()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	key2 := "queue:" + queue + ":list"
+	_, err = r.client.RPush(key2, album).Result()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	return nil
+}
+
+func (r *redis) Poll(_ context.Context, queue string) (string, error) {
+	key1 := "queue:" + queue + ":list"
+	album, err := r.client.LPop(key1).Result()
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+	key2 := "queue:" + queue + ":set"
+	_, err = r.client.SRem(key2, album).Result()
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+	return album, nil
+}
+
+func (r *redis) Size(_ context.Context, queue string) (int, error) {
+	key := "queue:" + queue + ":set"
+	n, err := r.client.SCard(key).Result()
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+	return int(n), nil
+}
+
+func (r *redis) Push(_ context.Context, album string, pairs [][2]string) error {
+	key := "album:" + album + ":pairs"
+	pipe := r.client.Pipeline()
+	for _, images := range pairs {
+		pipe.RPush(key, images[0]+":"+images[1])
+	}
+	pipe.Expire(key, r.conf.expiration)
+	_, err := pipe.Exec()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	return nil
+}
+
+func (r *redis) Pop(_ context.Context, album string) (string, string, error) {
 	key := "album:" + album + ":pairs"
 	n, err := r.client.LLen(key).Result()
 	if err != nil {
@@ -50,37 +108,7 @@ func (r *redis) PopPair(_ context.Context, album string) (string, string, error)
 	return images[0], images[1], nil
 }
 
-func (r *redis) PushPair(_ context.Context, album string, pairs [][2]string) error {
-	key := "album:" + album + ":pairs"
-	pipe := r.client.Pipeline()
-	for _, images := range pairs {
-		pipe.RPush(key, images[0]+":"+images[1])
-	}
-	pipe.Expire(key, r.conf.expiration)
-	_, err := pipe.Exec()
-	if err != nil {
-		return errors.Wrap(err)
-	}
-	return nil
-}
-
-func (r *redis) GetImageId(_ context.Context, album string, token string) (string, error) {
-	key := "album:" + album + ":token:" + token + ":image"
-	image, err := r.client.Get(key).Result()
-	if errors.Is(err, redisdb.Nil) {
-		return "", errors.Wrap(model.ErrTokenNotFound)
-	}
-	if err != nil {
-		return "", errors.Wrap(err)
-	}
-	err = r.client.Del(key).Err()
-	if err != nil {
-		return "", errors.Wrap(err)
-	}
-	return image, nil
-}
-
-func (r *redis) SetToken(_ context.Context, album string, token string, image string) error {
+func (r *redis) Set(_ context.Context, album string, token string, image string) error {
 	key := "album:" + album + ":token:" + token + ":image"
 	n, err := r.client.Exists(key).Result()
 	if err != nil {
@@ -94,4 +122,20 @@ func (r *redis) SetToken(_ context.Context, album string, token string, image st
 		return errors.Wrap(err)
 	}
 	return nil
+}
+
+func (r *redis) Get(_ context.Context, album string, token string) (string, error) {
+	key := "album:" + album + ":token:" + token + ":image"
+	image, err := r.client.Get(key).Result()
+	if errors.Is(err, redisdb.Nil) {
+		return "", errors.Wrap(model.ErrTokenNotFound)
+	}
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+	err = r.client.Del(key).Err()
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+	return image, nil
 }

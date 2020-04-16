@@ -220,11 +220,11 @@ func TestMemPair(t *testing.T) {
 		data := NewMem()
 		image1 := "RcBj3m9vuYPbntAE"
 		image2 := "Q3NafBGuDH9PAtS4"
-		err := data.PushPair(context.Background(), "Pa6YTumLBRMFa7cX", [][2]string{{image1, image2}})
+		err := data.Push(context.Background(), "Pa6YTumLBRMFa7cX", [][2]string{{image1, image2}})
 		if err != nil {
 			t.Error(err)
 		}
-		image3, image4, err := data.PopPair(context.Background(), "Pa6YTumLBRMFa7cX")
+		image3, image4, err := data.Pop(context.Background(), "Pa6YTumLBRMFa7cX")
 		if err != nil {
 			t.Error(err)
 		}
@@ -237,7 +237,7 @@ func TestMemPair(t *testing.T) {
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		data := NewMem()
-		_, _, err := data.PopPair(context.Background(), "hP4tQHZr55JXMdnG")
+		_, _, err := data.Pop(context.Background(), "hP4tQHZr55JXMdnG")
 		if !errors.Is(err, model.ErrPairNotFound) {
 			t.Error(err)
 		}
@@ -246,15 +246,15 @@ func TestMemPair(t *testing.T) {
 		data := NewMem()
 		image1 := "5t2AMJ7NWAxBDDe4"
 		image2 := "cPp7xeV4EMka5SpM"
-		err := data.PushPair(context.Background(), "5dVZ5tVm7QKtRjVA", [][2]string{{image1, image2}})
+		err := data.Push(context.Background(), "5dVZ5tVm7QKtRjVA", [][2]string{{image1, image2}})
 		if err != nil {
 			t.Error(err)
 		}
-		_, _, err = data.PopPair(context.Background(), "5dVZ5tVm7QKtRjVA")
+		_, _, err = data.Pop(context.Background(), "5dVZ5tVm7QKtRjVA")
 		if err != nil {
 			t.Error(err)
 		}
-		_, _, err = data.PopPair(context.Background(), "5dVZ5tVm7QKtRjVA")
+		_, _, err = data.Pop(context.Background(), "5dVZ5tVm7QKtRjVA")
 		if !errors.Is(err, model.ErrPairNotFound) {
 			t.Error(err)
 		}
@@ -266,11 +266,11 @@ func TestMemToken(t *testing.T) {
 		data := NewMem()
 		image1 := "gTwdSTUDmz9LBerC"
 		token := "kqsEDug6rK6BcHHy"
-		err := data.SetToken(context.Background(), "A55vmoMMLWX0g1KW", token, image1)
+		err := data.Set(context.Background(), "A55vmoMMLWX0g1KW", token, image1)
 		if err != nil {
 			t.Error(err)
 		}
-		image2, err := data.GetImageId(context.Background(), "A55vmoMMLWX0g1KW", token)
+		image2, err := data.Get(context.Background(), "A55vmoMMLWX0g1KW", token)
 		if err != nil {
 			t.Error(err)
 		}
@@ -282,11 +282,11 @@ func TestMemToken(t *testing.T) {
 		data := NewMem()
 		image := "FvEfGeXG7xEuLREm"
 		token := "a3MmBWHGMDC7LeN9"
-		err := data.SetToken(context.Background(), "b919qD42qhC4201o", token, image)
+		err := data.Set(context.Background(), "b919qD42qhC4201o", token, image)
 		if err != nil {
 			t.Error(err)
 		}
-		err = data.SetToken(context.Background(), "b919qD42qhC4201o", token, image)
+		err = data.Set(context.Background(), "b919qD42qhC4201o", token, image)
 		if !errors.Is(err, model.ErrTokenAlreadyExists) {
 			t.Error(err)
 		}
@@ -294,7 +294,7 @@ func TestMemToken(t *testing.T) {
 	t.Run("Negative2", func(t *testing.T) {
 		data := NewMem()
 		token := "wmnAznYhVg6e8jHk"
-		_, err := data.GetImageId(context.Background(), "b919qD42qhC4201o", token)
+		_, err := data.Get(context.Background(), "b919qD42qhC4201o", token)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}
@@ -303,15 +303,15 @@ func TestMemToken(t *testing.T) {
 		data := NewMem()
 		image := "QWfqTS8S4Hp2BzKn"
 		token := "PK4dWeYgnY9vunmp"
-		err := data.SetToken(context.Background(), "0nq95EBOTH8I79LR", token, image)
+		err := data.Set(context.Background(), "0nq95EBOTH8I79LR", token, image)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = data.GetImageId(context.Background(), "0nq95EBOTH8I79LR", token)
+		_, err = data.Get(context.Background(), "0nq95EBOTH8I79LR", token)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = data.GetImageId(context.Background(), "0nq95EBOTH8I79LR", token)
+		_, err = data.Get(context.Background(), "0nq95EBOTH8I79LR", token)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}

@@ -53,7 +53,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}()
 		ctx := context.Background()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -65,8 +65,8 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
-		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := NewScheduler("VK4dE8CgS82B8yC7", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
@@ -91,7 +91,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}()
 		ctx := context.Background()
 		comp := compressor.NewFail()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -103,8 +103,8 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
-		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := NewScheduler("DgWwCAxe2JUpJbHt", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		_, err = serv.Album(ctx, files)
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
@@ -138,7 +138,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -150,8 +150,8 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
-		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := NewScheduler("766fFt8nuJ5qRek2", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -209,7 +209,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -221,8 +221,8 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
-		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := NewScheduler("kRneghVzdmtScFYG", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
 		_, _, err = serv.Pair(ctx, "A755jF7tvnTJrPCD")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
@@ -244,7 +244,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -256,8 +256,8 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
-		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := NewScheduler("8eDkyz293xggaUpr", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -285,7 +285,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -297,8 +297,8 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
-		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := NewScheduler("b8mKspbYz5FjQ7Mf", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -326,7 +326,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -338,8 +338,8 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
-		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := NewScheduler("nRQynzFJvPvcRZUt", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -370,7 +370,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -382,8 +382,8 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
-		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := NewScheduler("RKvUKsDj7whcrpzA", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
 		g, ctx := errgroup.WithContext(ctx)
 		heartbeat := make(chan struct{})
 		serv.StartWorkingPool(ctx, g, heartbeat)
@@ -424,7 +424,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -436,8 +436,8 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler()
-		serv := NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := NewScheduler("YNhuDMs3jKpVBM7E", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
 		_, err = serv.Top(ctx, "XXAzCcc6EHr6mpcH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)

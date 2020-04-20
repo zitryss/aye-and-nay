@@ -5,6 +5,8 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/emirpasic/gods/sets/linkedhashset"
+
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
@@ -14,6 +16,7 @@ func NewMem() mem {
 		albums: map[string]model.Album{},
 		pairs:  map[string]*[][2]string{},
 		tokens: map[string]string{},
+		queues: map[string]*linkedhashset.Set{},
 	}
 }
 
@@ -22,6 +25,7 @@ type mem struct {
 	albums map[string]model.Album
 	pairs  map[string]*[][2]string
 	tokens map[string]string
+	queues map[string]*linkedhashset.Set
 }
 
 func (m *mem) SaveAlbum(_ context.Context, alb model.Album) error {
@@ -148,7 +152,59 @@ func (m *mem) CheckAlbum(_ context.Context, album string) (bool, error) {
 	return true, nil
 }
 
-func (m *mem) PopPair(_ context.Context, album string) (string, string, error) {
+func (m *mem) Add(_ context.Context, queue string, album string) error {
+	m.Lock()
+	defer m.Unlock()
+	q, ok := m.queues[queue]
+	if !ok {
+		q = linkedhashset.New()
+		m.queues[queue] = q
+	}
+	q.Add(album)
+	return nil
+}
+
+func (m *mem) Poll(_ context.Context, queue string) (string, error) {
+	m.Lock()
+	defer m.Unlock()
+	q, ok := m.queues[queue]
+	if !ok {
+		return "", errors.Wrap(model.ErrUnknown)
+	}
+	it := q.Iterator()
+	it.Next()
+	album := it.Value().(string)
+	q.Remove(album)
+	return album, nil
+}
+
+func (m *mem) Size(_ context.Context, queue string) (int, error) {
+	m.Lock()
+	defer m.Unlock()
+	q, ok := m.queues[queue]
+	if !ok {
+		return 0, nil
+	}
+	n := q.Size()
+	return n, nil
+}
+
+func (m *mem) Push(_ context.Context, album string, pairs [][2]string) error {
+	m.Lock()
+	defer m.Unlock()
+	key := "album:" + album + ":pairs"
+	p, ok := m.pairs[key]
+	if !ok {
+		p = &[][2]string{}
+		m.pairs[key] = p
+	}
+	for _, images := range pairs {
+		*p = append(*p, [2]string{images[0], images[1]})
+	}
+	return nil
+}
+
+func (m *mem) Pop(_ context.Context, album string) (string, string, error) {
 	m.Lock()
 	defer m.Unlock()
 	key := "album:" + album + ":pairs"
@@ -164,34 +220,7 @@ func (m *mem) PopPair(_ context.Context, album string) (string, string, error) {
 	return images[0], images[1], nil
 }
 
-func (m *mem) PushPair(_ context.Context, album string, pairs [][2]string) error {
-	m.Lock()
-	defer m.Unlock()
-	key := "album:" + album + ":pairs"
-	p, ok := m.pairs[key]
-	if !ok {
-		p = &[][2]string{}
-		m.pairs[key] = p
-	}
-	for _, images := range pairs {
-		*p = append(*p, [2]string{images[0], images[1]})
-	}
-	return nil
-}
-
-func (m *mem) GetImageId(_ context.Context, album string, token string) (string, error) {
-	m.Lock()
-	defer m.Unlock()
-	key := "album:" + album + ":token:" + token + ":image"
-	image, ok := m.tokens[key]
-	if !ok {
-		return "", errors.Wrap(model.ErrTokenNotFound)
-	}
-	delete(m.tokens, key)
-	return image, nil
-}
-
-func (m *mem) SetToken(_ context.Context, album string, token string, image string) error {
+func (m *mem) Set(_ context.Context, album string, token string, image string) error {
 	m.Lock()
 	defer m.Unlock()
 	key := "album:" + album + ":token:" + token + ":image"
@@ -201,4 +230,16 @@ func (m *mem) SetToken(_ context.Context, album string, token string, image stri
 	}
 	m.tokens[key] = image
 	return nil
+}
+
+func (m *mem) Get(_ context.Context, album string, token string) (string, error) {
+	m.Lock()
+	defer m.Unlock()
+	key := "album:" + album + ":token:" + token + ":image"
+	image, ok := m.tokens[key]
+	if !ok {
+		return "", errors.Wrap(model.ErrTokenNotFound)
+	}
+	delete(m.tokens, key)
+	return image, nil
 }

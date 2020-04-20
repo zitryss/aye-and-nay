@@ -23,9 +23,9 @@ func TestHtmlHandleAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		data := database.NewMem()
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &data, &data, &sched)
+		mem := database.NewMem()
+		sched := service.NewScheduler("y9FYFBmQyvdzYBY7", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
 		html, err := newHtml(&serv)
 		if err != nil {
 			t.Error(err)
@@ -51,9 +51,9 @@ func TestHtmlHandlePair(t *testing.T) {
 		}()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		data := database.NewMem()
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &data, &data, &sched)
+		mem := database.NewMem()
+		sched := service.NewScheduler("9zYp2QUKJx8nsuKX", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
 		contr := newController(&serv)
 		html, err := newHtml(&serv)
 		if err != nil {
@@ -95,9 +95,9 @@ func TestHtmlHandlePair(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		data := database.NewMem()
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &data, &data, &sched)
+		mem := database.NewMem()
+		sched := service.NewScheduler("NDUAttuKk2NaJAwq", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
 		html, err := newHtml(&serv)
 		if err != nil {
 			t.Error(err)
@@ -125,9 +125,9 @@ func TestHtmlHandleTop(t *testing.T) {
 		}()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		data := database.NewMem()
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &data, &data, &sched)
+		mem := database.NewMem()
+		sched := service.NewScheduler("zfAL4ZAqQ84kQSHf", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
 		contr := newController(&serv)
 		html, err := newHtml(&serv)
 		if err != nil {
@@ -169,9 +169,9 @@ func TestHtmlHandleTop(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		data := database.NewMem()
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &data, &data, &sched)
+		mem := database.NewMem()
+		sched := service.NewScheduler("WDsKDNfNM4Bt7UuB", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
 		html, err := newHtml(&serv)
 		if err != nil {
 			t.Error(err)

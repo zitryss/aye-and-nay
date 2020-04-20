@@ -56,7 +56,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			}
 		}()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -68,8 +68,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("HVyMn8HuDa8rdkyr", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -102,7 +102,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -114,8 +114,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("mEdFrvE3549LDFzx", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -148,7 +148,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -160,8 +160,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("xQWGJjTtetde2DdB", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -194,7 +194,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -206,8 +206,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("eQupRzAY56Qp5E4U", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -240,7 +240,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 	})
 	t.Run("Negative4", func(t *testing.T) {
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -252,8 +252,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("Au4DBRQhyEJV99wh", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -294,7 +294,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			}
 		}()
 		comp := compressor.NewFail()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -306,8 +306,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("UcNgY7Acvep8XqCc", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -380,7 +380,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		rand.Shuffle = func(n int, swap func(i int, j int)) {
 		}
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -392,8 +392,8 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("93P3AU2V6RMcFND4", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -431,7 +431,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 	})
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -443,8 +443,8 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("WTuVh4YDCdZM4af6", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handlePair()
 		w := httptest.NewRecorder()
@@ -470,7 +470,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		rand.Shuffle = func(n int, swap func(i int, j int)) {
 		}
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -482,8 +482,8 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("3L8E2zrdQtmJKEwa", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -538,7 +538,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		rand.Shuffle = func(n int, swap func(i int, j int)) {
 		}
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -550,8 +550,8 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("xGgXp5Pg5nKvGmBY", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -606,7 +606,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		rand.Shuffle = func(n int, swap func(i int, j int)) {
 		}
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -618,8 +618,8 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("RkAD9BHx8mTUBYRj", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -678,7 +678,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -690,8 +690,8 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("qCzDFPuY53Y34mdS", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		g, ctx := errgroup.WithContext(ctx)
 		heartbeat := make(chan struct{})
 		serv.StartWorkingPool(ctx, g, heartbeat)
@@ -758,7 +758,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 	})
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()
-		stor, err := storage.NewMinio()
+		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -770,8 +770,8 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler()
-		serv := service.NewService(&comp, &stor, &mongo, &redis, &sched)
+		sched := service.NewScheduler("732qurKQkxYDsG6L", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
 		contr := newController(&serv)
 		fn := contr.handleTop()
 		w := httptest.NewRecorder()

@@ -16,16 +16,16 @@ import (
 
 func TestMongoAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
 		alb := AlbumEmptyFactory("EMqPQEyhp5cPTnaV")
-		err = pers.SaveAlbum(context.Background(), alb)
+		err = mongo.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		edgs, err := pers.GetEdges(context.Background(), "EMqPQEyhp5cPTnaV")
+		edgs, err := mongo.GetEdges(context.Background(), "EMqPQEyhp5cPTnaV")
 		if err != nil {
 			t.Error(err)
 		}
@@ -34,37 +34,37 @@ func TestMongoAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
 		alb := AlbumFullFactory("6FsUPNGm8XT89Vjg")
-		err = pers.SaveAlbum(context.Background(), alb)
+		err = mongo.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
 		alb = AlbumFullFactory("6FsUPNGm8XT89Vjg")
-		err = pers.SaveAlbum(context.Background(), alb)
+		err = mongo.SaveAlbum(context.Background(), alb)
 		if !errors.Is(err, model.ErrAblumAlreadyExists) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = pers.GetImages(context.Background(), "bZBnH7G6zFDZ9WHm")
+		_, err = mongo.GetImages(context.Background(), "bZBnH7G6zFDZ9WHm")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = pers.GetEdges(context.Background(), "qbkzA2HqgELCxB5P")
+		_, err = mongo.GetEdges(context.Background(), "qbkzA2HqgELCxB5P")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -73,26 +73,26 @@ func TestMongoAlbum(t *testing.T) {
 
 func TestMongoVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
 		alb := AlbumFullFactory("nAUeQgkR82njjGjB")
-		err = pers.SaveAlbum(context.Background(), alb)
+		err = mongo.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
 		imageFrom := "442BbctbQhcQHrgH"
 		imageTo := "qBmu5KGTqCdvfgTU"
-		err = pers.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
+		err = mongo.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
 		if err != nil {
 			t.Error(err)
 		}
-		err = pers.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
+		err = mongo.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
 		if err != nil {
 			t.Error(err)
 		}
-		edgs, err := pers.GetEdges(context.Background(), "nAUeQgkR82njjGjB")
+		edgs, err := mongo.GetEdges(context.Background(), "nAUeQgkR82njjGjB")
 		if err != nil {
 			t.Error(err)
 		}
@@ -101,13 +101,13 @@ func TestMongoVote(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
 		imageFrom := "hQXK3DTRrQ8AHCcd"
 		imageTo := "gukYVmHFmnB6fg7Q"
-		err = pers.SaveVote(context.Background(), "Xuz8ZqVt8k3mAC6d", imageFrom, imageTo)
+		err = mongo.SaveVote(context.Background(), "Xuz8ZqVt8k3mAC6d", imageFrom, imageTo)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -116,12 +116,12 @@ func TestMongoVote(t *testing.T) {
 
 func TestMongoRatings(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
 		alb := AlbumFullFactory("Tz6NXWHXFzvWpumP")
-		err = pers.SaveAlbum(context.Background(), alb)
+		err = mongo.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
@@ -137,11 +137,11 @@ func TestMongoRatings(t *testing.T) {
 		vector[img3.Id] = img3.Rating
 		vector[img4.Id] = img4.Rating
 		vector[img5.Id] = img5.Rating
-		err = pers.UpdateRatings(context.Background(), "Tz6NXWHXFzvWpumP", vector)
+		err = mongo.UpdateRatings(context.Background(), "Tz6NXWHXFzvWpumP", vector)
 		if err != nil {
 			t.Error(err)
 		}
-		imgs2, err := pers.GetImagesOrdered(context.Background(), "Tz6NXWHXFzvWpumP")
+		imgs2, err := mongo.GetImagesOrdered(context.Background(), "Tz6NXWHXFzvWpumP")
 		if err != nil {
 			t.Error(err)
 		}
@@ -151,7 +151,7 @@ func TestMongoRatings(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -166,7 +166,7 @@ func TestMongoRatings(t *testing.T) {
 		vector[img3.Id] = img3.Rating
 		vector[img4.Id] = img4.Rating
 		vector[img5.Id] = img5.Rating
-		err = pers.UpdateRatings(context.Background(), "PB6wujzcRKjGKVzd", vector)
+		err = mongo.UpdateRatings(context.Background(), "PB6wujzcRKjGKVzd", vector)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -175,16 +175,16 @@ func TestMongoRatings(t *testing.T) {
 
 func TestMongoSort(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
 		alb := AlbumFullFactory("Xr5qXyfQAgnSNTzM")
-		err = pers.SaveAlbum(context.Background(), alb)
+		err = mongo.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		imgs1, err := pers.GetImagesOrdered(context.Background(), "Xr5qXyfQAgnSNTzM")
+		imgs1, err := mongo.GetImagesOrdered(context.Background(), "Xr5qXyfQAgnSNTzM")
 		if err != nil {
 			t.Error(err)
 		}
@@ -199,11 +199,11 @@ func TestMongoSort(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = pers.GetImagesOrdered(context.Background(), "M6cMTehk3LfV5CBy")
+		_, err = mongo.GetImagesOrdered(context.Background(), "M6cMTehk3LfV5CBy")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -212,16 +212,16 @@ func TestMongoSort(t *testing.T) {
 
 func TestMongoImage(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
 		alb := AlbumEmptyFactory("k9YA7PJmcMcdqEcR")
-		err = pers.SaveAlbum(context.Background(), alb)
+		err = mongo.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		img1, err := pers.GetImage(context.Background(), "k9YA7PJmcMcdqEcR", "VYFczQcF45x7gLYH")
+		img1, err := mongo.GetImage(context.Background(), "k9YA7PJmcMcdqEcR", "VYFczQcF45x7gLYH")
 		if err != nil {
 			t.Error(err)
 		}
@@ -231,26 +231,26 @@ func TestMongoImage(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = pers.GetImage(context.Background(), "8856LWPRnuSckPCa", "VYFczQcF45x7gLYH")
+		_, err = mongo.GetImage(context.Background(), "8856LWPRnuSckPCa", "VYFczQcF45x7gLYH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		pers, err := NewMongo()
+		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
 		}
 		alb := AlbumEmptyFactory("g3VSAWnwX5fDkjcr")
-		err = pers.SaveAlbum(context.Background(), alb)
+		err = mongo.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = pers.GetImage(context.Background(), "g3VSAWnwX5fDkjcr", "W3rdTdrbRN3jedHB")
+		_, err = mongo.GetImage(context.Background(), "g3VSAWnwX5fDkjcr", "W3rdTdrbRN3jedHB")
 		if !errors.Is(err, model.ErrImageNotFound) {
 			t.Error(err)
 		}

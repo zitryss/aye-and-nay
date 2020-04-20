@@ -32,14 +32,14 @@ func TestMain(m *testing.M) {
 
 func TestMinioUpload(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		stor, err := NewMinio()
+		minio, err := NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
 		img1 := model.Image{Id: "bx3TWdDEQrF294dx", B: Png()}
 		img2 := model.Image{Id: "JtnKxUarcWeJ342R", B: Png()}
 		imgs := []model.Image{img1, img2}
-		err = stor.Upload(context.Background(), "42QbW4V2", imgs)
+		err = minio.Upload(context.Background(), "42QbW4V2", imgs)
 		if err != nil {
 			t.Error(err)
 		}
@@ -57,14 +57,14 @@ func TestMinioUpload(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		stor, err := NewMinio()
+		minio, err := NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
 		img1 := model.Image{Id: "GXmZcfJZz4mRDq5R", B: nil}
 		img2 := model.Image{Id: "VTq25ujPhDYsxbJ2", B: nil}
 		imgs := []model.Image{img1, img2}
-		err = stor.Upload(context.Background(), "bSTApWdG", imgs)
+		err = minio.Upload(context.Background(), "bSTApWdG", imgs)
 		if err != nil {
 			t.Error(err)
 		}
@@ -82,13 +82,13 @@ func TestMinioUpload(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		stor, err := NewMinio()
+		minio, err := NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
 		img1 := model.Image{Id: "tkNzABZkEw2PdVHv", B: Png()}
 		imgs := []model.Image{img1}
-		err = stor.Upload(context.Background(), "fhR5PQN6", imgs)
+		err = minio.Upload(context.Background(), "fhR5PQN6", imgs)
 		if err != nil {
 			t.Error(err)
 		}
@@ -100,12 +100,12 @@ func TestMinioUpload(t *testing.T) {
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		stor, err := NewMinio()
+		minio, err := NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
 		imgs := []model.Image(nil)
-		err = stor.Upload(context.Background(), "3dUtqgkY", imgs)
+		err = minio.Upload(context.Background(), "3dUtqgkY", imgs)
 		if err != nil {
 			t.Error(err)
 		}

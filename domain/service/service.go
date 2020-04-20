@@ -17,11 +17,11 @@ func NewService(
 	comp model.Compresser,
 	stor model.Storager,
 	pers model.Persister,
-	cache model.Cacher,
+	temp model.Temper,
 	sched *scheduler,
 ) service {
 	conf := newServiceConfig()
-	serv := service{conf, comp, stor, pers, cache, sched}
+	serv := service{conf, comp, stor, pers, temp, temp, sched}
 	return serv
 }
 
@@ -30,7 +30,8 @@ type service struct {
 	comp  model.Compresser
 	stor  model.Storager
 	pers  model.Persister
-	cache model.Cacher
+	pair  model.Stacker
+	token model.Tokener
 	sched *scheduler // don't copy sync primitives
 }
 
@@ -58,7 +59,18 @@ func (s *service) StartWorkingPool(ctx context.Context, g *errgroup.Group, heart
 					}
 				}()
 				for {
-					album := s.sched.get()
+					select {
+					case <-ctx.Done():
+						return
+					default:
+					}
+					album, err := s.sched.poll(ctx)
+					if err != nil {
+						err = errors.Wrap(err)
+						handleError(err)
+						e = err
+						continue
+					}
 					select {
 					case <-ctx.Done():
 						return
@@ -126,13 +138,13 @@ func (s *service) Album(ctx context.Context, files [][]byte) (string, error) {
 }
 
 func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Image, error) {
-	image1, image2, err := s.cache.PopPair(ctx, album)
+	image1, image2, err := s.pair.Pop(ctx, album)
 	if errors.Is(err, model.ErrPairNotFound) {
 		err = s.genPairs(ctx, album)
 		if err != nil {
 			return model.Image{}, model.Image{}, errors.Wrap(err)
 		}
-		image1, image2, err = s.cache.PopPair(ctx, album)
+		image1, image2, err = s.pair.Pop(ctx, album)
 	}
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
@@ -149,7 +161,7 @@ func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Im
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	err = s.cache.SetToken(ctx, album, token1, img1.Id)
+	err = s.token.Set(ctx, album, token1, img1.Id)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
@@ -158,7 +170,7 @@ func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Im
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	err = s.cache.SetToken(ctx, album, token2, img2.Id)
+	err = s.token.Set(ctx, album, token2, img2.Id)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
@@ -180,7 +192,7 @@ func (s *service) genPairs(ctx context.Context, album string) error {
 		pairs = append(pairs, [2]string{image1, image2})
 	}
 	rand.Shuffle(len(pairs), func(i, j int) { pairs[i], pairs[j] = pairs[j], pairs[i] })
-	err = s.cache.PushPair(ctx, album, pairs)
+	err = s.pair.Push(ctx, album, pairs)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -188,11 +200,11 @@ func (s *service) genPairs(ctx context.Context, album string) error {
 }
 
 func (s *service) Vote(ctx context.Context, album string, tokenFrom string, tokenTo string) error {
-	imageFrom, err := s.cache.GetImageId(ctx, album, tokenFrom)
+	imageFrom, err := s.token.Get(ctx, album, tokenFrom)
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	imageTo, err := s.cache.GetImageId(ctx, album, tokenTo)
+	imageTo, err := s.token.Get(ctx, album, tokenTo)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -200,7 +212,10 @@ func (s *service) Vote(ctx context.Context, album string, tokenFrom string, toke
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	s.sched.put(album)
+	err = s.sched.add(ctx, album)
+	if err != nil {
+		return errors.Wrap(err)
+	}
 	return nil
 }
 
@@ -220,14 +235,20 @@ func (s *service) Exists(ctx context.Context, album string) (bool, error) {
 	return found, nil
 }
 
-func NewScheduler() scheduler {
-	return scheduler{cond: sync.NewCond(&sync.Mutex{})}
+func NewScheduler(name string, queue model.Queuer) scheduler {
+	return scheduler{
+		name:   name,
+		cond:   sync.NewCond(&sync.Mutex{}),
+		closed: false,
+		queue:  queue,
+	}
 }
 
 type scheduler struct {
+	name   string
 	cond   *sync.Cond
 	closed bool
-	ids    []string
+	queue  model.Queuer
 }
 
 func (s *scheduler) Monitor(ctx context.Context) {
@@ -244,28 +265,37 @@ func (s *scheduler) close() {
 	s.cond.Broadcast()
 }
 
-func (s *scheduler) put(newId string) {
+func (s *scheduler) add(ctx context.Context, album string) error {
 	s.cond.L.Lock()
 	defer s.cond.L.Unlock()
-	for _, id := range s.ids {
-		if id == newId {
-			return
-		}
+	err := s.queue.Add(ctx, s.name, album)
+	if err != nil {
+		return errors.Wrap(err)
 	}
-	s.ids = append(s.ids, newId)
 	s.cond.Signal()
+	return nil
 }
 
-func (s *scheduler) get() string {
+func (s *scheduler) poll(ctx context.Context) (string, error) {
 	s.cond.L.Lock()
 	defer s.cond.L.Unlock()
-	for len(s.ids) == 0 {
+	n, err := s.queue.Size(ctx, s.name)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+	for n == 0 {
 		s.cond.Wait()
 		if s.closed {
-			return ""
+			return "", nil
+		}
+		n, err = s.queue.Size(ctx, s.name)
+		if err != nil {
+			return "", errors.Wrap(err)
 		}
 	}
-	id := s.ids[0]
-	s.ids = s.ids[1:]
-	return id
+	album, err := s.queue.Poll(ctx, s.name)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+	return album, nil
 }

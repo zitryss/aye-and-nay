@@ -42,7 +42,7 @@ type docker struct {
 
 func (d *docker) RunMinio() {
 	repository := "minio/minio"
-	tag := "RELEASE.2019-12-17T23-16-33Z"
+	tag := "RELEASE.2020-04-15T19-42-18Z"
 	accessKey := viper.GetString("minio.accessKey")
 	secretKey := viper.GetString("minio.secretKey")
 	env := []string{"MINIO_ACCESS_KEY=" + accessKey, "MINIO_SECRET_KEY=" + secretKey}

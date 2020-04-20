@@ -31,7 +31,7 @@ type Persister interface {
 	CheckAlbum(ctx context.Context, album string) (bool, error)
 }
 
-type Cacher interface {
+type Temper interface {
 	Queuer
 	Stacker
 	Tokener

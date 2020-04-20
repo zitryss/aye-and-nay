@@ -82,7 +82,7 @@ func main() {
 		pers = &mem
 	}
 
-	cache := model.Cacher(nil)
+	temp := model.Temper(nil)
 	if viper.GetBool("redis.use") {
 		log.Info("connecting to redis")
 		redis, err := database.NewRedis(ctx)
@@ -90,16 +90,16 @@ func main() {
 			log.Critical(err)
 			os.Exit(1)
 		}
-		cache = &redis
+		temp = &redis
 	} else {
 		mem := database.NewMem()
-		cache = &mem
+		temp = &mem
 	}
 
-	sched := service.NewScheduler("calculation", cache)
+	sched := service.NewScheduler("calculation", temp)
 	sched.Monitor(ctx)
 
-	serv := service.NewService(comp, stor, pers, cache, &sched)
+	serv := service.NewService(comp, stor, pers, temp, &sched)
 
 	g, ctx := errgroup.WithContext(ctx)
 	heartbeat := chan struct{}(nil)

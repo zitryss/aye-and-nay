@@ -17,11 +17,11 @@ func NewService(
 	comp model.Compresser,
 	stor model.Storager,
 	pers model.Persister,
-	cache model.Cacher,
+	temp model.Temper,
 	sched *scheduler,
 ) service {
 	conf := newServiceConfig()
-	serv := service{conf, comp, stor, pers, cache, cache, sched}
+	serv := service{conf, comp, stor, pers, temp, temp, sched}
 	return serv
 }
 

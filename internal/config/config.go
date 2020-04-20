@@ -26,7 +26,7 @@ func init() {
 	viper.Set("minio.accessKey", "12345678")
 	viper.Set("minio.secretKey", "qwertyui")
 	viper.Set("minio.secure", false)
-	viper.Set("minio.retry.times", 4)
+	viper.Set("minio.retry.times", 12)
 	viper.Set("minio.retry.pause", "5s")
 	viper.Set("minio.retry.timeout", "5s")
 	viper.Set("minio.location", "eu-central-1")

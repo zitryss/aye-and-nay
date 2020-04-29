@@ -1,9 +1,11 @@
 package http
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -57,7 +59,9 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			if err != nil {
 				return nil, request{}, errors.Wrap(err)
 			}
-			b, err := ioutil.ReadAll(f)
+			dst := bytes.Buffer{}
+			src := bufio.NewReader(f)
+			b, err := src.Peek(512)
 			if err != nil {
 				_ = f.Close()
 				return nil, request{}, errors.Wrap(err)
@@ -67,7 +71,12 @@ func (c *controller) handleAlbum() httprouter.Handle {
 				_ = f.Close()
 				return nil, request{}, errors.Wrap(model.ErrNotImage)
 			}
-			req.files = append(req.files, b)
+			_, err = io.Copy(&dst, src)
+			if err != nil {
+				_ = f.Close()
+				return nil, request{}, errors.Wrap(err)
+			}
+			req.files = append(req.files, dst.Bytes())
 			err = f.Close()
 			if err != nil {
 				return nil, request{}, errors.Wrap(err)

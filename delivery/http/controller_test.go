@@ -630,3 +630,53 @@ func TestControllerHandleTop(t *testing.T) {
 		CheckBody(t, w, `Album Not Found`+"\n")
 	})
 }
+
+func BenchmarkControllerHandleAlbum(b *testing.B) {
+	b.ReportAllocs()
+	rand.Id = func() func(int) (string, error) {
+		id := "MchqrYMkMPmm5z2t"
+		i := 0
+		return func(length int) (string, error) {
+			i++
+			return id + strconv.Itoa(i), nil
+		}
+	}()
+	comp := compressor.NewMock()
+	stor := storage.NewMock()
+	mem := database.NewMem()
+	sched := service.NewScheduler("t46W276nEp59gXyr", &mem)
+	serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+	contr := newController(&serv)
+	fn := contr.handleAlbum()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		b.StopTimer()
+		w := httptest.NewRecorder()
+		body := bytes.Buffer{}
+		multi := multipart.NewWriter(&body)
+		for j := 0; j < 333; j++ {
+			for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+				part, err := multi.CreateFormFile("images", filename)
+				if err != nil {
+					b.Error(err)
+				}
+				data, err := ioutil.ReadFile("../../testdata/" + filename)
+				if err != nil {
+					b.Error(err)
+				}
+				_, err = part.Write(data)
+				if err != nil {
+					b.Error(err)
+				}
+			}
+		}
+		err := multi.Close()
+		if err != nil {
+			b.Error(err)
+		}
+		r := httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", multi.FormDataContentType())
+		b.StartTimer()
+		fn(w, r, nil)
+	}
+}

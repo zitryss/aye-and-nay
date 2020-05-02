@@ -58,7 +58,6 @@ minio:
     pause: 5s
     timeout: 5s
   location: eu-central-1
-  connections: 20 # per album
   prefix: http://localhost:9000
 mongo:
   use: true

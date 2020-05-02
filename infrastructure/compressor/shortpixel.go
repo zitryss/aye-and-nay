@@ -10,8 +10,6 @@ import (
 	"net/http"
 	"time"
 
-	"golang.org/x/sync/errgroup"
-
 	"github.com/zitryss/aye-and-nay/domain/model"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -37,44 +35,17 @@ func (sp *shortpixel) Ping() error {
 }
 
 func (sp *shortpixel) Compress(ctx context.Context, imgs []model.Image) error {
-	sem := make(chan struct{}, sp.conf.connections)
-	g, ctx := errgroup.WithContext(ctx)
 	for i := range imgs {
-		sem <- struct{}{}
 		img := &imgs[i]
-		g.Go(func() (e error) {
-			defer func() { <-sem }()
-			defer func() {
-				v := recover()
-				if v == nil {
-					return
-				}
-				err, ok := v.(error)
-				if ok {
-					e = errors.Wrap(err)
-				} else {
-					e = errors.Wrapf(model.ErrUnknown, "%v", v)
-				}
-			}()
-			err := sp.upload(ctx, img)
-			if err != nil {
-				e = errors.Wrap(err)
-				return
-			}
-			err = sp.download(ctx, img)
-			if err != nil {
-				e = errors.Wrap(err)
-				return
-			}
-			return
-		})
-	}
-	for i := 0; i < sp.conf.connections; i++ {
-		sem <- struct{}{}
-	}
-	err := g.Wait()
-	if err != nil {
-		return errors.Wrap(err)
+		err := sp.upload(ctx, img)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		err = sp.download(ctx, img)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		return nil
 	}
 	return nil
 }

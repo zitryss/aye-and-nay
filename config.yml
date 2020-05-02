@@ -38,7 +38,6 @@ shortpixel:
   url: https://api.shortpixel.com/v2/post-reducer.php
   url2: https://api.shortpixel.com/v2/reducer.php
   apiKey: abcdefghijklmnopqrst
-  connections: 20 # per album
   retry:
     times: 2
     pause: 10s

@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	minios3 "github.com/minio/minio-go/v6"
-	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -86,43 +85,17 @@ type minio struct {
 }
 
 func (m *minio) Upload(ctx context.Context, album string, imgs []model.Image) error {
-	sem := make(chan struct{}, m.conf.connections)
-	g, ctx := errgroup.WithContext(ctx)
 	for i := range imgs {
-		sem <- struct{}{}
 		img := &imgs[i]
-		g.Go(func() (e error) {
-			defer func() { <-sem }()
-			defer func() {
-				v := recover()
-				if v == nil {
-					return
-				}
-				err, ok := v.(error)
-				if ok {
-					e = errors.Wrap(err)
-				} else {
-					e = errors.Wrapf(model.ErrUnknown, "%v", v)
-				}
-			}()
-			filename := "albums/" + album + "/images/" + img.Id
-			buf := bytes.NewBuffer(img.B)
-			img.B = nil
-			_, err := m.client.PutObjectWithContext(ctx, "aye-and-nay", filename, buf, int64(buf.Len()), minios3.PutObjectOptions{})
-			if err != nil {
-				e = errors.Wrap(err)
-				return
-			}
-			img.Src = m.conf.prefix + "/aye-and-nay/" + filename
-			return
-		})
-	}
-	for i := 0; i < m.conf.connections; i++ {
-		sem <- struct{}{}
-	}
-	err := g.Wait()
-	if err != nil {
-		return errors.Wrap(err)
+		filename := "albums/" + album + "/images/" + img.Id
+		buf := bytes.NewBuffer(img.B)
+		img.B = nil
+		_, err := m.client.PutObjectWithContext(ctx, "aye-and-nay", filename, buf, int64(buf.Len()), minios3.PutObjectOptions{})
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		img.Src = m.conf.prefix + "/aye-and-nay/" + filename
+		return nil
 	}
 	return nil
 }

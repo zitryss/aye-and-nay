@@ -22,6 +22,9 @@ type Storager interface {
 
 type Persister interface {
 	SaveAlbum(ctx context.Context, alb Album) error
+	CountImages(ctx context.Context, album string) (int, error)
+	CountImagesCompressed(ctx context.Context, album string) (int, error)
+	UpdateCompressionStatus(ctx context.Context, album string, image string) error
 	GetImage(ctx context.Context, album string, image string) (Image, error)
 	GetImages(ctx context.Context, album string) ([]string, error)
 	SaveVote(ctx context.Context, album string, imageFrom string, imageTo string) error

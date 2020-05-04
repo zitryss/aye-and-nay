@@ -88,6 +88,18 @@ func (m *mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 	return nil
 }
 
+func (m *mongo) CountImages(ctx context.Context, album string) (int, error) {
+	panic("implement me")
+}
+
+func (m *mongo) CountImagesCompressed(ctx context.Context, album string) (int, error) {
+	panic("implement me")
+}
+
+func (m *mongo) UpdateCompressionStatus(ctx context.Context, album string, image string) error {
+	panic("implement me")
+}
+
 func (m *mongo) GetImage(ctx context.Context, album string, image string) (model.Image, error) {
 	filter := bson.D{{"album", album}}
 	n, err := m.images.CountDocuments(ctx, filter)

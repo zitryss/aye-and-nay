@@ -44,6 +44,18 @@ func (m *mem) SaveAlbum(_ context.Context, alb model.Album) error {
 	return nil
 }
 
+func (m *mem) CountImages(_ context.Context, album string) (int, error) {
+	panic("implement me")
+}
+
+func (m *mem) CountImagesCompressed(_ context.Context, album string) (int, error) {
+	panic("implement me")
+}
+
+func (m *mem) UpdateCompressionStatus(_ context.Context, album string, image string) error {
+	panic("implement me")
+}
+
 func (m *mem) GetImage(_ context.Context, album string, image string) (model.Image, error) {
 	m.Lock()
 	defer m.Unlock()

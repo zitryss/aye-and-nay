@@ -45,15 +45,52 @@ func (m *mem) SaveAlbum(_ context.Context, alb model.Album) error {
 }
 
 func (m *mem) CountImages(_ context.Context, album string) (int, error) {
-	panic("implement me")
+	m.Lock()
+	defer m.Unlock()
+	alb, ok := m.albums[album]
+	if !ok {
+		return 0, errors.Wrap(model.ErrAlbumNotFound)
+	}
+	n := len(alb.Images)
+	return n, nil
 }
 
 func (m *mem) CountImagesCompressed(_ context.Context, album string) (int, error) {
-	panic("implement me")
+	m.Lock()
+	defer m.Unlock()
+	alb, ok := m.albums[album]
+	if !ok {
+		return 0, errors.Wrap(model.ErrAlbumNotFound)
+	}
+	n := 0
+	for _, img := range alb.Images {
+		if img.Compressed {
+			n++
+		}
+	}
+	return n, nil
 }
 
 func (m *mem) UpdateCompressionStatus(_ context.Context, album string, image string) error {
-	panic("implement me")
+	m.Lock()
+	defer m.Unlock()
+	alb, ok := m.albums[album]
+	if !ok {
+		return errors.Wrap(model.ErrAlbumNotFound)
+	}
+	found := false
+	for i := range alb.Images {
+		img := &alb.Images[i]
+		if img.Id == image {
+			img.Compressed = true
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.Wrap(model.ErrImageNotFound)
+	}
+	return nil
 }
 
 func (m *mem) GetImage(_ context.Context, album string, image string) (model.Image, error) {

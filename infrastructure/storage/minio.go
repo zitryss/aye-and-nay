@@ -95,7 +95,6 @@ func (m *minio) Upload(ctx context.Context, album string, imgs []model.Image) er
 			return errors.Wrap(err)
 		}
 		img.Src = m.conf.prefix + "/aye-and-nay/" + filename
-		return nil
 	}
 	return nil
 }

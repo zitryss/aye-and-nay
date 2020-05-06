@@ -45,7 +45,6 @@ func (sp *shortpixel) Compress(ctx context.Context, imgs []model.Image) error {
 		if err != nil {
 			return errors.Wrap(err)
 		}
-		return nil
 	}
 	return nil
 }

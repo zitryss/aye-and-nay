@@ -14,10 +14,11 @@ import (
 )
 
 type imageDao struct {
-	Album  string
-	Id     string
-	Src    string
-	Rating float64
+	Album      string
+	Id         string
+	Src        string
+	Rating     float64
+	Compressed bool
 }
 
 type edgeDao struct {
@@ -69,7 +70,8 @@ func (m *mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 	}
 	imgsDao := make([]interface{}, 0, len(alb.Images))
 	for _, img := range alb.Images {
-		imgDao := imageDao{alb.Id, img.Id, img.Src, img.Rating}
+		compressed := false
+		imgDao := imageDao{alb.Id, img.Id, img.Src, img.Rating, compressed}
 		imgsDao = append(imgsDao, imgDao)
 	}
 	_, err = m.images.InsertMany(ctx, imgsDao)
@@ -89,15 +91,58 @@ func (m *mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 }
 
 func (m *mongo) CountImages(ctx context.Context, album string) (int, error) {
-	panic("implement me")
+	filter := bson.D{{"album", album}}
+	n, err := m.images.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+	if n == 0 {
+		return 0, errors.Wrap(model.ErrAlbumNotFound)
+	}
+	return int(n), nil
 }
 
 func (m *mongo) CountImagesCompressed(ctx context.Context, album string) (int, error) {
-	panic("implement me")
+	filter := bson.D{{"album", album}}
+	n, err := m.images.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+	if n == 0 {
+		return 0, errors.Wrap(model.ErrAlbumNotFound)
+	}
+	filter = bson.D{{"album", album}, {"compressed", true}}
+	n, err = m.images.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+	return int(n), nil
 }
 
 func (m *mongo) UpdateCompressionStatus(ctx context.Context, album string, image string) error {
-	panic("implement me")
+	filter := bson.D{{"album", album}}
+	n, err := m.images.CountDocuments(ctx, filter)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	if n == 0 {
+		return errors.Wrap(model.ErrAlbumNotFound)
+	}
+	filter = bson.D{{"album", album}, {"id", image}}
+	n, err = m.images.CountDocuments(ctx, filter)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	if n == 0 {
+		return errors.Wrap(model.ErrImageNotFound)
+	}
+	filter = bson.D{{"album", album}, {"id", image}}
+	update := bson.D{{"$set", bson.D{{"compressed", true}}}}
+	_, err = m.images.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	return nil
 }
 
 func (m *mongo) GetImage(ctx context.Context, album string, image string) (model.Image, error) {

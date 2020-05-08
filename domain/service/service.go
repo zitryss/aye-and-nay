@@ -101,19 +101,23 @@ func (s *service) StartWorkingPool(ctx context.Context, g *errgroup.Group, heart
 }
 
 func (s *service) Album(ctx context.Context, files [][]byte) (string, error) {
-	id, err := rand.Id(s.conf.albumIdLength)
+	album, err := rand.Id(s.conf.albumIdLength)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
 	imgs := make([]model.Image, 0, len(files))
 	for _, b := range files {
-		id, err := rand.Id(s.conf.imageIdLength)
+		image, err := rand.Id(s.conf.imageIdLength)
+		if err != nil {
+			return "", errors.Wrap(err)
+		}
+		src, err := s.stor.Put(ctx, album, image, b)
 		if err != nil {
 			return "", errors.Wrap(err)
 		}
 		img := model.Image{}
-		img.Id = id
-		img.B = b
+		img.Id = image
+		img.Src = src
 		imgs = append(imgs, img)
 	}
 	err = s.comp.Compress(ctx, imgs)
@@ -124,12 +128,8 @@ func (s *service) Album(ctx context.Context, files [][]byte) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	err = s.stor.Upload(ctx, id, imgs)
-	if err != nil {
-		return "", errors.Wrap(err)
-	}
 	edgs := map[string]map[string]int(nil)
-	alb := model.Album{id, imgs, edgs}
+	alb := model.Album{album, imgs, edgs}
 	err = s.pers.SaveAlbum(ctx, alb)
 	if err != nil {
 		return "", errors.Wrap(err)

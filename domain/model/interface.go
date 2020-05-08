@@ -17,7 +17,9 @@ type Compresser interface {
 }
 
 type Storager interface {
-	Upload(ctx context.Context, album string, imgs []Image) error
+	Put(ctx context.Context, album string, image string, b []byte) (string, error)
+	Get(ctx context.Context, album string, image string) ([]byte, error)
+	Remove(ctx context.Context, album string, image string) error
 }
 
 type Persister interface {

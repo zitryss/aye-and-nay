@@ -8,7 +8,6 @@ type Album struct {
 
 type Image struct {
 	Id         string
-	B          []byte
 	Src        string
 	Token      string
 	Rating     float64

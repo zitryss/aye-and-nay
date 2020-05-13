@@ -13,7 +13,7 @@ type Servicer interface {
 }
 
 type Compresser interface {
-	Compress(ctx context.Context, imgs []Image) error
+	Compress(ctx context.Context, b []byte) ([]byte, error)
 }
 
 type Storager interface {

@@ -13,8 +13,8 @@ func NewMock() mock {
 type mock struct {
 }
 
-func (m *mock) Compress(_ context.Context, _ []model.Image) error {
-	return nil
+func (m *mock) Compress(_ context.Context, b []byte) ([]byte, error) {
+	return b, nil
 }
 
 func NewFail() fail {
@@ -24,6 +24,6 @@ func NewFail() fail {
 type fail struct {
 }
 
-func (f *fail) Compress(_ context.Context, _ []model.Image) error {
-	return model.ErrThirdPartyUnavailable
+func (f *fail) Compress(_ context.Context, _ []byte) ([]byte, error) {
+	return nil, model.ErrThirdPartyUnavailable
 }

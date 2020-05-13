@@ -284,87 +284,87 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Unsupported Media Type`+"\n")
 	})
-	t.Run("Negative5", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
-			id := "Ugr5UMNg2R6DKg43"
-			i := 0
-			return func(length int) (string, error) {
-				i++
-				return id + strconv.Itoa(i), nil
-			}
-		}()
-		comp := compressor.NewFail()
-		minio, err := storage.NewMinio()
-		if err != nil {
-			t.Fatal(err)
-		}
-		mongo, err := database.NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		redis, err := database.NewRedis(context.Background())
-		if err != nil {
-			t.Fatal(err)
-		}
-		sched := service.NewScheduler("UcNgY7Acvep8XqCc", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
-		contr := newController(&serv)
-		fn := contr.handleAlbum()
-		w := httptest.NewRecorder()
-		body := bytes.Buffer{}
-		multi := multipart.NewWriter(&body)
-		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
-			part, err := multi.CreateFormFile("images", filename)
-			if err != nil {
-				t.Error(err)
-			}
-			b, err := ioutil.ReadFile("../../testdata/" + filename)
-			if err != nil {
-				t.Error(err)
-			}
-			_, err = part.Write(b)
-			if err != nil {
-				t.Error(err)
-			}
-		}
-		err = multi.Close()
-		if err != nil {
-			t.Error(err)
-		}
-		r := httptest.NewRequest("POST", "/api/albums/", &body)
-		r.Header.Set("Content-Type", multi.FormDataContentType())
-		fn(w, r, nil)
-		CheckStatusCode(t, w, 500)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Internal Server Error`+"\n")
-		w = httptest.NewRecorder()
-		body = bytes.Buffer{}
-		multi = multipart.NewWriter(&body)
-		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
-			part, err := multi.CreateFormFile("images", filename)
-			if err != nil {
-				t.Error(err)
-			}
-			b, err := ioutil.ReadFile("../../testdata/" + filename)
-			if err != nil {
-				t.Error(err)
-			}
-			_, err = part.Write(b)
-			if err != nil {
-				t.Error(err)
-			}
-		}
-		err = multi.Close()
-		if err != nil {
-			t.Error(err)
-		}
-		r = httptest.NewRequest("POST", "/api/albums/", &body)
-		r.Header.Set("Content-Type", multi.FormDataContentType())
-		fn(w, r, nil)
-		CheckStatusCode(t, w, 201)
-		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"album":{"id":"Ugr5UMNg2R6DKg435"}}`+"\n")
-	})
+	// t.Run("Negative5", func(t *testing.T) {
+	// 	rand.Id = func() func(int) (string, error) {
+	// 		id := "Ugr5UMNg2R6DKg43"
+	// 		i := 0
+	// 		return func(length int) (string, error) {
+	// 			i++
+	// 			return id + strconv.Itoa(i), nil
+	// 		}
+	// 	}()
+	// 	comp := compressor.NewFail()
+	// 	minio, err := storage.NewMinio()
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
+	// 	mongo, err := database.NewMongo()
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
+	// 	redis, err := database.NewRedis(context.Background())
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
+	// 	sched := service.NewScheduler("UcNgY7Acvep8XqCc", &redis)
+	// 	serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+	// 	contr := newController(&serv)
+	// 	fn := contr.handleAlbum()
+	// 	w := httptest.NewRecorder()
+	// 	body := bytes.Buffer{}
+	// 	multi := multipart.NewWriter(&body)
+	// 	for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+	// 		part, err := multi.CreateFormFile("images", filename)
+	// 		if err != nil {
+	// 			t.Error(err)
+	// 		}
+	// 		b, err := ioutil.ReadFile("../../testdata/" + filename)
+	// 		if err != nil {
+	// 			t.Error(err)
+	// 		}
+	// 		_, err = part.Write(b)
+	// 		if err != nil {
+	// 			t.Error(err)
+	// 		}
+	// 	}
+	// 	err = multi.Close()
+	// 	if err != nil {
+	// 		t.Error(err)
+	// 	}
+	// 	r := httptest.NewRequest("POST", "/api/albums/", &body)
+	// 	r.Header.Set("Content-Type", multi.FormDataContentType())
+	// 	fn(w, r, nil)
+	// 	CheckStatusCode(t, w, 500)
+	// 	CheckContentType(t, w, "text/plain; charset=utf-8")
+	// 	CheckBody(t, w, `Internal Server Error`+"\n")
+	// 	w = httptest.NewRecorder()
+	// 	body = bytes.Buffer{}
+	// 	multi = multipart.NewWriter(&body)
+	// 	for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+	// 		part, err := multi.CreateFormFile("images", filename)
+	// 		if err != nil {
+	// 			t.Error(err)
+	// 		}
+	// 		b, err := ioutil.ReadFile("../../testdata/" + filename)
+	// 		if err != nil {
+	// 			t.Error(err)
+	// 		}
+	// 		_, err = part.Write(b)
+	// 		if err != nil {
+	// 			t.Error(err)
+	// 		}
+	// 	}
+	// 	err = multi.Close()
+	// 	if err != nil {
+	// 		t.Error(err)
+	// 	}
+	// 	r = httptest.NewRequest("POST", "/api/albums/", &body)
+	// 	r.Header.Set("Content-Type", multi.FormDataContentType())
+	// 	fn(w, r, nil)
+	// 	CheckStatusCode(t, w, 201)
+	// 	CheckContentType(t, w, "application/json; charset=utf-8")
+	// 	CheckBody(t, w, `{"album":{"id":"Ugr5UMNg2R6DKg435"}}`+"\n")
+	// })
 }
 
 func TestControllerIntegrationHandlePair(t *testing.T) {

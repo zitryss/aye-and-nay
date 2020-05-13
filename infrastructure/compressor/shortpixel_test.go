@@ -87,8 +87,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver2.Close()
 		viper.Set("shortpixel.url", mockserver2.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "XmktcS25JRvCKNUK", B: Png()}, {Id: "WhdU3GFF4SunrjmU", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if err != nil {
 			t.Error(err)
 		}
@@ -136,8 +135,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver2.Close()
 		viper.Set("shortpixel.url", mockserver2.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "v6hJ87B9aRdbFadY", B: Png()}, {Id: "FzMjvC7RG2ZkK4Zx", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if err != nil {
 			t.Error(err)
 		}
@@ -149,8 +147,7 @@ func TestShortPixel(t *testing.T) {
 		mockserver1.Close()
 		viper.Set("shortpixel.url", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "vhFf9ADJG529jyZT", B: Png()}, {Id: "rwmTG5SEBg6pLpCW", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -197,8 +194,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver2.Close()
 		viper.Set("shortpixel.url", mockserver2.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "Pe9gQ3whftqapwv4", B: Png()}, {Id: "Ravf2deNE283RCj3", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -212,8 +208,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver1.Close()
 		viper.Set("shortpixel.url", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "X6GazrWM87k6aHQX", B: Png()}, {Id: "5EG4fvaE2hb4cHV5", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -262,8 +257,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver2.Close()
 		viper.Set("shortpixel.url", mockserver2.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "6QrQxj466YqSDJsu", B: Png()}, {Id: "HBbpvG2CnMRqWTN5", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -276,8 +270,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver1.Close()
 		viper.Set("shortpixel.url", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "Zec88XcSn37CqDXd", B: Png()}, {Id: "fV22B78ae4tJXanu", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -325,8 +318,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver2.Close()
 		viper.Set("shortpixel.url", mockserver2.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "Q8eFH8wk8kqadrMa", B: Png()}, {Id: "XGQW6suBDrEjw9TJ", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -365,8 +357,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver1.Close()
 		viper.Set("shortpixel.url", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "n6MEpgQUqLRakKZg", B: Png()}, {Id: "XFQ3WKAa44T6hQyE", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -393,8 +384,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver1.Close()
 		viper.Set("shortpixel.url", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "9JJBwxDguWSKFgg5", B: Png()}, {Id: "D4wwPBtvHPrcJUSD", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -421,8 +411,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver1.Close()
 		viper.Set("shortpixel.url", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "xGDSE45qnqTtvDSa", B: Png()}, {Id: "mq9mUaYaua7jrhe7", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrNotImage) {
 			t.Error(err)
 		}
@@ -449,8 +438,7 @@ func TestShortPixel(t *testing.T) {
 		defer mockserver1.Close()
 		viper.Set("shortpixel.url", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "jCRRfuCY7Te2FFaD", B: Png()}, {Id: "3SHSbL8fDu7VFRJE", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrNotImage) {
 			t.Error(err)
 		}
@@ -524,8 +512,7 @@ func TestShortPixel(t *testing.T) {
 		viper.Set("shortpixel.url", mockserver3.URL)
 		viper.Set("shortpixel.url2", mockserver2.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "rvbc6pCQjAvxvWah", B: Png()}, {Id: "XmezWbBEd4vG679X", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if err != nil {
 			t.Error(err)
 		}
@@ -593,8 +580,7 @@ func TestShortPixel(t *testing.T) {
 		viper.Set("shortpixel.url", mockserver3.URL)
 		viper.Set("shortpixel.url2", mockserver2.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "LkDFqwCR7457kfMr", B: Png()}, {Id: "k63K7Mtty4htFsB8", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if err != nil {
 			t.Error(err)
 		}
@@ -629,8 +615,7 @@ func TestShortPixel(t *testing.T) {
 		viper.Set("shortpixel.url", mockserver2.URL)
 		viper.Set("shortpixel.url2", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "MVmd6b52gyaVh37c", B: Png()}, {Id: "YHj45hpKZerNEr4Z", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -667,8 +652,7 @@ func TestShortPixel(t *testing.T) {
 		viper.Set("shortpixel.url", mockserver2.URL)
 		viper.Set("shortpixel.url2", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "x4SKYN5ZCRRYqx8s", B: Png()}, {Id: "3PYTWeCHuFj4Pbam", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -704,8 +688,7 @@ func TestShortPixel(t *testing.T) {
 		viper.Set("shortpixel.url", mockserver2.URL)
 		viper.Set("shortpixel.url2", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "dZT3FzQBGf8Uxady", B: Png()}, {Id: "3Rp2BwHqTHzqbBzU", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -767,8 +750,7 @@ func TestShortPixel(t *testing.T) {
 		viper.Set("shortpixel.url", mockserver2.URL)
 		viper.Set("shortpixel.url2", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "UGMhksnt86ZKzRSe", B: Png()}, {Id: "zMZTT2XDBQGpgwuc", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -818,8 +800,7 @@ func TestShortPixel(t *testing.T) {
 		viper.Set("shortpixel.url", mockserver2.URL)
 		viper.Set("shortpixel.url2", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "tmEDMuYysNR8FnDn", B: Png()}, {Id: "3mE2rkPk6h2NkqFr", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
@@ -872,8 +853,7 @@ func TestShortPixel(t *testing.T) {
 		viper.Set("shortpixel.url", mockserver2.URL)
 		viper.Set("shortpixel.url2", mockserver1.URL)
 		sp := NewShortPixel()
-		imgs := []model.Image{{Id: "Q8cVnqcJPu527Zu3", B: Png()}, {Id: "tWn9HyTguKvBnULD", B: Png()}}
-		err := sp.Compress(context.Background(), imgs)
+		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}

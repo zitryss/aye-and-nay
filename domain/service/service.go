@@ -7,7 +7,6 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
-	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/linalg"
 	"github.com/zitryss/aye-and-nay/pkg/rand"
@@ -120,14 +119,14 @@ func (s *service) Album(ctx context.Context, files [][]byte) (string, error) {
 		img.Src = src
 		imgs = append(imgs, img)
 	}
-	err = s.comp.Compress(ctx, imgs)
-	if errors.Is(err, model.ErrThirdPartyUnavailable) {
-		comp := compressor.NewMock()
-		s.comp = &comp
-	}
-	if err != nil {
-		return "", errors.Wrap(err)
-	}
+	// err = s.comp.Compress(ctx, imgs)
+	// if errors.Is(err, model.ErrThirdPartyUnavailable) {
+	// 	comp := compressor.NewMock()
+	// 	s.comp = &comp
+	// }
+	// if err != nil {
+	// 	return "", errors.Wrap(err)
+	// }
 	edgs := map[string]map[string]int(nil)
 	alb := model.Album{album, imgs, edgs}
 	err = s.pers.SaveAlbum(ctx, alb)

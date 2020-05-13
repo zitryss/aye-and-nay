@@ -26,88 +26,84 @@ type shortpixel struct {
 }
 
 func (sp *shortpixel) Ping() error {
-	img := model.Image{Id: "test", B: Png()}
-	err := sp.upload(context.Background(), &img)
+	_, err := sp.upload(context.Background(), Png())
 	if err != nil {
 		return errors.Wrap(err)
 	}
 	return nil
 }
 
-func (sp *shortpixel) Compress(ctx context.Context, imgs []model.Image) error {
-	for i := range imgs {
-		img := &imgs[i]
-		err := sp.upload(ctx, img)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		err = sp.download(ctx, img)
-		if err != nil {
-			return errors.Wrap(err)
-		}
+func (sp *shortpixel) Compress(ctx context.Context, b []byte) ([]byte, error) {
+	src, err := sp.upload(ctx, b)
+	if err != nil {
+		return nil, errors.Wrap(err)
 	}
-	return nil
+	bb, err := sp.download(ctx, src)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	return bb, nil
 }
 
-func (sp *shortpixel) upload(ctx context.Context, img *model.Image) error {
+func (sp *shortpixel) upload(ctx context.Context, b []byte) (string, error) {
 	body := bytes.Buffer{}
 	multi := multipart.NewWriter(&body)
 	part, err := multi.CreateFormField("key")
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	_, err = io.WriteString(part, sp.conf.apiKey)
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	part, err = multi.CreateFormField("lossy")
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	_, err = io.WriteString(part, "1")
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	part, err = multi.CreateFormField("wait")
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	_, err = io.WriteString(part, sp.conf.wait)
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	part, err = multi.CreateFormField("convertto")
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	_, err = io.WriteString(part, "png")
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	part, err = multi.CreateFormField("file_paths")
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	_, err = io.WriteString(part, `{"file": ""}`)
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
-	part, err = multi.CreateFormFile("file", img.Id)
+	part, err = multi.CreateFormFile("file", "non-empty-field")
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
-	_, err = part.Write(img.B)
+	_, err = part.Write(b)
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	err = multi.Close()
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	c := http.Client{Timeout: sp.conf.uploadTimeout}
 	req, err := http.NewRequestWithContext(ctx, "POST", sp.conf.url, &body)
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	req.Header.Set("Content-Type", multi.FormDataContentType())
 	resp := (*http.Response)(nil)
@@ -124,24 +120,24 @@ func (sp *shortpixel) upload(ctx context.Context, img *model.Image) error {
 		return nil
 	})
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	buf := bytes.Buffer{}
 	_, err = io.Copy(&buf, resp.Body)
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
-	b := buf.Bytes()
-	if b[0] == 91 && b[len(b)-1] == 93 {
-		b = b[1 : len(b)-1]
+	bb := buf.Bytes()
+	if bb[0] == 91 && bb[len(bb)-1] == 93 {
+		bb = bb[1 : len(bb)-1]
 	}
-	if b[0] == 91 && (b[len(b)-2] == 93 && b[len(b)-1] == 10) {
-		b = b[1 : len(b)-2]
+	if bb[0] == 91 && (bb[len(bb)-2] == 93 && bb[len(bb)-1] == 10) {
+		bb = bb[1 : len(bb)-2]
 	}
 	buf.Reset()
-	buf.Write(b)
+	buf.Write(bb)
 	response := struct {
 		Status struct {
 			Code    interface{}
@@ -154,30 +150,30 @@ func (sp *shortpixel) upload(ctx context.Context, img *model.Image) error {
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
-		return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
 	}
 	err = resp.Body.Close()
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
+	src := ""
 	switch response.Status.Code {
 	case "1":
-		img.Src = response.OriginalUrl
-		err = sp.repeat(ctx, img)
+		src, err = sp.repeat(ctx, response.OriginalUrl)
 		if err != nil {
-			return errors.Wrap(err)
+			return "", errors.Wrap(err)
 		}
 	case "2":
-		img.Src = response.LossyUrl
+		src = response.LossyUrl
 	case -201.0, -202.0:
-		return errors.Wrap(model.ErrNotImage)
+		return "", errors.Wrap(model.ErrNotImage)
 	default:
-		return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
+		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
 	}
-	return nil
+	return src, nil
 }
 
-func (sp *shortpixel) repeat(ctx context.Context, img *model.Image) error {
+func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	time.Sleep(sp.conf.repeatIn)
 	body := bytes.Buffer{}
 	request := struct {
@@ -191,16 +187,16 @@ func (sp *shortpixel) repeat(ctx context.Context, img *model.Image) error {
 		Lossy:     "1",
 		Wait:      sp.conf.wait,
 		Convertto: "png",
-		Urllist:   []string{img.Src},
+		Urllist:   []string{src},
 	}
 	err := json.NewEncoder(&body).Encode(request)
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	c := http.Client{Timeout: sp.conf.uploadTimeout}
 	req, err := http.NewRequestWithContext(ctx, "POST", sp.conf.url2, &body)
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	resp := (*http.Response)(nil)
 	err = retry.Do(sp.conf.times, sp.conf.pause, func() error {
@@ -216,14 +212,14 @@ func (sp *shortpixel) repeat(ctx context.Context, img *model.Image) error {
 		return nil
 	})
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	buf := bytes.Buffer{}
 	_, err = io.Copy(&buf, resp.Body)
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	b := buf.Bytes()
 	if b[0] == 91 && b[len(b)-1] == 93 {
@@ -245,28 +241,27 @@ func (sp *shortpixel) repeat(ctx context.Context, img *model.Image) error {
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
-		return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
 	}
 	err = resp.Body.Close()
 	if err != nil {
-		return errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	switch response.Status.Code {
 	case "1":
-		return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
+		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
 	case "2":
-		img.Src = response.LossyUrl
+		return response.LossyUrl, nil
 	default:
-		return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
+		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
 	}
-	return nil
 }
 
-func (sp *shortpixel) download(ctx context.Context, img *model.Image) error {
+func (sp *shortpixel) download(ctx context.Context, src string) ([]byte, error) {
 	c := http.Client{Timeout: sp.conf.downloadTimeout}
-	req, err := http.NewRequestWithContext(ctx, "GET", img.Src, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", src, nil)
 	if err != nil {
-		return errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	resp := (*http.Response)(nil)
 	err = retry.Do(sp.conf.times, sp.conf.pause, func() error {
@@ -282,19 +277,19 @@ func (sp *shortpixel) download(ctx context.Context, img *model.Image) error {
 		return nil
 	})
 	if err != nil {
-		return errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
-	n, err := io.ReadFull(resp.Body, img.B)
-	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
+
+	buf := bytes.Buffer{}
+	_, err = io.Copy(&buf, resp.Body)
+	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
-		return errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
 	err = resp.Body.Close()
 	if err != nil {
-		return errors.Wrap(err)
+		return nil, errors.Wrap(err)
 	}
-	img.B = img.B[:n]
-	img.Src = ""
-	return nil
+	return buf.Bytes(), nil
 }

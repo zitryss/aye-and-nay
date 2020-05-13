@@ -80,48 +80,48 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			t.Error("album not found")
 		}
 	})
-	t.Run("Negative", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
-			id := "usG3VzbLvRAm2k2y"
-			i := 0
-			return func(length int) (string, error) {
-				i++
-				return id + strconv.Itoa(i), nil
-			}
-		}()
-		ctx := context.Background()
-		comp := compressor.NewFail()
-		minio, err := storage.NewMinio()
-		if err != nil {
-			t.Fatal(err)
-		}
-		mongo, err := database.NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		redis, err := database.NewRedis(context.Background())
-		if err != nil {
-			t.Fatal(err)
-		}
-		sched := NewScheduler("DgWwCAxe2JUpJbHt", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
-		files := [][]byte{nil, nil}
-		_, err = serv.Album(ctx, files)
-		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
-		_, err = serv.Album(ctx, files)
-		if err != nil {
-			t.Error(err)
-		}
-		found, err := serv.Exists(ctx, "usG3VzbLvRAm2k2y4")
-		if err != nil {
-			t.Error(err)
-		}
-		if !found {
-			t.Error("album not found")
-		}
-	})
+	// t.Run("Negative", func(t *testing.T) {
+	// 	rand.Id = func() func(int) (string, error) {
+	// 		id := "usG3VzbLvRAm2k2y"
+	// 		i := 0
+	// 		return func(length int) (string, error) {
+	// 			i++
+	// 			return id + strconv.Itoa(i), nil
+	// 		}
+	// 	}()
+	// 	ctx := context.Background()
+	// 	comp := compressor.NewFail()
+	// 	minio, err := storage.NewMinio()
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
+	// 	mongo, err := database.NewMongo()
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
+	// 	redis, err := database.NewRedis(context.Background())
+	// 	if err != nil {
+	// 		t.Fatal(err)
+	// 	}
+	// 	sched := NewScheduler("DgWwCAxe2JUpJbHt", &redis)
+	// 	serv := NewService(&comp, &minio, &mongo, &redis, &sched)
+	// 	files := [][]byte{nil, nil}
+	// 	_, err = serv.Album(ctx, files)
+	// 	if !errors.Is(err, model.ErrThirdPartyUnavailable) {
+	// 		t.Error(err)
+	// 	}
+	// 	_, err = serv.Album(ctx, files)
+	// 	if err != nil {
+	// 		t.Error(err)
+	// 	}
+	// 	found, err := serv.Exists(ctx, "usG3VzbLvRAm2k2y4")
+	// 	if err != nil {
+	// 		t.Error(err)
+	// 	}
+	// 	if !found {
+	// 		t.Error("album not found")
+	// 	}
+	// })
 }
 
 func TestServiceIntegrationPair(t *testing.T) {

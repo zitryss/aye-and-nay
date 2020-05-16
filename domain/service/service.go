@@ -17,11 +17,25 @@ func NewService(
 	stor model.Storager,
 	pers model.Persister,
 	temp model.Temper,
-	sched *scheduler,
+	queue1 *queue,
+	queue2 *queue,
 ) service {
 	conf := newServiceConfig()
-	serv := service{conf, comp, stor, pers, temp, temp, sched}
-	return serv
+	return service{
+		conf,
+		comp,
+		stor,
+		pers,
+		temp,
+		temp,
+		struct {
+			calc *queue
+			comp *queue
+		}{
+			queue1,
+			queue2,
+		},
+	}
 }
 
 type service struct {
@@ -31,12 +45,15 @@ type service struct {
 	pers  model.Persister
 	pair  model.Stacker
 	token model.Tokener
-	sched *scheduler // don't copy sync primitives
+	queue struct {
+		calc *queue
+		comp *queue
+	}
 }
 
-func (s *service) StartWorkingPool(ctx context.Context, g *errgroup.Group, heartbeat chan<- struct{}) {
+func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group, heartbeat chan<- interface{}) {
 	go func() {
-		sem := make(chan struct{}, s.conf.numberOfWorkers)
+		sem := make(chan struct{}, s.conf.numberOfWorkersCalc)
 		for {
 			select {
 			case sem <- struct{}{}:
@@ -63,7 +80,7 @@ func (s *service) StartWorkingPool(ctx context.Context, g *errgroup.Group, heart
 						return
 					default:
 					}
-					album, err := s.sched.poll(ctx)
+					album, err := s.queue.calc.poll(ctx)
 					if err != nil {
 						err = errors.Wrap(err)
 						handleError(err)
@@ -99,6 +116,106 @@ func (s *service) StartWorkingPool(ctx context.Context, g *errgroup.Group, heart
 	}()
 }
 
+func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, heartbeat chan<- interface{}) {
+	go func() {
+		sem := make(chan struct{}, s.conf.numberOfWorkersComp)
+		for {
+			select {
+			case sem <- struct{}{}:
+			case <-ctx.Done():
+				return
+			}
+			g.Go(func() (e error) {
+				defer func() { <-sem }()
+				defer func() {
+					v := recover()
+					if v == nil {
+						return
+					}
+					err, ok := v.(error)
+					if ok {
+						e = errors.Wrap(err)
+					} else {
+						e = errors.Wrapf(model.ErrUnknown, "%v", v)
+					}
+				}()
+			outer:
+				for {
+					select {
+					case <-ctx.Done():
+						return
+					default:
+					}
+					album, err := s.queue.comp.poll(ctx)
+					if err != nil {
+						err = errors.Wrap(err)
+						handleError(err)
+						e = err
+						continue
+					}
+					select {
+					case <-ctx.Done():
+						return
+					default:
+					}
+					images, err := s.pers.GetImages(ctx, album)
+					if err != nil {
+						err = errors.Wrap(err)
+						handleError(err)
+						e = err
+						continue
+					}
+					for _, image := range images {
+						b, err := s.stor.Get(ctx, album, image)
+						if err != nil {
+							err = errors.Wrap(err)
+							handleError(err)
+							e = err
+							continue outer
+						}
+						b, err = s.comp.Compress(ctx, b)
+						// if errors.Is(err, model.ErrThirdPartyUnavailable) {
+						// 	comp := compressor.NewMock()
+						// 	s.comp = &comp
+						// }
+						if err != nil {
+							err = errors.Wrap(err)
+							handleError(err)
+							e = err
+							continue outer
+						}
+						err = s.stor.Remove(ctx, album, image)
+						if err != nil {
+							err = errors.Wrap(err)
+							handleError(err)
+							e = err
+							continue outer
+						}
+						_, err = s.stor.Put(ctx, album, image, b)
+						if err != nil {
+							err = errors.Wrap(err)
+							handleError(err)
+							e = err
+							continue outer
+						}
+						err = s.pers.UpdateCompressionStatus(ctx, album, image)
+						if err != nil {
+							err = errors.Wrap(err)
+							handleError(err)
+							e = err
+							continue outer
+						}
+						if heartbeat != nil {
+							p, _ := s.Progress(context.Background(), album)
+							heartbeat <- p
+						}
+					}
+				}
+			})
+		}
+	}()
+}
+
 func (s *service) Album(ctx context.Context, files [][]byte) (string, error) {
 	album, err := rand.Id(s.conf.albumIdLength)
 	if err != nil {
@@ -119,17 +236,13 @@ func (s *service) Album(ctx context.Context, files [][]byte) (string, error) {
 		img.Src = src
 		imgs = append(imgs, img)
 	}
-	// err = s.comp.Compress(ctx, imgs)
-	// if errors.Is(err, model.ErrThirdPartyUnavailable) {
-	// 	comp := compressor.NewMock()
-	// 	s.comp = &comp
-	// }
-	// if err != nil {
-	// 	return "", errors.Wrap(err)
-	// }
 	edgs := map[string]map[string]int(nil)
 	alb := model.Album{album, imgs, edgs}
 	err = s.pers.SaveAlbum(ctx, alb)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+	err = s.queue.comp.add(ctx, album)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -211,7 +324,7 @@ func (s *service) Vote(ctx context.Context, album string, tokenFrom string, toke
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	err = s.sched.add(ctx, album)
+	err = s.queue.calc.add(ctx, album)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -234,65 +347,77 @@ func (s *service) Exists(ctx context.Context, album string) (bool, error) {
 	return found, nil
 }
 
-func NewScheduler(name string, queue model.Queuer) scheduler {
-	return scheduler{
+func (s *service) Progress(ctx context.Context, album string) (float64, error) {
+	all, err := s.pers.CountImages(ctx, album)
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+	n, err := s.pers.CountImagesCompressed(ctx, album)
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+	return float64(n) / float64(all), nil
+}
+
+func NewQueue(name string, q model.Queuer) queue {
+	return queue{
 		name:   name,
 		cond:   sync.NewCond(&sync.Mutex{}),
 		closed: false,
-		queue:  queue,
+		queue:  q,
 	}
 }
 
-type scheduler struct {
+type queue struct {
 	name   string
 	cond   *sync.Cond
 	closed bool
 	queue  model.Queuer
 }
 
-func (s *scheduler) Monitor(ctx context.Context) {
+func (q *queue) Monitor(ctx context.Context) {
 	go func() {
 		<-ctx.Done()
-		s.close()
+		q.close()
 	}()
 }
 
-func (s *scheduler) close() {
-	s.cond.L.Lock()
-	defer s.cond.L.Unlock()
-	s.closed = true
-	s.cond.Broadcast()
+func (q *queue) close() {
+	q.cond.L.Lock()
+	defer q.cond.L.Unlock()
+	q.closed = true
+	q.cond.Broadcast()
 }
 
-func (s *scheduler) add(ctx context.Context, album string) error {
-	s.cond.L.Lock()
-	defer s.cond.L.Unlock()
-	err := s.queue.Add(ctx, s.name, album)
+func (q *queue) add(ctx context.Context, album string) error {
+	q.cond.L.Lock()
+	defer q.cond.L.Unlock()
+	err := q.queue.Add(ctx, q.name, album)
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	s.cond.Signal()
+	q.cond.Signal()
 	return nil
 }
 
-func (s *scheduler) poll(ctx context.Context) (string, error) {
-	s.cond.L.Lock()
-	defer s.cond.L.Unlock()
-	n, err := s.queue.Size(ctx, s.name)
+func (q *queue) poll(ctx context.Context) (string, error) {
+	q.cond.L.Lock()
+	defer q.cond.L.Unlock()
+	n, err := q.queue.Size(ctx, q.name)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
 	for n == 0 {
-		s.cond.Wait()
-		if s.closed {
+		q.cond.Wait()
+		if q.closed {
 			return "", nil
 		}
-		n, err = s.queue.Size(ctx, s.name)
+		n, err = q.queue.Size(ctx, q.name)
 		if err != nil {
 			return "", errors.Wrap(err)
 		}
 	}
-	album, err := s.queue.Poll(ctx, s.name)
+	album, err := q.queue.Poll(ctx, q.name)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}

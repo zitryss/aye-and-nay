@@ -65,8 +65,12 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler("VK4dE8CgS82B8yC7", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := NewQueue("VK4dE8CgS82B8yC7", &redis)
+		queue2 := NewQueue("TV7ZuMmhz3CDfa7n", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		g, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
 		files := [][]byte{nil, nil}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
@@ -78,6 +82,22 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 		if !found {
 			t.Error("album not found")
+		}
+		v := <-heartbeatComp
+		p, ok := v.(float64)
+		if !ok {
+			t.Error("v.(type) != float64")
+		}
+		if p != 0.5 {
+			t.Error("p != 0.5")
+		}
+		v = <-heartbeatComp
+		p, ok = v.(float64)
+		if !ok {
+			t.Error("v.(type) != float64")
+		}
+		if p != 1 {
+			t.Error("p != 1")
 		}
 	})
 	// t.Run("Negative", func(t *testing.T) {
@@ -150,8 +170,9 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler("766fFt8nuJ5qRek2", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := NewQueue("766fFt8nuJ5qRek2", &redis)
+		queue2 := NewQueue("bHL3nQpzPpXBffE9", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -221,8 +242,9 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler("kRneghVzdmtScFYG", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := NewQueue("kRneghVzdmtScFYG", &redis)
+		queue2 := NewQueue("MP8qrmkmX8GEYtQd", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		_, _, err = serv.Pair(ctx, "A755jF7tvnTJrPCD")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
@@ -256,8 +278,9 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler("8eDkyz293xggaUpr", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := NewQueue("8eDkyz293xggaUpr", &redis)
+		queue2 := NewQueue("GKBK9ZgVbTpTL7Xc", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -297,8 +320,9 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler("b8mKspbYz5FjQ7Mf", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := NewQueue("b8mKspbYz5FjQ7Mf", &redis)
+		queue2 := NewQueue("GfZ5H9twa6dVTLav", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -338,8 +362,9 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler("nRQynzFJvPvcRZUt", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := NewQueue("nRQynzFJvPvcRZUt", &redis)
+		queue2 := NewQueue("HV4pLuMb4HRgrD2U", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -382,16 +407,22 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler("RKvUKsDj7whcrpzA", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
-		g, ctx := errgroup.WithContext(ctx)
-		heartbeat := make(chan struct{})
-		serv.StartWorkingPool(ctx, g, heartbeat)
+		queue1 := NewQueue("RKvUKsDj7whcrpzA", &redis)
+		queue2 := NewQueue("2NPRqbKcbSX73vhr", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		g1, ctx1 := errgroup.WithContext(ctx)
+		heartbeatCalc := make(chan interface{})
+		serv.StartWorkingPoolCalc(ctx1, g1, heartbeatCalc)
+		g2, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g2, heartbeatComp)
 		files := [][]byte{nil, nil}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
 		}
+		<-heartbeatComp
+		<-heartbeatComp
 		img1, img2, err := serv.Pair(ctx, album)
 		if err != nil {
 			t.Error(err)
@@ -400,7 +431,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		<-heartbeat
+		<-heartbeatCalc
 		img3, img4, err := serv.Pair(ctx, album)
 		if err != nil {
 			t.Error(err)
@@ -409,7 +440,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		<-heartbeat
+		<-heartbeatCalc
 		imgs1, err := serv.Top(ctx, album)
 		if err != nil {
 			t.Error(err)
@@ -436,8 +467,9 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := NewScheduler("YNhuDMs3jKpVBM7E", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := NewQueue("YNhuDMs3jKpVBM7E", &redis)
+		queue2 := NewQueue("m6wZuHGa6RSfb4q7", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		_, err = serv.Top(ctx, "XXAzCcc6EHr6mpcH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)

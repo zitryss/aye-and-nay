@@ -10,6 +10,7 @@ type Servicer interface {
 	Vote(ctx context.Context, album string, tokenFrom string, tokenTo string) error
 	Top(ctx context.Context, album string) ([]Image, error)
 	Exists(ctx context.Context, album string) (bool, error)
+	Progress(ctx context.Context, album string) (float64, error)
 }
 
 type Compresser interface {

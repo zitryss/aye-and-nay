@@ -96,15 +96,23 @@ func main() {
 		temp = &mem
 	}
 
-	sched := service.NewScheduler("calculation", temp)
-	sched.Monitor(ctx)
+	queue1 := service.NewQueue("calculation", temp)
+	queue1.Monitor(ctx)
 
-	serv := service.NewService(comp, stor, pers, temp, &sched)
+	queue2 := service.NewQueue("compression", temp)
+	queue2.Monitor(ctx)
 
-	g, ctx := errgroup.WithContext(ctx)
-	heartbeat := chan struct{}(nil)
-	log.Info("starting worker pool")
-	serv.StartWorkingPool(ctx, g, heartbeat)
+	serv := service.NewService(comp, stor, pers, temp, &queue1, &queue2)
+
+	g1, ctx1 := errgroup.WithContext(ctx)
+	heartbeat := chan interface{}(nil)
+	log.Info("starting calculation worker pool")
+	serv.StartWorkingPoolCalc(ctx1, g1, heartbeat)
+
+	g2, ctx2 := errgroup.WithContext(ctx)
+	heartbeat = chan interface{}(nil)
+	log.Info("starting compression worker pool")
+	serv.StartWorkingPoolComp(ctx2, g2, heartbeat)
 
 	srvWait := make(chan error, 1)
 	srv, err := http.NewServer(&serv, cancel, srvWait)
@@ -126,8 +134,16 @@ func main() {
 		log.Error(err)
 		return
 	}
-	log.Info("stopping worker pool")
-	err = g.Wait()
+
+	log.Info("stopping compression worker pool")
+	err = g2.Wait()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	log.Info("stopping calculation worker pool")
+	err = g1.Wait()
 	if err != nil {
 		log.Error(err)
 		return

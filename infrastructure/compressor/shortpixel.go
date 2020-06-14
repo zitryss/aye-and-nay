@@ -18,11 +18,15 @@ import (
 
 func NewShortPixel() shortpixel {
 	conf := newShortPixelConfig()
-	return shortpixel{conf}
+	return shortpixel{
+		conf: conf,
+		err:  nil,
+	}
 }
 
 type shortpixel struct {
 	conf shortPixelConfig
+	err  error
 }
 
 func (sp *shortpixel) Ping() error {
@@ -34,6 +38,15 @@ func (sp *shortpixel) Ping() error {
 }
 
 func (sp *shortpixel) Compress(ctx context.Context, b []byte) ([]byte, error) {
+	if errors.Is(sp.err, model.ErrThirdPartyUnavailable) {
+		return b, nil
+	}
+	bb := []byte(nil)
+	bb, sp.err = sp.compress(ctx, b)
+	return bb, errors.Wrap(sp.err)
+}
+
+func (sp *shortpixel) compress(ctx context.Context, b []byte) ([]byte, error) {
 	src, err := sp.upload(ctx, b)
 	if err != nil {
 		return nil, errors.Wrap(err)

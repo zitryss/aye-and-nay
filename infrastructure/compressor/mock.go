@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
 func NewMock() mock {
@@ -22,8 +23,18 @@ func NewFail() fail {
 }
 
 type fail struct {
+	err error
 }
 
-func (f *fail) Compress(_ context.Context, _ []byte) ([]byte, error) {
+func (f *fail) Compress(ctx context.Context, b []byte) ([]byte, error) {
+	if errors.Is(f.err, model.ErrThirdPartyUnavailable) {
+		return b, nil
+	}
+	bb := []byte(nil)
+	bb, f.err = f.compress(ctx, b)
+	return bb, errors.Wrap(f.err)
+}
+
+func (f *fail) compress(_ context.Context, _ []byte) ([]byte, error) {
 	return nil, model.ErrThirdPartyUnavailable
 }

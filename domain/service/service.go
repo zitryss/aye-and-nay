@@ -174,10 +174,11 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 							continue outer
 						}
 						b, err = s.comp.Compress(ctx, b)
-						// if errors.Is(err, model.ErrThirdPartyUnavailable) {
-						// 	comp := compressor.NewMock()
-						// 	s.comp = &comp
-						// }
+						if errors.Is(err, model.ErrThirdPartyUnavailable) {
+							if heartbeat != nil {
+								heartbeat <- err
+							}
+						}
 						if err != nil {
 							err = errors.Wrap(err)
 							handleError(err)
@@ -247,6 +248,18 @@ func (s *service) Album(ctx context.Context, files [][]byte) (string, error) {
 		return "", errors.Wrap(err)
 	}
 	return alb.Id, nil
+}
+
+func (s *service) Progress(ctx context.Context, album string) (float64, error) {
+	all, err := s.pers.CountImages(ctx, album)
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+	n, err := s.pers.CountImagesCompressed(ctx, album)
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+	return float64(n) / float64(all), nil
 }
 
 func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Image, error) {
@@ -345,18 +358,6 @@ func (s *service) Exists(ctx context.Context, album string) (bool, error) {
 		return false, errors.Wrap(err)
 	}
 	return found, nil
-}
-
-func (s *service) Progress(ctx context.Context, album string) (float64, error) {
-	all, err := s.pers.CountImages(ctx, album)
-	if err != nil {
-		return 0, errors.Wrap(err)
-	}
-	n, err := s.pers.CountImagesCompressed(ctx, album)
-	if err != nil {
-		return 0, errors.Wrap(err)
-	}
-	return float64(n) / float64(all), nil
 }
 
 func NewQueue(name string, q model.Queuer) queue {

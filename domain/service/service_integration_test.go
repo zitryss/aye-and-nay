@@ -88,7 +88,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if !ok {
 			t.Error("v.(type) != float64")
 		}
-		if p != 0.5 {
+		if !EqualFloat(p, 0.5) {
 			t.Error("p != 0.5")
 		}
 		v = <-heartbeatComp
@@ -96,52 +96,73 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if !ok {
 			t.Error("v.(type) != float64")
 		}
-		if p != 1 {
+		if !EqualFloat(p, 1) {
 			t.Error("p != 1")
 		}
 	})
-	// t.Run("Negative", func(t *testing.T) {
-	// 	rand.Id = func() func(int) (string, error) {
-	// 		id := "usG3VzbLvRAm2k2y"
-	// 		i := 0
-	// 		return func(length int) (string, error) {
-	// 			i++
-	// 			return id + strconv.Itoa(i), nil
-	// 		}
-	// 	}()
-	// 	ctx := context.Background()
-	// 	comp := compressor.NewFail()
-	// 	minio, err := storage.NewMinio()
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	mongo, err := database.NewMongo()
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	redis, err := database.NewRedis(context.Background())
-	// 	if err != nil {
-	// 		t.Fatal(err)
-	// 	}
-	// 	sched := NewScheduler("DgWwCAxe2JUpJbHt", &redis)
-	// 	serv := NewService(&comp, &minio, &mongo, &redis, &sched)
-	// 	files := [][]byte{nil, nil}
-	// 	_, err = serv.Album(ctx, files)
-	// 	if !errors.Is(err, model.ErrThirdPartyUnavailable) {
-	// 		t.Error(err)
-	// 	}
-	// 	_, err = serv.Album(ctx, files)
-	// 	if err != nil {
-	// 		t.Error(err)
-	// 	}
-	// 	found, err := serv.Exists(ctx, "usG3VzbLvRAm2k2y4")
-	// 	if err != nil {
-	// 		t.Error(err)
-	// 	}
-	// 	if !found {
-	// 		t.Error("album not found")
-	// 	}
-	// })
+	t.Run("Negative", func(t *testing.T) {
+		rand.Id = func() func(int) (string, error) {
+			id := "wZE65QekXNTP9vpK"
+			i := 0
+			return func(length int) (string, error) {
+				i++
+				return id + strconv.Itoa(i), nil
+			}
+		}()
+		ctx := context.Background()
+		comp := compressor.NewFail()
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := database.NewRedis(context.Background())
+		if err != nil {
+			t.Fatal(err)
+		}
+		queue1 := NewQueue("bn6Es8nvGu9KZwUk", &redis)
+		queue2 := NewQueue("mhynV9uhnGFEV4uf", &redis)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		g, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
+		files := [][]byte{nil, nil}
+		_, err = serv.Album(ctx, files)
+		if err != nil {
+			t.Error(err)
+		}
+		v := <-heartbeatComp
+		err, ok := v.(error)
+		if !ok {
+			t.Error("v.(type) != error")
+		}
+		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
+			t.Error(err)
+		}
+		_, err = serv.Album(ctx, files)
+		if err != nil {
+			t.Error(err)
+		}
+		v = <-heartbeatComp
+		p, ok := v.(float64)
+		if !ok {
+			t.Error("v.(type) != float64")
+		}
+		if !EqualFloat(p, 0.5) {
+			t.Error("p != 0.5")
+		}
+		v = <-heartbeatComp
+		p, ok = v.(float64)
+		if !ok {
+			t.Error("v.(type) != float64")
+		}
+		if !EqualFloat(p, 1) {
+			t.Error("p != 1")
+		}
+	})
 }
 
 func TestServiceIntegrationPair(t *testing.T) {

@@ -95,14 +95,14 @@ func EqualMap(x, y map[string]float64) bool {
 		if !ok {
 			return false
 		}
-		if !equalFloat(xv, yv) {
+		if !EqualFloat(xv, yv) {
 			return false
 		}
 	}
 	return true
 }
 
-func equalFloat(x, y float64) bool {
+func EqualFloat(x, y float64) bool {
 	diff := math.Abs(x - y)
 	if diff > tolerance {
 		return false

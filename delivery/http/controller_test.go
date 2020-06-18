@@ -32,12 +32,16 @@ func TestControllerHandleAlbum(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
+		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
 		queue1 := service.NewQueue("HVyMn8HuDa8rdkyr", &mem)
 		queue2 := service.NewQueue("S8Lg9yR7JvfEqQgf", &mem)
 		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		g, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -67,6 +71,17 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"N2fxX5zbDh8RJQvx1"}}`+"\n")
+		<-heartbeatComp
+		<-heartbeatComp
+		<-heartbeatComp
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/N2fxX5zbDh8RJQvx1/ready", nil)
+		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "N2fxX5zbDh8RJQvx1"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -216,77 +231,102 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Unsupported Media Type`+"\n")
 	})
-	// t.Run("Negative5", func(t *testing.T) {
-	// 	rand.Id = func() func(int) (string, error) {
-	// 		id := "Ugr5UMNg2R6DKg43"
-	// 		i := 0
-	// 		return func(length int) (string, error) {
-	// 			i++
-	// 			return id + strconv.Itoa(i), nil
-	// 		}
-	// 	}()
-	// 	comp := compressor.NewFail()
-	// 	stor := storage.NewMock()
-	// 	mem := database.NewMem()
-	// 	sched := service.NewScheduler("UcNgY7Acvep8XqCc", &mem)
-	// 	serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
-	// 	contr := newController(&serv)
-	// 	fn := contr.handleAlbum()
-	// 	w := httptest.NewRecorder()
-	// 	body := bytes.Buffer{}
-	// 	multi := multipart.NewWriter(&body)
-	// 	for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
-	// 		part, err := multi.CreateFormFile("images", filename)
-	// 		if err != nil {
-	// 			t.Error(err)
-	// 		}
-	// 		b, err := ioutil.ReadFile("../../testdata/" + filename)
-	// 		if err != nil {
-	// 			t.Error(err)
-	// 		}
-	// 		_, err = part.Write(b)
-	// 		if err != nil {
-	// 			t.Error(err)
-	// 		}
-	// 	}
-	// 	err := multi.Close()
-	// 	if err != nil {
-	// 		t.Error(err)
-	// 	}
-	// 	r := httptest.NewRequest("POST", "/api/albums/", &body)
-	// 	r.Header.Set("Content-Type", multi.FormDataContentType())
-	// 	fn(w, r, nil)
-	// 	CheckStatusCode(t, w, 500)
-	// 	CheckContentType(t, w, "text/plain; charset=utf-8")
-	// 	CheckBody(t, w, `Internal Server Error`+"\n")
-	// 	w = httptest.NewRecorder()
-	// 	body = bytes.Buffer{}
-	// 	multi = multipart.NewWriter(&body)
-	// 	for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
-	// 		part, err := multi.CreateFormFile("images", filename)
-	// 		if err != nil {
-	// 			t.Error(err)
-	// 		}
-	// 		b, err := ioutil.ReadFile("../../testdata/" + filename)
-	// 		if err != nil {
-	// 			t.Error(err)
-	// 		}
-	// 		_, err = part.Write(b)
-	// 		if err != nil {
-	// 			t.Error(err)
-	// 		}
-	// 	}
-	// 	err = multi.Close()
-	// 	if err != nil {
-	// 		t.Error(err)
-	// 	}
-	// 	r = httptest.NewRequest("POST", "/api/albums/", &body)
-	// 	r.Header.Set("Content-Type", multi.FormDataContentType())
-	// 	fn(w, r, nil)
-	// 	CheckStatusCode(t, w, 201)
-	// 	CheckContentType(t, w, "application/json; charset=utf-8")
-	// 	CheckBody(t, w, `{"album":{"id":"Ugr5UMNg2R6DKg435"}}`+"\n")
-	// })
+	t.Run("Negative5", func(t *testing.T) {
+		rand.Id = func() func(int) (string, error) {
+			id := "jp8vH6TEapTGgSSc"
+			i := 0
+			return func(length int) (string, error) {
+				i++
+				return id + strconv.Itoa(i), nil
+			}
+		}()
+		ctx := context.Background()
+		comp := compressor.NewFail()
+		stor := storage.NewMock()
+		mem := database.NewMem()
+		queue1 := service.NewQueue("Y5gVnAXu4SUg8qK8", &mem)
+		queue2 := service.NewQueue("6kD5hhETBcYFbKbq", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		g, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
+		contr := newController(&serv)
+		fn := contr.handleAlbum()
+		w := httptest.NewRecorder()
+		body := bytes.Buffer{}
+		multi := multipart.NewWriter(&body)
+		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err := multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r := httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", multi.FormDataContentType())
+		fn(w, r, nil)
+		CheckStatusCode(t, w, 201)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc1"}}`+"\n")
+		<-heartbeatComp
+		w = httptest.NewRecorder()
+		body = bytes.Buffer{}
+		multi = multipart.NewWriter(&body)
+		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err = multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r = httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", multi.FormDataContentType())
+		fn(w, r, nil)
+		CheckStatusCode(t, w, 201)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc5"}}`+"\n")
+		<-heartbeatComp
+		<-heartbeatComp
+		<-heartbeatComp
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc1/ready", nil)
+		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "jp8vH6TEapTGgSSc1"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":0}}`+"\n")
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc5/ready", nil)
+		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "jp8vH6TEapTGgSSc5"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
+	})
 }
 
 func TestControllerHandlePair(t *testing.T) {
@@ -646,55 +686,4 @@ func TestControllerHandleTop(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Album Not Found`+"\n")
 	})
-}
-
-func BenchmarkControllerHandleAlbum(b *testing.B) {
-	b.ReportAllocs()
-	rand.Id = func() func(int) (string, error) {
-		id := "MchqrYMkMPmm5z2t"
-		i := 0
-		return func(length int) (string, error) {
-			i++
-			return id + strconv.Itoa(i), nil
-		}
-	}()
-	comp := compressor.NewMock()
-	stor := storage.NewMock()
-	mem := database.NewMem()
-	queue1 := service.NewQueue("t46W276nEp59gXyr", &mem)
-	queue2 := service.NewQueue("KZReMqtqdzx4D7Xq", &mem)
-	serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
-	contr := newController(&serv)
-	fn := contr.handleAlbum()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		w := httptest.NewRecorder()
-		body := bytes.Buffer{}
-		multi := multipart.NewWriter(&body)
-		for j := 0; j < 333; j++ {
-			for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
-				part, err := multi.CreateFormFile("images", filename)
-				if err != nil {
-					b.Error(err)
-				}
-				data, err := ioutil.ReadFile("../../testdata/" + filename)
-				if err != nil {
-					b.Error(err)
-				}
-				_, err = part.Write(data)
-				if err != nil {
-					b.Error(err)
-				}
-			}
-		}
-		err := multi.Close()
-		if err != nil {
-			b.Error(err)
-		}
-		r := httptest.NewRequest("POST", "/api/albums/", &body)
-		r.Header.Set("Content-Type", multi.FormDataContentType())
-		b.StartTimer()
-		fn(w, r, nil)
-	}
 }

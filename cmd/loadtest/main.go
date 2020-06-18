@@ -1,6 +1,6 @@
 // The purpose of this tool is to provide a realistic load on the
 // system. It creates 98 albums, each contains 20 images. In total, it
-// sends 9996 requests.
+// sends 10094 requests.
 package main
 
 import (
@@ -38,6 +38,7 @@ func main() {
 			defer func() { <-sem }()
 			session := albumHtml()
 			id := albumApi(session)
+			readyApi(session, id)
 			for j := 0; j < 4; j++ {
 				pairHtml(session, id)
 				for k := 0; k < 11; k++ {
@@ -110,6 +111,31 @@ func albumApi(session string) string {
 	debug.Check(err)
 
 	return res.Album.Id
+}
+
+func readyApi(session string, id string) {
+	req, err := http.NewRequest("GET", address+"/api/albums/"+id+"/ready/", nil)
+	debug.Check(err)
+	c := http.Cookie{}
+	c.Name = "session"
+	c.Value = session
+	req.AddCookie(&c)
+
+	resp, err := http.DefaultClient.Do(req)
+	debug.Check(err)
+	debug.Assert(resp.StatusCode == 200)
+
+	type result struct {
+		Album struct {
+			Progress float64
+		}
+	}
+
+	res := result{}
+	err = json.NewDecoder(resp.Body).Decode(&res)
+	debug.Check(err)
+	err = resp.Body.Close()
+	debug.Check(err)
 }
 
 func pairHtml(session string, id string) {

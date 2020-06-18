@@ -121,6 +121,59 @@ func (c *controller) handleAlbum() httprouter.Handle {
 	)
 }
 
+func (c *controller) handleReady() httprouter.Handle {
+	type request struct {
+		album struct {
+			id string
+		}
+	}
+	type response struct {
+		Album struct {
+			Progress float64 `json:"progress"`
+		} `json:"album"`
+	}
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, request, error) {
+		ctx := r.Context()
+		req := request{}
+		req.album.id = ps.ByName("album")
+		return ctx, req, nil
+	}
+	process := func(ctx context.Context, req request) (response, error) {
+		p, err := c.serv.Progress(ctx, req.album.id)
+		if err != nil {
+			return response{}, errors.Wrap(err)
+		}
+		resp := response{}
+		resp.Album.Progress = p
+		return resp, nil
+	}
+	output := func(ctx context.Context, w http.ResponseWriter, resp response) error {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		err := json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		return nil
+	}
+	return handleHttpRouterError(
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+			ctx, req, err := input(r, ps)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+			resp, err := process(ctx, req)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+			err = output(ctx, w, resp)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+			return nil
+		},
+	)
+}
+
 func (c *controller) handlePair() httprouter.Handle {
 	type request struct {
 		album struct {

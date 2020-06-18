@@ -317,3 +317,113 @@ func TestMemToken(t *testing.T) {
 		}
 	})
 }
+
+func TestMemCount(t *testing.T) {
+	t.Run("Positive", func(t *testing.T) {
+		mem := NewMem()
+		alb := AlbumEmptyFactory("c86jMVAX5Qgs2MZy")
+		err := mem.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		n, err := mem.CountImages(context.Background(), "c86jMVAX5Qgs2MZy")
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 5 {
+			t.Error("n != 5")
+		}
+		n, err = mem.CountImagesCompressed(context.Background(), "c86jMVAX5Qgs2MZy")
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 0 {
+			t.Error("n != 0")
+		}
+		err = mem.UpdateCompressionStatus(context.Background(), "c86jMVAX5Qgs2MZy", "RcBj3m9vuYPbntAE")
+		if err != nil {
+			t.Error(err)
+		}
+		n, err = mem.CountImages(context.Background(), "c86jMVAX5Qgs2MZy")
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 5 {
+			t.Error("n != 5")
+		}
+		n, err = mem.CountImagesCompressed(context.Background(), "c86jMVAX5Qgs2MZy")
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 1 {
+			t.Error("n != 1")
+		}
+		err = mem.UpdateCompressionStatus(context.Background(), "c86jMVAX5Qgs2MZy", "Q3NafBGuDH9PAtS4")
+		if err != nil {
+			t.Error(err)
+		}
+		n, err = mem.CountImagesCompressed(context.Background(), "c86jMVAX5Qgs2MZy")
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 2 {
+			t.Error("n != 2")
+		}
+	})
+	t.Run("Negative1", func(t *testing.T) {
+		mem := NewMem()
+		alb := AlbumEmptyFactory("x8nqgfCUVsFL985w")
+		err := mem.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		err = mem.UpdateCompressionStatus(context.Background(), "x8nqgfCUVsFL985w", "RcBj3m9vuYPbntAE")
+		if err != nil {
+			t.Error(err)
+		}
+		err = mem.UpdateCompressionStatus(context.Background(), "x8nqgfCUVsFL985w", "RcBj3m9vuYPbntAE")
+		if err != nil {
+			t.Error(err)
+		}
+		n, err := mem.CountImagesCompressed(context.Background(), "x8nqgfCUVsFL985w")
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 1 {
+			t.Error("n != 1")
+		}
+	})
+	t.Run("Negative2", func(t *testing.T) {
+		mem := NewMem()
+		_, err := mem.CountImages(context.Background(), "WPbkn8VTVTPd5WYJ")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative3", func(t *testing.T) {
+		mem := NewMem()
+		_, err := mem.CountImagesCompressed(context.Background(), "nLYW4zNnH3tt639m")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative4", func(t *testing.T) {
+		mem := NewMem()
+		err := mem.UpdateCompressionStatus(context.Background(), "FLwXJhs4D2kkpehK", "RcBj3m9vuYPbntAE")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative5", func(t *testing.T) {
+		mem := NewMem()
+		alb := AlbumEmptyFactory("2drK8rREqpFS2WYp")
+		err := mem.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		err = mem.UpdateCompressionStatus(context.Background(), "2drK8rREqpFS2WYp", "EC5md2qhemwAZmGf")
+		if !errors.Is(err, model.ErrImageNotFound) {
+			t.Error(err)
+		}
+	})
+}

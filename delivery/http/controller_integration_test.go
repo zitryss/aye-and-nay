@@ -55,6 +55,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
+		ctx := context.Background()
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -68,8 +69,12 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("HVyMn8HuDa8rdkyr", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("HVyMn8HuDa8rdkyr", &redis)
+		queue2 := service.NewQueue("S8Lg9yR7JvfEqQgf", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		g, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -99,6 +104,17 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"N2fxX5zbDh8RJQvx1"}}`+"\n")
+		<-heartbeatComp
+		<-heartbeatComp
+		<-heartbeatComp
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/N2fxX5zbDh8RJQvx1/ready", nil)
+		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "N2fxX5zbDh8RJQvx1"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -114,8 +130,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("mEdFrvE3549LDFzx", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("mEdFrvE3549LDFzx", &redis)
+		queue2 := service.NewQueue("5qxFFTgPtLVhhQU7", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -160,8 +177,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("xQWGJjTtetde2DdB", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("xQWGJjTtetde2DdB", &redis)
+		queue2 := service.NewQueue("g2YS5KE5KeyGU2bG", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -206,8 +224,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("eQupRzAY56Qp5E4U", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("eQupRzAY56Qp5E4U", &redis)
+		queue2 := service.NewQueue("959UpyN6T8uYaFeB", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -252,8 +271,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("Au4DBRQhyEJV99wh", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("Au4DBRQhyEJV99wh", &redis)
+		queue2 := service.NewQueue("Zk3KEUJEjDwcsc8u", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -286,13 +306,14 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 	})
 	t.Run("Negative5", func(t *testing.T) {
 		rand.Id = func() func(int) (string, error) {
-			id := "Ugr5UMNg2R6DKg43"
+			id := "jp8vH6TEapTGgSSc"
 			i := 0
 			return func(length int) (string, error) {
 				i++
 				return id + strconv.Itoa(i), nil
 			}
 		}()
+		ctx := context.Background()
 		comp := compressor.NewFail()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -306,8 +327,12 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("UcNgY7Acvep8XqCc", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("Y5gVnAXu4SUg8qK8", &redis)
+		queue2 := service.NewQueue("6kD5hhETBcYFbKbq", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		g, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -334,9 +359,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		r := httptest.NewRequest("POST", "/api/albums/", &body)
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
-		CheckStatusCode(t, w, 500)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Internal Server Error`+"\n")
+		CheckStatusCode(t, w, 201)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc1"}}`+"\n")
+		<-heartbeatComp
 		w = httptest.NewRecorder()
 		body = bytes.Buffer{}
 		multi = multipart.NewWriter(&body)
@@ -363,7 +389,26 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"album":{"id":"Ugr5UMNg2R6DKg435"}}`+"\n")
+		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc5"}}`+"\n")
+		<-heartbeatComp
+		<-heartbeatComp
+		<-heartbeatComp
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc1/ready", nil)
+		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "jp8vH6TEapTGgSSc1"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":0}}`+"\n")
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc5/ready", nil)
+		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "jp8vH6TEapTGgSSc5"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
 	})
 }
 
@@ -392,8 +437,9 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("93P3AU2V6RMcFND4", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("93P3AU2V6RMcFND4", &redis)
+		queue2 := service.NewQueue("uq4TPwUqmj2MZaCv", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -443,8 +489,9 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("WTuVh4YDCdZM4af6", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("WTuVh4YDCdZM4af6", &redis)
+		queue2 := service.NewQueue("FNQjKB4hGJC25PJY", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handlePair()
 		w := httptest.NewRecorder()
@@ -482,8 +529,9 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("3L8E2zrdQtmJKEwa", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("3L8E2zrdQtmJKEwa", &redis)
+		queue2 := service.NewQueue("L4kKdZpZZuTkSDmH", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -550,8 +598,9 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("xGgXp5Pg5nKvGmBY", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("xGgXp5Pg5nKvGmBY", &redis)
+		queue2 := service.NewQueue("6qNjE2tha2Z8s73H", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -618,8 +667,9 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("RkAD9BHx8mTUBYRj", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("RkAD9BHx8mTUBYRj", &redis)
+		queue2 := service.NewQueue("rY4ZJMbTwQGyDqHK", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -690,11 +740,15 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("qCzDFPuY53Y34mdS", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
-		g, ctx := errgroup.WithContext(ctx)
-		heartbeat := make(chan struct{})
-		serv.StartWorkingPool(ctx, g, heartbeat)
+		queue1 := service.NewQueue("qCzDFPuY53Y34mdS", &redis)
+		queue2 := service.NewQueue("YL3b99PHTrMnfX9c", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		g1, ctx1 := errgroup.WithContext(ctx)
+		heartbeatCalc := make(chan interface{})
+		serv.StartWorkingPoolCalc(ctx1, g1, heartbeatCalc)
+		g2, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g2, heartbeatComp)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -721,6 +775,8 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		r := httptest.NewRequest("POST", "/api/albums/", &body)
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
+		<-heartbeatComp
+		<-heartbeatComp
 		fn = contr.handlePair()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/", nil)
@@ -733,7 +789,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "bYCppY8q6qjvXjMZ1"}}
 		fn(w, r, ps)
-		<-heartbeat
+		<-heartbeatCalc
 		fn = contr.handlePair()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/", nil)
@@ -746,7 +802,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "bYCppY8q6qjvXjMZ1"}}
 		fn(w, r, ps)
-		<-heartbeat
+		<-heartbeatCalc
 		fn = contr.handleTop()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/top/", nil)
@@ -770,8 +826,9 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		sched := service.NewScheduler("732qurKQkxYDsG6L", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &sched)
+		queue1 := service.NewQueue("732qurKQkxYDsG6L", &redis)
+		queue2 := service.NewQueue("eJRsgrtZPVc8RE7q", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleTop()
 		w := httptest.NewRecorder()

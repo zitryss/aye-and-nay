@@ -8,9 +8,7 @@ import (
 	"net/http"
 
 	minios3 "github.com/minio/minio-go/v6"
-	"golang.org/x/sync/errgroup"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
@@ -85,42 +83,34 @@ type minio struct {
 	client *minios3.Client
 }
 
-func (m *minio) Upload(ctx context.Context, album string, imgs []model.Image) error {
-	sem := make(chan struct{}, m.conf.connections)
-	g, ctx := errgroup.WithContext(ctx)
-	for i := range imgs {
-		sem <- struct{}{}
-		img := &imgs[i]
-		g.Go(func() (e error) {
-			defer func() { <-sem }()
-			defer func() {
-				v := recover()
-				if v == nil {
-					return
-				}
-				err, ok := v.(error)
-				if ok {
-					e = errors.Wrap(err)
-				} else {
-					e = errors.Wrapf(model.ErrUnknown, "%v", v)
-				}
-			}()
-			filename := "albums/" + album + "/images/" + img.Id
-			buf := bytes.NewBuffer(img.B)
-			img.B = nil
-			_, err := m.client.PutObjectWithContext(ctx, "aye-and-nay", filename, buf, int64(buf.Len()), minios3.PutObjectOptions{})
-			if err != nil {
-				e = errors.Wrap(err)
-				return
-			}
-			img.Src = m.conf.prefix + "/aye-and-nay/" + filename
-			return
-		})
+func (m *minio) Put(ctx context.Context, album string, image string, b []byte) (string, error) {
+	filename := "albums/" + album + "/images/" + image
+	buf := bytes.NewBuffer(b)
+	_, err := m.client.PutObjectWithContext(ctx, "aye-and-nay", filename, buf, int64(buf.Len()), minios3.PutObjectOptions{})
+	if err != nil {
+		return "", errors.Wrap(err)
 	}
-	for i := 0; i < m.conf.connections; i++ {
-		sem <- struct{}{}
+	src := m.conf.prefix + "/aye-and-nay/" + filename
+	return src, nil
+}
+
+func (m *minio) Get(ctx context.Context, album string, image string) ([]byte, error) {
+	filename := "albums/" + album + "/images/" + image
+	src, err := m.client.GetObjectWithContext(ctx, "aye-and-nay", filename, minios3.GetObjectOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err)
 	}
-	err := g.Wait()
+	dst := bytes.Buffer{}
+	_, err = io.Copy(&dst, src)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	return dst.Bytes(), nil
+}
+
+func (m *minio) Remove(_ context.Context, album string, image string) error {
+	filename := "albums/" + album + "/images/" + image
+	err := m.client.RemoveObject("aye-and-nay", filename)
 	if err != nil {
 		return errors.Wrap(err)
 	}

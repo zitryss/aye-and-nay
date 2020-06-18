@@ -10,18 +10,24 @@ type Servicer interface {
 	Vote(ctx context.Context, album string, tokenFrom string, tokenTo string) error
 	Top(ctx context.Context, album string) ([]Image, error)
 	Exists(ctx context.Context, album string) (bool, error)
+	Progress(ctx context.Context, album string) (float64, error)
 }
 
 type Compresser interface {
-	Compress(ctx context.Context, imgs []Image) error
+	Compress(ctx context.Context, b []byte) ([]byte, error)
 }
 
 type Storager interface {
-	Upload(ctx context.Context, album string, imgs []Image) error
+	Put(ctx context.Context, album string, image string, b []byte) (string, error)
+	Get(ctx context.Context, album string, image string) ([]byte, error)
+	Remove(ctx context.Context, album string, image string) error
 }
 
 type Persister interface {
 	SaveAlbum(ctx context.Context, alb Album) error
+	CountImages(ctx context.Context, album string) (int, error)
+	CountImagesCompressed(ctx context.Context, album string) (int, error)
+	UpdateCompressionStatus(ctx context.Context, album string, image string) error
 	GetImage(ctx context.Context, album string, image string) (Image, error)
 	GetImages(ctx context.Context, album string) ([]string, error)
 	SaveVote(ctx context.Context, album string, imageFrom string, imageTo string) error

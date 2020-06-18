@@ -32,11 +32,16 @@ func TestControllerHandleAlbum(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
+		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("HVyMn8HuDa8rdkyr", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("HVyMn8HuDa8rdkyr", &mem)
+		queue2 := service.NewQueue("S8Lg9yR7JvfEqQgf", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		g, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -66,13 +71,25 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"N2fxX5zbDh8RJQvx1"}}`+"\n")
+		<-heartbeatComp
+		<-heartbeatComp
+		<-heartbeatComp
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/N2fxX5zbDh8RJQvx1/ready", nil)
+		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "N2fxX5zbDh8RJQvx1"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("mEdFrvE3549LDFzx", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("mEdFrvE3549LDFzx", &mem)
+		queue2 := service.NewQueue("5qxFFTgPtLVhhQU7", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -107,8 +124,9 @@ func TestControllerHandleAlbum(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("xQWGJjTtetde2DdB", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("xQWGJjTtetde2DdB", &mem)
+		queue2 := service.NewQueue("g2YS5KE5KeyGU2bG", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -143,8 +161,9 @@ func TestControllerHandleAlbum(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("eQupRzAY56Qp5E4U", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("eQupRzAY56Qp5E4U", &mem)
+		queue2 := service.NewQueue("959UpyN6T8uYaFeB", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -179,8 +198,9 @@ func TestControllerHandleAlbum(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("Au4DBRQhyEJV99wh", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("Au4DBRQhyEJV99wh", &mem)
+		queue2 := service.NewQueue("Zk3KEUJEjDwcsc8u", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -213,18 +233,23 @@ func TestControllerHandleAlbum(t *testing.T) {
 	})
 	t.Run("Negative5", func(t *testing.T) {
 		rand.Id = func() func(int) (string, error) {
-			id := "Ugr5UMNg2R6DKg43"
+			id := "jp8vH6TEapTGgSSc"
 			i := 0
 			return func(length int) (string, error) {
 				i++
 				return id + strconv.Itoa(i), nil
 			}
 		}()
+		ctx := context.Background()
 		comp := compressor.NewFail()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("UcNgY7Acvep8XqCc", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("Y5gVnAXu4SUg8qK8", &mem)
+		queue2 := service.NewQueue("6kD5hhETBcYFbKbq", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		g, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -251,9 +276,10 @@ func TestControllerHandleAlbum(t *testing.T) {
 		r := httptest.NewRequest("POST", "/api/albums/", &body)
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
-		CheckStatusCode(t, w, 500)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Internal Server Error`+"\n")
+		CheckStatusCode(t, w, 201)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc1"}}`+"\n")
+		<-heartbeatComp
 		w = httptest.NewRecorder()
 		body = bytes.Buffer{}
 		multi = multipart.NewWriter(&body)
@@ -280,7 +306,26 @@ func TestControllerHandleAlbum(t *testing.T) {
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"album":{"id":"Ugr5UMNg2R6DKg435"}}`+"\n")
+		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc5"}}`+"\n")
+		<-heartbeatComp
+		<-heartbeatComp
+		<-heartbeatComp
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc1/ready", nil)
+		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "jp8vH6TEapTGgSSc1"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":0}}`+"\n")
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc5/ready", nil)
+		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "jp8vH6TEapTGgSSc5"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
 	})
 }
 
@@ -299,8 +344,9 @@ func TestControllerHandlePair(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("93P3AU2V6RMcFND4", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("93P3AU2V6RMcFND4", &mem)
+		queue2 := service.NewQueue("uq4TPwUqmj2MZaCv", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -340,8 +386,9 @@ func TestControllerHandlePair(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("WTuVh4YDCdZM4af6", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("WTuVh4YDCdZM4af6", &mem)
+		queue2 := service.NewQueue("FNQjKB4hGJC25PJY", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handlePair()
 		w := httptest.NewRecorder()
@@ -369,8 +416,9 @@ func TestControllerHandleVote(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("3L8E2zrdQtmJKEwa", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("3L8E2zrdQtmJKEwa", &mem)
+		queue2 := service.NewQueue("L4kKdZpZZuTkSDmH", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -427,8 +475,9 @@ func TestControllerHandleVote(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("xGgXp5Pg5nKvGmBY", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("xGgXp5Pg5nKvGmBY", &mem)
+		queue2 := service.NewQueue("6qNjE2tha2Z8s73H", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -485,8 +534,9 @@ func TestControllerHandleVote(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("RkAD9BHx8mTUBYRj", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("RkAD9BHx8mTUBYRj", &mem)
+		queue2 := service.NewQueue("rY4ZJMbTwQGyDqHK", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -547,11 +597,15 @@ func TestControllerHandleTop(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("qCzDFPuY53Y34mdS", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
-		g, ctx := errgroup.WithContext(ctx)
-		heartbeat := make(chan struct{})
-		serv.StartWorkingPool(ctx, g, heartbeat)
+		queue1 := service.NewQueue("qCzDFPuY53Y34mdS", &mem)
+		queue2 := service.NewQueue("YL3b99PHTrMnfX9c", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		g1, ctx1 := errgroup.WithContext(ctx)
+		heartbeatCalc := make(chan interface{})
+		serv.StartWorkingPoolCalc(ctx1, g1, heartbeatCalc)
+		g2, ctx2 := errgroup.WithContext(ctx)
+		heartbeatComp := make(chan interface{})
+		serv.StartWorkingPoolComp(ctx2, g2, heartbeatComp)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -578,6 +632,8 @@ func TestControllerHandleTop(t *testing.T) {
 		r := httptest.NewRequest("POST", "/api/albums/", &body)
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
+		<-heartbeatComp
+		<-heartbeatComp
 		fn = contr.handlePair()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/", nil)
@@ -590,7 +646,7 @@ func TestControllerHandleTop(t *testing.T) {
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "bYCppY8q6qjvXjMZ1"}}
 		fn(w, r, ps)
-		<-heartbeat
+		<-heartbeatCalc
 		fn = contr.handlePair()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/", nil)
@@ -603,7 +659,7 @@ func TestControllerHandleTop(t *testing.T) {
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "bYCppY8q6qjvXjMZ1"}}
 		fn(w, r, ps)
-		<-heartbeat
+		<-heartbeatCalc
 		fn = contr.handleTop()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/top/", nil)
@@ -617,8 +673,9 @@ func TestControllerHandleTop(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
-		sched := service.NewScheduler("732qurKQkxYDsG6L", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
+		queue1 := service.NewQueue("732qurKQkxYDsG6L", &mem)
+		queue2 := service.NewQueue("eJRsgrtZPVc8RE7q", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
 		contr := newController(&serv)
 		fn := contr.handleTop()
 		w := httptest.NewRecorder()
@@ -629,54 +686,4 @@ func TestControllerHandleTop(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Album Not Found`+"\n")
 	})
-}
-
-func BenchmarkControllerHandleAlbum(b *testing.B) {
-	b.ReportAllocs()
-	rand.Id = func() func(int) (string, error) {
-		id := "MchqrYMkMPmm5z2t"
-		i := 0
-		return func(length int) (string, error) {
-			i++
-			return id + strconv.Itoa(i), nil
-		}
-	}()
-	comp := compressor.NewMock()
-	stor := storage.NewMock()
-	mem := database.NewMem()
-	sched := service.NewScheduler("t46W276nEp59gXyr", &mem)
-	serv := service.NewService(&comp, &stor, &mem, &mem, &sched)
-	contr := newController(&serv)
-	fn := contr.handleAlbum()
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		b.StopTimer()
-		w := httptest.NewRecorder()
-		body := bytes.Buffer{}
-		multi := multipart.NewWriter(&body)
-		for j := 0; j < 333; j++ {
-			for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
-				part, err := multi.CreateFormFile("images", filename)
-				if err != nil {
-					b.Error(err)
-				}
-				data, err := ioutil.ReadFile("../../testdata/" + filename)
-				if err != nil {
-					b.Error(err)
-				}
-				_, err = part.Write(data)
-				if err != nil {
-					b.Error(err)
-				}
-			}
-		}
-		err := multi.Close()
-		if err != nil {
-			b.Error(err)
-		}
-		r := httptest.NewRequest("POST", "/api/albums/", &body)
-		r.Header.Set("Content-Type", multi.FormDataContentType())
-		b.StartTimer()
-		fn(w, r, nil)
-	}
 }

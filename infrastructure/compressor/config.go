@@ -11,7 +11,6 @@ func newShortPixelConfig() shortPixelConfig {
 		url:             viper.GetString("shortpixel.url"),
 		url2:            viper.GetString("shortpixel.url2"),
 		apiKey:          viper.GetString("shortpixel.apiKey"),
-		connections:     viper.GetInt("shortpixel.connections"),
 		times:           viper.GetInt("shortpixel.retry.times"),
 		pause:           viper.GetDuration("shortpixel.retry.pause"),
 		wait:            viper.GetString("shortpixel.wait"),
@@ -25,7 +24,6 @@ type shortPixelConfig struct {
 	url             string
 	url2            string
 	apiKey          string
-	connections     int
 	times           int
 	pause           time.Duration
 	wait            string

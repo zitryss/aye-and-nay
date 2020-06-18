@@ -5,13 +5,16 @@ package storage
 import (
 	"context"
 	"os"
+	"reflect"
 	"testing"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	minios3 "github.com/minio/minio-go/v6"
+
 	_ "github.com/zitryss/aye-and-nay/internal/config"
 	"github.com/zitryss/aye-and-nay/internal/dockertest"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/env"
+	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
@@ -30,84 +33,76 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-func TestMinioUpload(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
+func TestMinio(t *testing.T) {
+	t.Run("", func(t *testing.T) {
 		minio, err := NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
-		img1 := model.Image{Id: "bx3TWdDEQrF294dx", B: Png()}
-		img2 := model.Image{Id: "JtnKxUarcWeJ342R", B: Png()}
-		imgs := []model.Image{img1, img2}
-		err = minio.Upload(context.Background(), "42QbW4V2", imgs)
+		b, err := minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		e := (*minios3.ErrorResponse)(nil)
+		if errors.As(err, &e) {
+			t.Error(err)
+		}
+		if b != nil {
+			t.Error("b != nil")
+		}
+		src, err := minio.Put(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU", Png())
 		if err != nil {
 			t.Error(err)
 		}
-		if imgs[0].B != nil {
-			t.Error("imgs[0].B != nil")
+		if src != "/aye-and-nay/albums/pXFAGSZpY844QjvY/images/qmgc5mNJtxUtF8WU" {
+			t.Error("src != \"/aye-and-nay/albums/pXFAGSZpY844QjvY/images/qmgc5mNJtxUtF8WU\"")
 		}
-		if imgs[1].B != nil {
-			t.Error("imgs[1].B != nil")
+		b, err = minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		if err != nil {
+			t.Error(err)
 		}
-		if imgs[0].Src != "/aye-and-nay/albums/42QbW4V2/images/bx3TWdDEQrF294dx" {
-			t.Error("imgs[0].Src")
+		if !reflect.DeepEqual(b, Png()) {
+			t.Error("!reflect.DeepEqual(b, Png())")
 		}
-		if imgs[1].Src != "/aye-and-nay/albums/42QbW4V2/images/JtnKxUarcWeJ342R" {
-			t.Error("imgs[1].Src")
+		err = minio.Remove(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		if err != nil {
+			t.Error(err)
+		}
+		b, err = minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		e = (*minios3.ErrorResponse)(nil)
+		if errors.As(err, &e) {
+			t.Error(err)
+		}
+		if b != nil {
+			t.Error("b != nil")
 		}
 	})
-	t.Run("Negative1", func(t *testing.T) {
+	t.Run("", func(t *testing.T) {
 		minio, err := NewMinio()
 		if err != nil {
 			t.Fatal(err)
 		}
-		img1 := model.Image{Id: "GXmZcfJZz4mRDq5R", B: nil}
-		img2 := model.Image{Id: "VTq25ujPhDYsxbJ2", B: nil}
-		imgs := []model.Image{img1, img2}
-		err = minio.Upload(context.Background(), "bSTApWdG", imgs)
+		src, err := minio.Put(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D", Png())
 		if err != nil {
 			t.Error(err)
 		}
-		if imgs[0].B != nil {
-			t.Error("imgs[0].B != nil")
+		if src != "/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D" {
+			t.Error("src != \"/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D\"")
 		}
-		if imgs[1].B != nil {
-			t.Error("imgs[1].B != nil")
-		}
-		if imgs[0].Src != "/aye-and-nay/albums/bSTApWdG/images/GXmZcfJZz4mRDq5R" {
-			t.Error("imgs[0].Src")
-		}
-		if imgs[1].Src != "/aye-and-nay/albums/bSTApWdG/images/VTq25ujPhDYsxbJ2" {
-			t.Error("imgs[1].Src")
-		}
-	})
-	t.Run("Negative2", func(t *testing.T) {
-		minio, err := NewMinio()
-		if err != nil {
-			t.Fatal(err)
-		}
-		img1 := model.Image{Id: "tkNzABZkEw2PdVHv", B: Png()}
-		imgs := []model.Image{img1}
-		err = minio.Upload(context.Background(), "fhR5PQN6", imgs)
+		b, err := minio.Get(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D")
 		if err != nil {
 			t.Error(err)
 		}
-		if imgs[0].B != nil {
-			t.Error("imgs[0].B != nil")
+		if !reflect.DeepEqual(b, Png()) {
+			t.Error("!reflect.DeepEqual(b, Png())")
 		}
-		if imgs[0].Src != "/aye-and-nay/albums/fhR5PQN6/images/tkNzABZkEw2PdVHv" {
-			t.Error("imgs[0].Src")
-		}
-	})
-	t.Run("Negative3", func(t *testing.T) {
-		minio, err := NewMinio()
-		if err != nil {
-			t.Fatal(err)
-		}
-		imgs := []model.Image(nil)
-		err = minio.Upload(context.Background(), "3dUtqgkY", imgs)
+		err = minio.Remove(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D")
 		if err != nil {
 			t.Error(err)
+		}
+		src, err = minio.Put(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D", Png())
+		if err != nil {
+			t.Error(err)
+		}
+		if src != "/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D" {
+			t.Error("src != \"/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D\"")
 		}
 	})
 }

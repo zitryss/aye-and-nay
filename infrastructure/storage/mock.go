@@ -2,21 +2,41 @@ package storage
 
 import (
 	"context"
-
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"sync"
 )
 
 func NewMock() mock {
-	return mock{}
+	return mock{
+		files: map[string][]byte{},
+	}
 }
 
 type mock struct {
+	sync.Mutex
+	files map[string][]byte
 }
 
-func (m *mock) Upload(_ context.Context, album string, imgs []model.Image) error {
-	for i := range imgs {
-		img := &imgs[i]
-		img.Src = "/aye-and-nay/albums/" + album + "/images/" + img.Id
-	}
+func (m *mock) Put(_ context.Context, album string, image string, b []byte) (string, error) {
+	m.Lock()
+	defer m.Unlock()
+	filename := "albums/" + album + "/images/" + image
+	m.files[filename] = b
+	src := "/aye-and-nay/" + filename
+	return src, nil
+}
+
+func (m *mock) Get(_ context.Context, album string, image string) ([]byte, error) {
+	m.Lock()
+	defer m.Unlock()
+	filename := "albums/" + album + "/images/" + image
+	b := m.files[filename]
+	return b, nil
+}
+
+func (m *mock) Remove(_ context.Context, album string, image string) error {
+	m.Lock()
+	defer m.Unlock()
+	filename := "albums/" + album + "/images/" + image
+	delete(m.files, filename)
 	return nil
 }

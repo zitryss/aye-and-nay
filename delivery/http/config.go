@@ -40,9 +40,6 @@ func newMiddlewareConfig() middlewareConfig {
 		limiterBurst:             viper.GetInt("middleware.limiter.burst"),
 		limiterTimeToLive:        viper.GetDuration("middleware.limiter.timeToLive"),
 		limiterCleanupInterval:   viper.GetDuration("middleware.limiter.cleanupInterval"),
-		sessionIdLength:          viper.GetInt("middleware.session.idLength"),
-		sessionTimeToLive:        viper.GetDuration("middleware.session.timeToLive"),
-		sessionCleanupInterval:   viper.GetDuration("middleware.session.cleanupInterval"),
 	}
 }
 
@@ -51,9 +48,6 @@ type middlewareConfig struct {
 	limiterBurst             int
 	limiterTimeToLive        time.Duration
 	limiterCleanupInterval   time.Duration
-	sessionIdLength          int
-	sessionTimeToLive        time.Duration
-	sessionCleanupInterval   time.Duration
 }
 
 func newRouterConfig() routerConfig {

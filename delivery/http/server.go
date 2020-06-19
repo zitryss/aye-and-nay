@@ -33,7 +33,8 @@ func NewServer(
 	handler := middle.chain(router)
 	http := newHttp(conf)
 	https := newHttps(conf, handler)
-	svr := server{conf, http, https, cancel, serverWait}
+	https.RegisterOnShutdown(cancel)
+	svr := server{conf, http, https, serverWait}
 	return svr, nil
 }
 
@@ -71,7 +72,6 @@ type server struct {
 	conf       serverConfig
 	http       http.Server
 	https      http.Server
-	cancel     context.CancelFunc
 	serverWait chan<- error
 }
 
@@ -81,7 +81,6 @@ func (s *server) Monitor() {
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 		<-quit
 		s.shutdown()
-		s.cancel()
 	}()
 }
 

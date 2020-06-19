@@ -17,8 +17,6 @@ middleware:
     burst: 5
     timeToLive: 24h
     cleanupInterval: 1h
-router:
-  staticDirPath: assets/static
 html:
   templatesDirPath: ./assets/templates/*
 controller:

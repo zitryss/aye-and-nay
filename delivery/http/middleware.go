@@ -10,7 +10,6 @@ import (
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
-	"github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
 func newMiddleware() middleware {
@@ -23,7 +22,7 @@ type middleware struct {
 }
 
 func (m *middleware) chain(h http.Handler) http.Handler {
-	return m.recover(m.limit(m.restrict(m.authorize(h))))
+	return m.recover(m.limit(m.restrict(h)))
 }
 
 func (m *middleware) recover(h http.Handler) http.Handler {
@@ -97,102 +96,6 @@ func (m *middleware) restrict(h http.Handler) http.Handler {
 		func(w http.ResponseWriter, r *http.Request) error {
 			if strings.HasPrefix(r.URL.Path, "/static/") && strings.HasSuffix(r.URL.Path, "/") {
 				return errors.Wrap(model.ErrForbinden)
-			}
-			h.ServeHTTP(w, r)
-			return nil
-		},
-	)
-}
-
-func (m *middleware) authorize(h http.Handler) http.Handler {
-	type syncmap struct {
-		sync.RWMutex
-		data map[string]time.Time
-	}
-	sm := syncmap{data: map[string]time.Time{}}
-	go func() {
-		for {
-			now := time.Now()
-			sm.Lock()
-			for k, v := range sm.data {
-				if now.After(v) {
-					delete(sm.data, k)
-				}
-			}
-			sm.Unlock()
-			time.Sleep(m.conf.sessionCleanupInterval)
-		}
-	}()
-	cookieFactory := func() (http.Cookie, error) {
-		id, err := rand.Id(m.conf.sessionIdLength)
-		if err != nil {
-			return http.Cookie{}, errors.Wrap(err)
-		}
-		now := time.Now()
-		sm.Lock()
-		sm.data[id] = now.Add(m.conf.sessionTimeToLive)
-		sm.Unlock()
-		cookie := http.Cookie{}
-		cookie.Name = "session"
-		cookie.Value = id
-		cookie.Expires = now.Add(m.conf.sessionTimeToLive)
-		cookie.MaxAge = int(m.conf.sessionTimeToLive.Seconds())
-		cookie.HttpOnly = true
-		return cookie, nil
-	}
-	checkCookie := func(w http.ResponseWriter, r *http.Request) error {
-		c, err := r.Cookie("session")
-		if errors.Is(err, http.ErrNoCookie) {
-			return errors.Wrap(model.ErrForbinden)
-		}
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		sm.RLock()
-		_, ok := sm.data[c.Value]
-		sm.RUnlock()
-		if !ok {
-			return errors.Wrap(model.ErrForbinden)
-		}
-		return nil
-	}
-	writeCookie := func(w http.ResponseWriter, r *http.Request) error {
-		c, err := r.Cookie("session")
-		if errors.Is(err, http.ErrNoCookie) {
-			c, err := cookieFactory()
-			if err != nil {
-				return errors.Wrap(err)
-			}
-			http.SetCookie(w, &c)
-			return nil
-		}
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		sm.RLock()
-		_, ok := sm.data[c.Value]
-		sm.RUnlock()
-		if !ok {
-			c, err := cookieFactory()
-			if err != nil {
-				return errors.Wrap(err)
-			}
-			http.SetCookie(w, &c)
-		}
-		return nil
-	}
-	return handleHttpError(
-		func(w http.ResponseWriter, r *http.Request) error {
-			if strings.HasPrefix(r.URL.Path, "/api") {
-				err := checkCookie(w, r)
-				if err != nil {
-					return errors.Wrap(err)
-				}
-			} else {
-				err := writeCookie(w, r)
-				if err != nil {
-					return errors.Wrap(err)
-				}
 			}
 			h.ServeHTTP(w, r)
 			return nil

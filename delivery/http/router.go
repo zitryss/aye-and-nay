@@ -10,7 +10,6 @@ func newRouter(
 	contr controller,
 	html html,
 ) http.Handler {
-	conf := newRouterConfig()
 	router := httprouter.New()
 	router.POST("/api/albums/", contr.handleAlbum())
 	router.GET("/api/albums/:album/ready", contr.handleReady())
@@ -20,6 +19,5 @@ func newRouter(
 	router.GET("/", html.handleAlbum())
 	router.GET("/albums/:album/", html.handlePair())
 	router.GET("/albums/:album/top/", html.handleTop())
-	router.ServeFiles("/static/*filepath", http.Dir(conf.staticDirPath))
 	return router
 }

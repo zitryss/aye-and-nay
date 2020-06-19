@@ -50,16 +50,6 @@ type middlewareConfig struct {
 	limiterCleanupInterval   time.Duration
 }
 
-func newRouterConfig() routerConfig {
-	return routerConfig{
-		staticDirPath: viper.GetString("router.staticDirPath"),
-	}
-}
-
-type routerConfig struct {
-	staticDirPath string
-}
-
 func newContrConfig() contrConfig {
 	return contrConfig{
 		maxNumberOfFiles: viper.GetInt("controller.maxNumberOfFiles"),

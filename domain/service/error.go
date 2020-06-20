@@ -12,8 +12,6 @@ func handleError(err error) {
 		log.Debug(err)
 	case model.ErrForbinden:
 		log.Debug(err)
-	case model.ErrPageNotFound:
-		log.Debug(err)
 	case model.ErrNotEnoughImages:
 		log.Debug(err)
 	case model.ErrTooManyImages:

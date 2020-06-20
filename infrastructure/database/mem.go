@@ -191,16 +191,6 @@ func (m *mem) GetImagesOrdered(_ context.Context, album string) ([]model.Image, 
 	return imgs, nil
 }
 
-func (m *mem) CheckAlbum(_ context.Context, album string) (bool, error) {
-	m.Lock()
-	defer m.Unlock()
-	_, ok := m.albums[album]
-	if !ok {
-		return false, nil
-	}
-	return true, nil
-}
-
 func (m *mem) Add(_ context.Context, queue string, album string) error {
 	m.Lock()
 	defer m.Unlock()

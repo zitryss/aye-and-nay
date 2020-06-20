@@ -61,13 +61,3 @@ type contrConfig struct {
 	maxNumberOfFiles int
 	maxFileSize      int64
 }
-
-func newHtmlConfig() htmlConfig {
-	return htmlConfig{
-		templatesDirPath: viper.GetString("html.templatesDirPath"),
-	}
-}
-
-type htmlConfig struct {
-	templatesDirPath string
-}

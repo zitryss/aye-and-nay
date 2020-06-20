@@ -339,15 +339,3 @@ func (m *mongo) GetImagesOrdered(ctx context.Context, album string) ([]model.Ima
 	}
 	return imgs, nil
 }
-
-func (m *mongo) CheckAlbum(ctx context.Context, album string) (bool, error) {
-	filter := bson.D{{"album", album}}
-	n, err := m.images.CountDocuments(ctx, filter)
-	if err != nil {
-		return false, errors.Wrap(err)
-	}
-	if n == 0 {
-		return false, nil
-	}
-	return true, nil
-}

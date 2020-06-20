@@ -115,11 +115,7 @@ func main() {
 	serv.StartWorkingPoolComp(ctx2, g2, heartbeat)
 
 	srvWait := make(chan error, 1)
-	srv, err := http.NewServer(&serv, cancel, srvWait)
-	if err != nil {
-		log.Critical(err)
-		os.Exit(1)
-	}
+	srv := http.NewServer(&serv, cancel, srvWait)
 	srv.Monitor()
 	log.Info("starting web server")
 	err = srv.Start()

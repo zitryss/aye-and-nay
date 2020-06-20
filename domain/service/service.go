@@ -352,14 +352,6 @@ func (s *service) Top(ctx context.Context, album string) ([]model.Image, error) 
 	return imgs, nil
 }
 
-func (s *service) Exists(ctx context.Context, album string) (bool, error) {
-	found, err := s.pers.CheckAlbum(ctx, album)
-	if err != nil {
-		return false, errors.Wrap(err)
-	}
-	return found, nil
-}
-
 func NewQueue(name string, q model.Queuer) queue {
 	return queue{
 		name:   name,

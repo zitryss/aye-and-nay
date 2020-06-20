@@ -11,7 +11,6 @@ func init() {
 	viper.Set("middleware.limiter.burst", 1)
 	viper.Set("middleware.limiter.timeToLive", "500ms")
 	viper.Set("middleware.limiter.cleanupInterval", "500ms")
-	viper.Set("html.templatesDirPath", "../../assets/templates/*")
 	viper.Set("controller.maxNumberOfFiles", 3)
 	viper.Set("controller.maxFileSize", 512*unit.KB)
 	viper.Set("service.numberOfWorkersCalc", 2)

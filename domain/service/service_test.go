@@ -43,13 +43,6 @@ func TestServiceAlbum(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		found, err := serv.Exists(ctx, "zcU244KtR3jJrnt91")
-		if err != nil {
-			t.Error(err)
-		}
-		if !found {
-			t.Error("album not found")
-		}
 		v := <-heartbeatComp
 		p, ok := v.(float64)
 		if !ok {

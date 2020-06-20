@@ -21,21 +21,17 @@ func NewServer(
 	serv model.Servicer,
 	cancel context.CancelFunc,
 	serverWait chan<- error,
-) (server, error) {
+) server {
 	conf := newServerConfig()
 	contr := newController(serv)
-	html, err := newHtml(serv)
-	if err != nil {
-		return server{}, errors.Wrap(err)
-	}
-	router := newRouter(contr, html)
+	router := newRouter(contr)
 	middle := newMiddleware()
 	handler := middle.chain(router)
 	http := newHttp(conf)
 	https := newHttps(conf, handler)
 	https.RegisterOnShutdown(cancel)
 	svr := server{conf, http, https, serverWait}
-	return svr, nil
+	return svr
 }
 
 func newHttp(conf serverConfig) http.Server {

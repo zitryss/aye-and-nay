@@ -2,9 +2,7 @@ app:
   log: debug
 server:
   host:
-  port: 8000
-  portTls: 8001
-  portRedirect: 443
+  port: 8001
   readTimeout:  5s
   writeTimeout: 10s
   idleTimeout:  120s

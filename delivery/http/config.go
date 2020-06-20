@@ -10,8 +10,6 @@ func newServerConfig() serverConfig {
 	return serverConfig{
 		host:            viper.GetString("server.host"),
 		port:            viper.GetString("server.port"),
-		portTls:         viper.GetString("server.portTls"),
-		portRedirect:    viper.GetString("server.portRedirect"),
 		readTimeout:     viper.GetDuration("server.readTimeout"),
 		writeTimeout:    viper.GetDuration("server.writeTimeout"),
 		idleTimeout:     viper.GetDuration("server.idleTimeout"),
@@ -24,8 +22,6 @@ func newServerConfig() serverConfig {
 type serverConfig struct {
 	host            string
 	port            string
-	portTls         string
-	portRedirect    string
 	readTimeout     time.Duration
 	writeTimeout    time.Duration
 	idleTimeout     time.Duration

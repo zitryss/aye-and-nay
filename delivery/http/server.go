@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -27,26 +26,14 @@ func NewServer(
 	router := newRouter(contr)
 	middle := newMiddleware()
 	handler := middle.chain(router)
-	http := newHttp(conf)
 	https := newHttps(conf, handler)
 	https.RegisterOnShutdown(cancel)
-	svr := server{conf, http, https, serverWait}
-	return svr
-}
-
-func newHttp(conf serverConfig) http.Server {
-	return http.Server{
-		Addr:         conf.host + ":" + conf.port,
-		Handler:      redirect(conf.portRedirect),
-		ReadTimeout:  conf.readTimeout,
-		WriteTimeout: conf.writeTimeout,
-		IdleTimeout:  conf.idleTimeout,
-	}
+	return server{conf, https, serverWait}
 }
 
 func newHttps(conf serverConfig, handler http.Handler) http.Server {
 	return http.Server{
-		Addr:         conf.host + ":" + conf.portTls,
+		Addr:         conf.host + ":" + conf.port,
 		Handler:      http.TimeoutHandler(handler, conf.writeTimeout, ""),
 		ReadTimeout:  conf.readTimeout,
 		WriteTimeout: conf.writeTimeout + 1*time.Second,
@@ -54,19 +41,8 @@ func newHttps(conf serverConfig, handler http.Handler) http.Server {
 	}
 }
 
-func redirect(portRedirect string) http.HandlerFunc {
-	return handleHttpError(
-		func(w http.ResponseWriter, r *http.Request) error {
-			host := strings.Split(r.Host, ":")[0]
-			http.Redirect(w, r, "https://"+host+":"+portRedirect+r.RequestURI, http.StatusMovedPermanently)
-			return nil
-		},
-	)
-}
-
 type server struct {
 	conf       serverConfig
-	http       http.Server
 	https      http.Server
 	serverWait chan<- error
 }
@@ -81,9 +57,6 @@ func (s *server) Monitor() {
 }
 
 func (s *server) Start() error {
-	go func() {
-		_ = s.http.ListenAndServe()
-	}()
 	err := s.https.ListenAndServeTLS(s.conf.certFile, s.conf.keyFile)
 	if err != nil {
 		return errors.Wrap(err)

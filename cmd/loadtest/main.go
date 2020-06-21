@@ -1,6 +1,6 @@
 // The purpose of this tool is to provide a realistic load on the
 // system. It creates 98 albums, each contains 20 images. In total, it
-// sends 10094 requests.
+// sends 9212 requests.
 package main
 
 import (
@@ -36,17 +36,14 @@ func main() {
 		sem <- struct{}{}
 		go func() {
 			defer func() { <-sem }()
-			session := albumHtml()
-			id := albumApi(session)
-			readyApi(session, id)
+			id := albumApi()
+			readyApi(id)
 			for j := 0; j < 4; j++ {
-				pairHtml(session, id)
 				for k := 0; k < 11; k++ {
-					token1, token2 := pairApi(session, id)
-					voteApi(session, id, token1, token2)
+					token1, token2 := pairApi(id)
+					voteApi(id, token1, token2)
 				}
-				topHtml(session, id)
-				topApi(session, id)
+				topApi(id)
 			}
 		}()
 	}
@@ -55,22 +52,7 @@ func main() {
 	}
 }
 
-func albumHtml() string {
-	resp, err := http.DefaultClient.Get(address + "/")
-	debug.Check(err)
-	debug.Assert(resp.StatusCode == 200)
-	_, err = io.Copy(ioutil.Discard, resp.Body)
-	debug.Check(err)
-	err = resp.Body.Close()
-	debug.Check(err)
-	head := resp.Header.Get("Set-Cookie")
-	str := strings.TrimPrefix(head, "session=")
-	substr := strings.Split(str, ";")
-	session := substr[0]
-	return session
-}
-
-func albumApi(session string) string {
+func albumApi() string {
 	body := bytes.Buffer{}
 	multi := multipart.NewWriter(&body)
 	for i := 0; i < 4; i++ {
@@ -89,10 +71,6 @@ func albumApi(session string) string {
 	req, err := http.NewRequest("POST", address+"/api/albums/", &body)
 	debug.Check(err)
 	req.Header.Set("Content-Type", multi.FormDataContentType())
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
@@ -113,13 +91,9 @@ func albumApi(session string) string {
 	return res.Album.Id
 }
 
-func readyApi(session string, id string) {
+func readyApi(id string) {
 	req, err := http.NewRequest("GET", address+"/api/albums/"+id+"/ready/", nil)
 	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
@@ -138,30 +112,9 @@ func readyApi(session string, id string) {
 	debug.Check(err)
 }
 
-func pairHtml(session string, id string) {
-	req, err := http.NewRequest("GET", address+"/albums/"+id+"/", nil)
-	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
-
-	resp, err := http.DefaultClient.Do(req)
-	debug.Check(err)
-	debug.Assert(resp.StatusCode == 200)
-	_, err = io.Copy(ioutil.Discard, resp.Body)
-	debug.Check(err)
-	err = resp.Body.Close()
-	debug.Check(err)
-}
-
-func pairApi(session string, id string) (string, string) {
+func pairApi(id string) (string, string) {
 	req, err := http.NewRequest("GET", address+"/api/albums/"+id+"/", nil)
 	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
@@ -187,15 +140,11 @@ func pairApi(session string, id string) (string, string) {
 	return res.Img1.Token, res.Img2.Token
 }
 
-func voteApi(session string, id string, token1 string, token2 string) {
+func voteApi(id string, token1 string, token2 string) {
 	body := strings.NewReader("{\"album\":{\"imgFrom\":{\"token\":\"" + token1 + "\"},\"imgTo\":{\"token\":\"" + token2 + "\"}}}")
 	req, err := http.NewRequest("PATCH", address+"/api/albums/"+id+"/", body)
 	debug.Check(err)
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
@@ -206,30 +155,9 @@ func voteApi(session string, id string, token1 string, token2 string) {
 	debug.Check(err)
 }
 
-func topHtml(session string, id string) {
-	req, err := http.NewRequest("GET", address+"/albums/"+id+"/top/", nil)
-	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
-
-	resp, err := http.DefaultClient.Do(req)
-	debug.Check(err)
-	debug.Assert(resp.StatusCode == 200)
-	_, err = io.Copy(ioutil.Discard, resp.Body)
-	debug.Check(err)
-	err = resp.Body.Close()
-	debug.Check(err)
-}
-
-func topApi(session string, id string) {
+func topApi(id string) {
 	req, err := http.NewRequest("GET", address+"/api/albums/"+id+"/top/", nil)
 	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)

@@ -1,10 +1,5 @@
 .PHONY: setup compile test test-int test-ci dev-up dev-down prod-up prod-down
 
-VM=192.168.99.106
-
-setup:
-	mkdir ./assets/tls/ && mkcert -cert-file ./assets/tls/cert.pem -key-file ./assets/tls/key.pem localhost ${VM} && chmod +r ./assets/tls/key.pem
-
 compile:
 	CGO_ENABLED=0 go build -ldflags='-s -w'
 

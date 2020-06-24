@@ -6,8 +6,6 @@ server:
   readTimeout:  5s
   writeTimeout: 10s
   idleTimeout:  120s
-  certFile: ./assets/tls/cert.pem
-  keyFile: ./assets/tls/key.pem
   shutdownTimeout: 10s
 middleware:
   limiter:

@@ -13,8 +13,6 @@ func newServerConfig() serverConfig {
 		readTimeout:     viper.GetDuration("server.readTimeout"),
 		writeTimeout:    viper.GetDuration("server.writeTimeout"),
 		idleTimeout:     viper.GetDuration("server.idleTimeout"),
-		certFile:        viper.GetString("server.certFile"),
-		keyFile:         viper.GetString("server.keyFile"),
 		shutdownTimeout: viper.GetDuration("server.shutdownTimeout"),
 	}
 }
@@ -25,8 +23,6 @@ type serverConfig struct {
 	readTimeout     time.Duration
 	writeTimeout    time.Duration
 	idleTimeout     time.Duration
-	certFile        string
-	keyFile         string
 	shutdownTimeout time.Duration
 }
 

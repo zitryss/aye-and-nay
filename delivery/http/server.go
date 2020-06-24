@@ -8,6 +8,9 @@ import (
 	"syscall"
 	"time"
 
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
+
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
@@ -34,7 +37,7 @@ func NewServer(
 func newHttps(conf serverConfig, handler http.Handler) http.Server {
 	return http.Server{
 		Addr:         conf.host + ":" + conf.port,
-		Handler:      http.TimeoutHandler(handler, conf.writeTimeout, ""),
+		Handler:      h2c.NewHandler(http.TimeoutHandler(handler, conf.writeTimeout, ""), &http2.Server{}),
 		ReadTimeout:  conf.readTimeout,
 		WriteTimeout: conf.writeTimeout + 1*time.Second,
 		IdleTimeout:  conf.idleTimeout,
@@ -57,7 +60,7 @@ func (s *server) Monitor() {
 }
 
 func (s *server) Start() error {
-	err := s.https.ListenAndServeTLS(s.conf.certFile, s.conf.keyFile)
+	err := s.https.ListenAndServe()
 	if err != nil {
 		return errors.Wrap(err)
 	}

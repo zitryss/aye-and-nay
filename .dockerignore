@@ -1,3 +1,4 @@
 /.git/
+/build/prod/caddy/
 /build/prod/minio/
 /build/prod/mongo/

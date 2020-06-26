@@ -1,4 +1,4 @@
-version: "3.7"
+version: "3"
 services:
 
   minio:
@@ -14,10 +14,14 @@ services:
       dockerfile: Dockerfile-mongo
     ports:
       - "27017:27017"
+    volumes:
+      - "./mongo.js:/docker-entrypoint-initdb.d/mongo.js"
 
-  redis:
-    build:
-      context: .
-      dockerfile: Dockerfile-redis
-    ports:
-      - "6379:6379"
+#  redis:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile-redis
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - "./redis.conf:/usr/local/etc/redis/redis.conf"

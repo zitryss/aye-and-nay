@@ -10,7 +10,6 @@ RUN make compile
 FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/
-COPY --from=builder /app/build/prod/config.yml /
 COPY --from=builder /app/aye-and-nay /
 USER appuser
 ENTRYPOINT ["/aye-and-nay"]

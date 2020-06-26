@@ -56,8 +56,8 @@ mongo:
     pause: 5s
     timeout: 10s
 redis:
-  use: true
   host: redis
+  use: false
   port: 6379
   retry:
     times: 4

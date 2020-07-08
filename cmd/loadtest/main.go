@@ -53,11 +53,13 @@ func main() {
 		sem <- struct{}{}
 		go func() {
 			defer func() { <-sem }()
+			albumHtml()
 			album := albumApi()
 			bar.Increment()
 			readyApi(album)
 			bar.Increment()
 			for j := 0; j < 4; j++ {
+				pairHtml()
 				for k := 0; k < 11; k++ {
 					src1, token1, src2, token2 := pairApi(album)
 					bar.Increment()
@@ -65,6 +67,7 @@ func main() {
 					voteApi(album, token1, token2)
 					bar.Increment()
 				}
+				topHtml()
 				src := topApi(album)
 				bar.Increment()
 				topMinio(src)
@@ -78,6 +81,10 @@ func main() {
 	bar.Finish()
 	fmt.Println(time.Since(bar.StartTime()), "sec")
 	fmt.Println(n/time.Since(bar.StartTime()).Seconds(), "rps")
+}
+
+func albumHtml() {
+	html("/index.html")
 }
 
 func albumApi() string {
@@ -140,6 +147,10 @@ func readyApi(album string) {
 	debug.Check(err)
 }
 
+func pairHtml() {
+	html("/pair.html")
+}
+
 func pairApi(album string) (string, string, string, string) {
 	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/", nil)
 	debug.Check(err)
@@ -188,6 +199,10 @@ func voteApi(album string, token1 string, token2 string) {
 	debug.Check(err)
 }
 
+func topHtml() {
+	html("/top.html")
+}
+
 func topApi(album string) []string {
 	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/top/", nil)
 	debug.Check(err)
@@ -221,6 +236,22 @@ func topMinio(src []string) {
 	for _, s := range src {
 		minio(s)
 	}
+}
+
+func html(page string) {
+	if apiAddress != minioAddress {
+		return
+	}
+	req, err := http.NewRequest("GET", apiAddress+page, nil)
+	if err != nil {
+		return
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return
+	}
+	_, _ = io.Copy(ioutil.Discard, resp.Body)
+	_ = resp.Body.Close()
 }
 
 func minio(src string) {

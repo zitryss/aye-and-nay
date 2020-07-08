@@ -8,13 +8,21 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/cheggaaa/pb/v3"
 
 	"github.com/zitryss/aye-and-nay/pkg/debug"
+)
+
+const (
+	n = 9212
 )
 
 var (
@@ -22,6 +30,7 @@ var (
 	minioAddress string
 	connections  int
 	testdata     string
+	verbose      bool
 )
 
 func main() {
@@ -29,9 +38,15 @@ func main() {
 	flag.StringVar(&minioAddress, "minio-address", "https://localhost", "")
 	flag.IntVar(&connections, "connections", 2, "")
 	flag.StringVar(&testdata, "testdata", "./testdata", "")
+	flag.BoolVar(&verbose, "verbose", true, "")
 	flag.Parse()
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	bar := pb.StartNew(n)
+	if !verbose {
+		bar.SetWriter(ioutil.Discard)
+	}
 
 	sem := make(chan struct{}, connections)
 	for i := 0; i < 98; i++ {
@@ -39,14 +54,19 @@ func main() {
 		go func() {
 			defer func() { <-sem }()
 			album := albumApi()
+			bar.Increment()
 			readyApi(album)
+			bar.Increment()
 			for j := 0; j < 4; j++ {
 				for k := 0; k < 11; k++ {
 					src1, token1, src2, token2 := pairApi(album)
+					bar.Increment()
 					pairMinio(src1, src2)
 					voteApi(album, token1, token2)
+					bar.Increment()
 				}
 				src := topApi(album)
+				bar.Increment()
 				topMinio(src)
 			}
 		}()
@@ -54,6 +74,10 @@ func main() {
 	for i := 0; i < connections; i++ {
 		sem <- struct{}{}
 	}
+
+	bar.Finish()
+	fmt.Println(time.Since(bar.StartTime()), "sec")
+	fmt.Println(n/time.Since(bar.StartTime()).Seconds(), "rps")
 }
 
 func albumApi() string {

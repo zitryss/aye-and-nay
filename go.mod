@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
+	github.com/cheggaaa/pb/v3 v3.0.4
 	github.com/containerd/continuity v0.0.0-20200413184840-d3ef23f19fbb // indirect
 	github.com/emirpasic/gods v1.12.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect

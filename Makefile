@@ -1,4 +1,4 @@
-.PHONY: setup compile test test-int test-ci dev-up dev-down prod-up prod-down
+.PHONY: compile test test-int test-ci dev-up dev-down prod-up prod-down loadtest
 
 compile:
 	CGO_ENABLED=0 go build -ldflags='-s -w'
@@ -23,3 +23,6 @@ prod-up:
 
 prod-down:
 	docker-compose --file ./build/prod/docker-compose.yml down --rmi all -v
+
+loadtest:
+	go run ./cmd/loadtest/main.go -verbose false

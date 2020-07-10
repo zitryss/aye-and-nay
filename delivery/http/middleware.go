@@ -2,7 +2,6 @@ package http
 
 import (
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -22,7 +21,7 @@ type middleware struct {
 }
 
 func (m *middleware) chain(h http.Handler) http.Handler {
-	return m.recover(m.limit(m.restrict(h)))
+	return m.recover(m.limit(h))
 }
 
 func (m *middleware) recover(h http.Handler) http.Handler {
@@ -85,18 +84,6 @@ func (m *middleware) limit(h http.Handler) http.Handler {
 				return errors.Wrap(model.ErrTooManyRequests)
 			}
 			sm.Unlock()
-			h.ServeHTTP(w, r)
-			return nil
-		},
-	)
-}
-
-func (m *middleware) restrict(h http.Handler) http.Handler {
-	return handleHttpError(
-		func(w http.ResponseWriter, r *http.Request) error {
-			if strings.HasPrefix(r.URL.Path, "/static/") && strings.HasSuffix(r.URL.Path, "/") {
-				return errors.Wrap(model.ErrForbinden)
-			}
 			h.ServeHTTP(w, r)
 			return nil
 		},

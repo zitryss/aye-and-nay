@@ -97,36 +97,3 @@ func TestMiddlewareLimit(t *testing.T) {
 		CheckBody(t, w, `Too Many Requests`+"\n")
 	})
 }
-
-func TestMiddlewareRestrict(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-			w.WriteHeader(418)
-			_, _ = io.WriteString(w, "I'm a teapot")
-		}
-		m := newMiddleware()
-		h := m.restrict(http.HandlerFunc(fn))
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest("GET", "/static/img/favicon.ico", nil)
-		h.ServeHTTP(w, r)
-		CheckStatusCode(t, w, 418)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `I'm a teapot`)
-	})
-	t.Run("Negative", func(t *testing.T) {
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-			w.WriteHeader(418)
-			_, _ = io.WriteString(w, "I'm a teapot")
-		}
-		m := newMiddleware()
-		h := m.restrict(http.HandlerFunc(fn))
-		w := httptest.NewRecorder()
-		r := httptest.NewRequest("GET", "/static/js/", nil)
-		h.ServeHTTP(w, r)
-		CheckStatusCode(t, w, 403)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Forbidden`+"\n")
-	})
-}

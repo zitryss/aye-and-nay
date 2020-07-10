@@ -9,7 +9,6 @@ type Servicer interface {
 	Pair(ctx context.Context, album string) (Image, Image, error)
 	Vote(ctx context.Context, album string, tokenFrom string, tokenTo string) error
 	Top(ctx context.Context, album string) ([]Image, error)
-	Exists(ctx context.Context, album string) (bool, error)
 	Progress(ctx context.Context, album string) (float64, error)
 }
 
@@ -34,7 +33,6 @@ type Persister interface {
 	GetEdges(ctx context.Context, album string) (map[string]map[string]int, error)
 	UpdateRatings(ctx context.Context, album string, vector map[string]float64) error
 	GetImagesOrdered(ctx context.Context, album string) ([]Image, error)
-	CheckAlbum(ctx context.Context, album string) (bool, error)
 }
 
 type Temper interface {

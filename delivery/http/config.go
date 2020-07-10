@@ -10,13 +10,9 @@ func newServerConfig() serverConfig {
 	return serverConfig{
 		host:            viper.GetString("server.host"),
 		port:            viper.GetString("server.port"),
-		portTls:         viper.GetString("server.portTls"),
-		portRedirect:    viper.GetString("server.portRedirect"),
 		readTimeout:     viper.GetDuration("server.readTimeout"),
 		writeTimeout:    viper.GetDuration("server.writeTimeout"),
 		idleTimeout:     viper.GetDuration("server.idleTimeout"),
-		certFile:        viper.GetString("server.certFile"),
-		keyFile:         viper.GetString("server.keyFile"),
 		shutdownTimeout: viper.GetDuration("server.shutdownTimeout"),
 	}
 }
@@ -24,13 +20,9 @@ func newServerConfig() serverConfig {
 type serverConfig struct {
 	host            string
 	port            string
-	portTls         string
-	portRedirect    string
 	readTimeout     time.Duration
 	writeTimeout    time.Duration
 	idleTimeout     time.Duration
-	certFile        string
-	keyFile         string
 	shutdownTimeout time.Duration
 }
 
@@ -40,9 +32,6 @@ func newMiddlewareConfig() middlewareConfig {
 		limiterBurst:             viper.GetInt("middleware.limiter.burst"),
 		limiterTimeToLive:        viper.GetDuration("middleware.limiter.timeToLive"),
 		limiterCleanupInterval:   viper.GetDuration("middleware.limiter.cleanupInterval"),
-		sessionIdLength:          viper.GetInt("middleware.session.idLength"),
-		sessionTimeToLive:        viper.GetDuration("middleware.session.timeToLive"),
-		sessionCleanupInterval:   viper.GetDuration("middleware.session.cleanupInterval"),
 	}
 }
 
@@ -51,19 +40,6 @@ type middlewareConfig struct {
 	limiterBurst             int
 	limiterTimeToLive        time.Duration
 	limiterCleanupInterval   time.Duration
-	sessionIdLength          int
-	sessionTimeToLive        time.Duration
-	sessionCleanupInterval   time.Duration
-}
-
-func newRouterConfig() routerConfig {
-	return routerConfig{
-		staticDirPath: viper.GetString("router.staticDirPath"),
-	}
-}
-
-type routerConfig struct {
-	staticDirPath string
 }
 
 func newContrConfig() contrConfig {
@@ -76,14 +52,4 @@ func newContrConfig() contrConfig {
 type contrConfig struct {
 	maxNumberOfFiles int
 	maxFileSize      int64
-}
-
-func newHtmlConfig() htmlConfig {
-	return htmlConfig{
-		templatesDirPath: viper.GetString("html.templatesDirPath"),
-	}
-}
-
-type htmlConfig struct {
-	templatesDirPath string
 }

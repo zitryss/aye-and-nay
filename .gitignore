@@ -8,6 +8,6 @@
 *.test
 
 # aye-and-nay
-/assets/tls/
+/build/prod/caddy/
 /build/prod/minio/
 /build/prod/mongo/

@@ -2,14 +2,10 @@ app:
   log: debug
 server:
   host: localhost
-  port: 8000
-  portTls: 8001
-  portRedirect: 8001
+  port: 8001
   readTimeout:  5s
   writeTimeout: 10s
   idleTimeout:  120s
-  certFile: ./assets/tls/cert.pem
-  keyFile: ./assets/tls/key.pem
   shutdownTimeout: 10s
 middleware:
   limiter:
@@ -17,14 +13,6 @@ middleware:
     burst: 5
     timeToLive: 24h
     cleanupInterval: 1h
-  session:
-    idLength: 16
-    timeToLive: 24h
-    cleanupInterval: 1h
-router:
-  staticDirPath: assets/static
-html:
-  templatesDirPath: ./assets/templates/*
 controller:
   maxNumberOfFiles: 1000
   maxFileSize: 2097152 # 2 MB
@@ -68,8 +56,8 @@ mongo:
     pause: 5s
     timeout: 10s
 redis:
-  use: true
   host: 192.168.99.106
+  use: false
   port: 6379
   retry:
     times: 4

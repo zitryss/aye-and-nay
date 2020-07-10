@@ -2,14 +2,10 @@ app:
   log: debug
 server:
   host:
-  port: 8000
-  portTls: 8001
-  portRedirect: 443
+  port: 8001
   readTimeout:  5s
   writeTimeout: 10s
   idleTimeout:  120s
-  certFile: ./assets/tls/cert.pem
-  keyFile: ./assets/tls/key.pem
   shutdownTimeout: 10s
 middleware:
   limiter:
@@ -17,14 +13,6 @@ middleware:
     burst: 5
     timeToLive: 24h
     cleanupInterval: 1h
-  session:
-    idLength: 16
-    timeToLive: 24h
-    cleanupInterval: 1h
-router:
-  staticDirPath: assets/static
-html:
-  templatesDirPath: ./assets/templates/*
 controller:
   maxNumberOfFiles: 1000
   maxFileSize: 2097152 # 2 MB
@@ -48,7 +36,7 @@ shortpixel:
   repeatIn: 10s
 minio:
   use: true
-  host: minio
+  host: prod_minio_1
   port: 9000
   accessKey: 12345678
   secretKey: qwertyui
@@ -58,18 +46,18 @@ minio:
     pause: 5s
     timeout: 5s
   location: eu-central-1
-  prefix: http://localhost:9000
+  prefix: /s3
 mongo:
   use: true
-  host: mongo
+  host: prod_mongo_1
   port: 27017
   retry:
     times: 4
     pause: 5s
     timeout: 10s
 redis:
-  use: true
-  host: redis
+  use: false
+  host: prod_redis_1
   port: 6379
   retry:
     times: 4

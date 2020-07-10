@@ -38,9 +38,6 @@ func handleError(w http.ResponseWriter, err error) {
 	case model.ErrForbinden:
 		http.Error(w, "Forbidden", 403)
 		log.Debug(err)
-	case model.ErrPageNotFound:
-		http.Error(w, "Page Not Found", 404)
-		log.Debug(err)
 	case model.ErrNotEnoughImages:
 		http.Error(w, "Not Enough Images", 400)
 		log.Debug(err)

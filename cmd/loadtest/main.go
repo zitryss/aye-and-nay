@@ -1,6 +1,6 @@
 // The purpose of this tool is to provide a realistic load on the
-// system. It creates 98 albums, each contains 20 images. In total, it
-// sends 10094 requests.
+// system. It creates "n" albums (default 2), each contains 20 images.
+// In total, it sends n x 94 requests.
 package main
 
 import (
@@ -8,69 +8,84 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/cheggaaa/pb/v3"
 
 	"github.com/zitryss/aye-and-nay/pkg/debug"
 )
 
 var (
-	address     string
-	connections int
-	testdata    string
+	n            int
+	apiAddress   string
+	minioAddress string
+	connections  int
+	testdata     string
+	verbose      bool
 )
 
 func main() {
-	flag.StringVar(&address, "address", "https://localhost:8001", "")
-	flag.IntVar(&connections, "connections", 25, "")
+	flag.IntVar(&n, "n", 2, "#albums")
+	flag.StringVar(&apiAddress, "api-address", "https://localhost", "")
+	flag.StringVar(&minioAddress, "minio-address", "https://localhost", "")
+	flag.IntVar(&connections, "connections", 2, "")
 	flag.StringVar(&testdata, "testdata", "./testdata", "")
+	flag.BoolVar(&verbose, "verbose", true, "")
 	flag.Parse()
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
+	bar := pb.StartNew(n * 94)
+	if !verbose {
+		bar.SetWriter(ioutil.Discard)
+	}
+
 	sem := make(chan struct{}, connections)
-	for i := 0; i < 98; i++ {
+	for i := 0; i < n; i++ {
 		sem <- struct{}{}
 		go func() {
 			defer func() { <-sem }()
-			session := albumHtml()
-			id := albumApi(session)
-			readyApi(session, id)
+			albumHtml()
+			album := albumApi()
+			bar.Increment()
+			readyApi(album)
+			bar.Increment()
 			for j := 0; j < 4; j++ {
-				pairHtml(session, id)
+				pairHtml()
 				for k := 0; k < 11; k++ {
-					token1, token2 := pairApi(session, id)
-					voteApi(session, id, token1, token2)
+					src1, token1, src2, token2 := pairApi(album)
+					bar.Increment()
+					pairMinio(src1, src2)
+					voteApi(album, token1, token2)
+					bar.Increment()
 				}
-				topHtml(session, id)
-				topApi(session, id)
+				topHtml()
+				src := topApi(album)
+				bar.Increment()
+				topMinio(src)
 			}
 		}()
 	}
 	for i := 0; i < connections; i++ {
 		sem <- struct{}{}
 	}
+
+	bar.Finish()
+	fmt.Println(time.Since(bar.StartTime()), "sec")
+	fmt.Println(float64(n*94)/time.Since(bar.StartTime()).Seconds(), "rps")
 }
 
-func albumHtml() string {
-	resp, err := http.DefaultClient.Get(address + "/")
-	debug.Check(err)
-	debug.Assert(resp.StatusCode == 200)
-	_, err = io.Copy(ioutil.Discard, resp.Body)
-	debug.Check(err)
-	err = resp.Body.Close()
-	debug.Check(err)
-	head := resp.Header.Get("Set-Cookie")
-	str := strings.TrimPrefix(head, "session=")
-	substr := strings.Split(str, ";")
-	session := substr[0]
-	return session
+func albumHtml() {
+	html("/index.html")
 }
 
-func albumApi(session string) string {
+func albumApi() string {
 	body := bytes.Buffer{}
 	multi := multipart.NewWriter(&body)
 	for i := 0; i < 4; i++ {
@@ -86,13 +101,9 @@ func albumApi(session string) string {
 	err := multi.Close()
 	debug.Check(err)
 
-	req, err := http.NewRequest("POST", address+"/api/albums/", &body)
+	req, err := http.NewRequest("POST", apiAddress+"/api/albums/", &body)
 	debug.Check(err)
 	req.Header.Set("Content-Type", multi.FormDataContentType())
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
@@ -113,13 +124,9 @@ func albumApi(session string) string {
 	return res.Album.Id
 }
 
-func readyApi(session string, id string) {
-	req, err := http.NewRequest("GET", address+"/api/albums/"+id+"/ready/", nil)
+func readyApi(album string) {
+	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/ready/", nil)
 	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
@@ -138,30 +145,13 @@ func readyApi(session string, id string) {
 	debug.Check(err)
 }
 
-func pairHtml(session string, id string) {
-	req, err := http.NewRequest("GET", address+"/albums/"+id+"/", nil)
-	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
-
-	resp, err := http.DefaultClient.Do(req)
-	debug.Check(err)
-	debug.Assert(resp.StatusCode == 200)
-	_, err = io.Copy(ioutil.Discard, resp.Body)
-	debug.Check(err)
-	err = resp.Body.Close()
-	debug.Check(err)
+func pairHtml() {
+	html("/pair.html")
 }
 
-func pairApi(session string, id string) (string, string) {
-	req, err := http.NewRequest("GET", address+"/api/albums/"+id+"/", nil)
+func pairApi(album string) (string, string, string, string) {
+	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/", nil)
 	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
@@ -184,18 +174,19 @@ func pairApi(session string, id string) (string, string) {
 	err = resp.Body.Close()
 	debug.Check(err)
 
-	return res.Img1.Token, res.Img2.Token
+	return res.Img1.Src, res.Img1.Token, res.Img2.Src, res.Img2.Token
 }
 
-func voteApi(session string, id string, token1 string, token2 string) {
+func pairMinio(src1 string, src2 string) {
+	minio(src1)
+	minio(src2)
+}
+
+func voteApi(album string, token1 string, token2 string) {
 	body := strings.NewReader("{\"album\":{\"imgFrom\":{\"token\":\"" + token1 + "\"},\"imgTo\":{\"token\":\"" + token2 + "\"}}}")
-	req, err := http.NewRequest("PATCH", address+"/api/albums/"+id+"/", body)
+	req, err := http.NewRequest("PATCH", apiAddress+"/api/albums/"+album+"/", body)
 	debug.Check(err)
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
@@ -206,36 +197,70 @@ func voteApi(session string, id string, token1 string, token2 string) {
 	debug.Check(err)
 }
 
-func topHtml(session string, id string) {
-	req, err := http.NewRequest("GET", address+"/albums/"+id+"/top/", nil)
-	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
-
-	resp, err := http.DefaultClient.Do(req)
-	debug.Check(err)
-	debug.Assert(resp.StatusCode == 200)
-	_, err = io.Copy(ioutil.Discard, resp.Body)
-	debug.Check(err)
-	err = resp.Body.Close()
-	debug.Check(err)
+func topHtml() {
+	html("/top.html")
 }
 
-func topApi(session string, id string) {
-	req, err := http.NewRequest("GET", address+"/api/albums/"+id+"/top/", nil)
+func topApi(album string) []string {
+	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/top/", nil)
 	debug.Check(err)
-	c := http.Cookie{}
-	c.Name = "session"
-	c.Value = session
-	req.AddCookie(&c)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
 	debug.Assert(resp.StatusCode == 200)
-	_, err = io.Copy(ioutil.Discard, resp.Body)
+
+	type image struct {
+		Src    string
+		Rating float64
+	}
+	type result struct {
+		Images []image
+	}
+
+	res := result{}
+	err = json.NewDecoder(resp.Body).Decode(&res)
 	debug.Check(err)
 	err = resp.Body.Close()
 	debug.Check(err)
+
+	src := []string(nil)
+	for _, image := range res.Images {
+		src = append(src, image.Src)
+	}
+	return src
+}
+
+func topMinio(src []string) {
+	for _, s := range src {
+		minio(s)
+	}
+}
+
+func html(page string) {
+	if apiAddress != minioAddress {
+		return
+	}
+	req, err := http.NewRequest("GET", apiAddress+page, nil)
+	if err != nil {
+		return
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return
+	}
+	_, _ = io.Copy(ioutil.Discard, resp.Body)
+	_ = resp.Body.Close()
+}
+
+func minio(src string) {
+	req, err := http.NewRequest("GET", minioAddress+src, nil)
+	if err != nil {
+		return
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return
+	}
+	_, _ = io.Copy(ioutil.Discard, resp.Body)
+	_ = resp.Body.Close()
 }

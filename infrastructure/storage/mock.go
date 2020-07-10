@@ -12,7 +12,9 @@ type mock struct {
 }
 
 func (m *mock) Put(_ context.Context, album string, image string, b []byte) (string, error) {
-	return "", nil
+	filename := "albums/" + album + "/images/" + image
+	src := "/aye-and-nay/" + filename
+	return src, nil
 }
 
 func (m *mock) Get(_ context.Context, album string, image string) ([]byte, error) {

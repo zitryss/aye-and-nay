@@ -1,6 +1,6 @@
 // The purpose of this tool is to provide a realistic load on the
-// system. It creates 98 albums, each contains 20 images. In total, it
-// sends 9212 requests.
+// system. It creates "n" albums (default 2), each contains 20 images.
+// In total, it sends n x 94 requests.
 package main
 
 import (
@@ -21,11 +21,8 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/debug"
 )
 
-const (
-	n = 9212
-)
-
 var (
+	n            int
 	apiAddress   string
 	minioAddress string
 	connections  int
@@ -34,6 +31,7 @@ var (
 )
 
 func main() {
+	flag.IntVar(&n, "n", 2, "#albums")
 	flag.StringVar(&apiAddress, "api-address", "https://localhost", "")
 	flag.StringVar(&minioAddress, "minio-address", "https://localhost", "")
 	flag.IntVar(&connections, "connections", 2, "")
@@ -43,13 +41,13 @@ func main() {
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
-	bar := pb.StartNew(n)
+	bar := pb.StartNew(n * 94)
 	if !verbose {
 		bar.SetWriter(ioutil.Discard)
 	}
 
 	sem := make(chan struct{}, connections)
-	for i := 0; i < 98; i++ {
+	for i := 0; i < n; i++ {
 		sem <- struct{}{}
 		go func() {
 			defer func() { <-sem }()
@@ -80,7 +78,7 @@ func main() {
 
 	bar.Finish()
 	fmt.Println(time.Since(bar.StartTime()), "sec")
-	fmt.Println(n/time.Since(bar.StartTime()).Seconds(), "rps")
+	fmt.Println(float64(n*94)/time.Since(bar.StartTime()).Seconds(), "rps")
 }
 
 func albumHtml() {

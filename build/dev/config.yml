@@ -62,4 +62,5 @@ redis:
   retry:
     times: 4
     pause: 5s
-  expiration: 1h
+  timeToLive: 1h
+  cleanupInterval: 1h

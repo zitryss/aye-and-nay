@@ -93,6 +93,7 @@ func main() {
 		temp = &redis
 	} else {
 		mem := database.NewMem()
+		mem.Monitor()
 		temp = &mem
 	}
 

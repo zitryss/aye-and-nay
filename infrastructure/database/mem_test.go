@@ -5,8 +5,10 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
+	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
@@ -218,6 +220,7 @@ func TestMemImage(t *testing.T) {
 func TestMemPair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
+		mem.Monitor()
 		image1 := "RcBj3m9vuYPbntAE"
 		image2 := "Q3NafBGuDH9PAtS4"
 		err := mem.Push(context.Background(), "Pa6YTumLBRMFa7cX", [][2]string{{image1, image2}})
@@ -237,6 +240,7 @@ func TestMemPair(t *testing.T) {
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem()
+		mem.Monitor()
 		_, _, err := mem.Pop(context.Background(), "hP4tQHZr55JXMdnG")
 		if !errors.Is(err, model.ErrPairNotFound) {
 			t.Error(err)
@@ -244,6 +248,7 @@ func TestMemPair(t *testing.T) {
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
+		mem.Monitor()
 		image1 := "5t2AMJ7NWAxBDDe4"
 		image2 := "cPp7xeV4EMka5SpM"
 		err := mem.Push(context.Background(), "5dVZ5tVm7QKtRjVA", [][2]string{{image1, image2}})
@@ -259,14 +264,30 @@ func TestMemPair(t *testing.T) {
 			t.Error(err)
 		}
 	})
+	t.Run("Negative3", func(t *testing.T) {
+		mem := NewMem()
+		mem.Monitor()
+		image1 := "RYvhkVCK3WAhULBa"
+		image2 := "2EWKZXVVuh27sRkL"
+		err := mem.Push(context.Background(), "rtxyfrCFm6LYcVwF", [][2]string{{image1, image2}})
+		if err != nil {
+			t.Error(err)
+		}
+		time.Sleep(mem.conf.timeToLive + mem.conf.cleanupInterval)
+		_, _, err = mem.Pop(context.Background(), "rtxyfrCFm6LYcVwF")
+		if !errors.Is(err, model.ErrPairNotFound) {
+			t.Error(err)
+		}
+	})
 }
 
 func TestMemToken(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		image1 := "gTwdSTUDmz9LBerC"
+		mem.Monitor()
+		image := "gTwdSTUDmz9LBerC"
 		token := "kqsEDug6rK6BcHHy"
-		err := mem.Set(context.Background(), "A55vmoMMLWX0g1KW", token, image1)
+		err := mem.Set(context.Background(), "A55vmoMMLWX0g1KW", token, image)
 		if err != nil {
 			t.Error(err)
 		}
@@ -274,12 +295,13 @@ func TestMemToken(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if image1 != image2 {
-			t.Error("image1 != image2")
+		if image != image2 {
+			t.Error("image != image2")
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem()
+		mem.Monitor()
 		image := "FvEfGeXG7xEuLREm"
 		token := "a3MmBWHGMDC7LeN9"
 		err := mem.Set(context.Background(), "b919qD42qhC4201o", token, image)
@@ -293,6 +315,7 @@ func TestMemToken(t *testing.T) {
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
+		mem.Monitor()
 		token := "wmnAznYhVg6e8jHk"
 		_, err := mem.Get(context.Background(), "b919qD42qhC4201o", token)
 		if !errors.Is(err, model.ErrTokenNotFound) {
@@ -301,6 +324,7 @@ func TestMemToken(t *testing.T) {
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		mem := NewMem()
+		mem.Monitor()
 		image := "QWfqTS8S4Hp2BzKn"
 		token := "PK4dWeYgnY9vunmp"
 		err := mem.Set(context.Background(), "0nq95EBOTH8I79LR", token, image)
@@ -312,6 +336,21 @@ func TestMemToken(t *testing.T) {
 			t.Error(err)
 		}
 		_, err = mem.Get(context.Background(), "0nq95EBOTH8I79LR", token)
+		if !errors.Is(err, model.ErrTokenNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative4", func(t *testing.T) {
+		mem := NewMem()
+		mem.Monitor()
+		image := "mHz9nH5nwCfZHn5C"
+		token := "ebqwp4yEHuH2eB2U"
+		err := mem.Set(context.Background(), "xZALPEN7kt7RS5rz", token, image)
+		if err != nil {
+			t.Error(err)
+		}
+		time.Sleep(mem.conf.timeToLive + mem.conf.cleanupInterval)
+		_, err = mem.Get(context.Background(), "xZALPEN7kt7RS5rz", token)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}

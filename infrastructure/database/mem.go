@@ -4,6 +4,7 @@ import (
 	"context"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/emirpasic/gods/sets/linkedhashset"
 
@@ -12,25 +13,86 @@ import (
 )
 
 func NewMem() mem {
+	conf := newMemConfig()
 	return mem{
-		albums: map[string]model.Album{},
-		pairs:  map[string]*[][2]string{},
-		tokens: map[string]string{},
-		queues: map[string]*linkedhashset.Set{},
+		conf,
+		syncAlbums{albums: map[string]model.Album{}},
+		syncQueues{queues: map[string]*linkedhashset.Set{}},
+		syncPairs{pairs: map[string]*pairsTime{}},
+		syncTokens{tokens: map[string]*tokenTime{}},
 	}
 }
 
 type mem struct {
+	conf memConfig
+	syncAlbums
+	syncQueues
+	syncPairs
+	syncTokens
+}
+
+type syncAlbums struct {
 	sync.Mutex
 	albums map[string]model.Album
-	pairs  map[string]*[][2]string
-	tokens map[string]string
+}
+
+type syncQueues struct {
+	sync.Mutex
 	queues map[string]*linkedhashset.Set
 }
 
+type syncPairs struct {
+	sync.Mutex
+	pairs map[string]*pairsTime
+}
+
+type pairsTime struct {
+	pairs [][2]string
+	seen  time.Time
+}
+
+type syncTokens struct {
+	sync.Mutex
+	tokens map[string]*tokenTime
+}
+
+type tokenTime struct {
+	token string
+	seen  time.Time
+}
+
+func (m *mem) Monitor() {
+	go func() {
+		for {
+			now := time.Now()
+			m.syncPairs.Lock()
+			for k, v := range m.pairs {
+				if now.Sub(v.seen) >= m.conf.timeToLive {
+					delete(m.pairs, k)
+				}
+			}
+			m.syncPairs.Unlock()
+			time.Sleep(m.conf.cleanupInterval)
+		}
+	}()
+	go func() {
+		for {
+			now := time.Now()
+			m.syncTokens.Lock()
+			for k, v := range m.tokens {
+				if now.Sub(v.seen) >= m.conf.timeToLive {
+					delete(m.tokens, k)
+				}
+			}
+			m.syncTokens.Unlock()
+			time.Sleep(m.conf.cleanupInterval)
+		}
+	}()
+}
+
 func (m *mem) SaveAlbum(_ context.Context, alb model.Album) error {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	_, ok := m.albums[alb.Id]
 	if ok {
 		return errors.Wrap(model.ErrAblumAlreadyExists)
@@ -45,8 +107,8 @@ func (m *mem) SaveAlbum(_ context.Context, alb model.Album) error {
 }
 
 func (m *mem) CountImages(_ context.Context, album string) (int, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
 		return 0, errors.Wrap(model.ErrAlbumNotFound)
@@ -56,8 +118,8 @@ func (m *mem) CountImages(_ context.Context, album string) (int, error) {
 }
 
 func (m *mem) CountImagesCompressed(_ context.Context, album string) (int, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
 		return 0, errors.Wrap(model.ErrAlbumNotFound)
@@ -72,8 +134,8 @@ func (m *mem) CountImagesCompressed(_ context.Context, album string) (int, error
 }
 
 func (m *mem) UpdateCompressionStatus(_ context.Context, album string, image string) error {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
 		return errors.Wrap(model.ErrAlbumNotFound)
@@ -94,8 +156,8 @@ func (m *mem) UpdateCompressionStatus(_ context.Context, album string, image str
 }
 
 func (m *mem) GetImage(_ context.Context, album string, image string) (model.Image, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
 		return model.Image{}, errors.Wrap(model.ErrAlbumNotFound)
@@ -116,8 +178,8 @@ func (m *mem) GetImage(_ context.Context, album string, image string) (model.Ima
 }
 
 func (m *mem) GetImages(_ context.Context, album string) ([]string, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
 		return nil, errors.Wrap(model.ErrAlbumNotFound)
@@ -130,8 +192,8 @@ func (m *mem) GetImages(_ context.Context, album string) ([]string, error) {
 }
 
 func (m *mem) SaveVote(_ context.Context, album string, imageFrom string, imageTo string) error {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
 		return errors.Wrap(model.ErrAlbumNotFound)
@@ -141,8 +203,8 @@ func (m *mem) SaveVote(_ context.Context, album string, imageFrom string, imageT
 }
 
 func (m *mem) GetEdges(_ context.Context, album string) (map[string]map[string]int, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
 		return nil, errors.Wrap(model.ErrAlbumNotFound)
@@ -160,8 +222,8 @@ func (m *mem) GetEdges(_ context.Context, album string) (map[string]map[string]i
 }
 
 func (m *mem) UpdateRatings(_ context.Context, album string, vector map[string]float64) error {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
 		return errors.Wrap(model.ErrAlbumNotFound)
@@ -179,8 +241,8 @@ func (m *mem) UpdateRatings(_ context.Context, album string, vector map[string]f
 }
 
 func (m *mem) GetImagesOrdered(_ context.Context, album string) ([]model.Image, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
 		return nil, errors.Wrap(model.ErrAlbumNotFound)
@@ -192,8 +254,8 @@ func (m *mem) GetImagesOrdered(_ context.Context, album string) ([]model.Image, 
 }
 
 func (m *mem) Add(_ context.Context, queue string, album string) error {
-	m.Lock()
-	defer m.Unlock()
+	m.syncQueues.Lock()
+	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
 	if !ok {
 		q = linkedhashset.New()
@@ -204,8 +266,8 @@ func (m *mem) Add(_ context.Context, queue string, album string) error {
 }
 
 func (m *mem) Poll(_ context.Context, queue string) (string, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncQueues.Lock()
+	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
 	if !ok {
 		return "", errors.Wrap(model.ErrUnknown)
@@ -218,8 +280,8 @@ func (m *mem) Poll(_ context.Context, queue string) (string, error) {
 }
 
 func (m *mem) Size(_ context.Context, queue string) (int, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncQueues.Lock()
+	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
 	if !ok {
 		return 0, nil
@@ -229,56 +291,62 @@ func (m *mem) Size(_ context.Context, queue string) (int, error) {
 }
 
 func (m *mem) Push(_ context.Context, album string, pairs [][2]string) error {
-	m.Lock()
-	defer m.Unlock()
+	m.syncPairs.Lock()
+	defer m.syncPairs.Unlock()
 	key := "album:" + album + ":pairs"
 	p, ok := m.pairs[key]
 	if !ok {
-		p = &[][2]string{}
+		p = &pairsTime{}
+		p.pairs = [][2]string{}
 		m.pairs[key] = p
 	}
 	for _, images := range pairs {
-		*p = append(*p, [2]string{images[0], images[1]})
+		p.pairs = append(p.pairs, [2]string{images[0], images[1]})
 	}
+	p.seen = time.Now()
 	return nil
 }
 
 func (m *mem) Pop(_ context.Context, album string) (string, string, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncPairs.Lock()
+	defer m.syncPairs.Unlock()
 	key := "album:" + album + ":pairs"
 	p, ok := m.pairs[key]
 	if !ok {
 		return "", "", errors.Wrap(model.ErrPairNotFound)
 	}
-	if len(*p) == 0 {
+	if len(p.pairs) == 0 {
 		return "", "", errors.Wrap(model.ErrPairNotFound)
 	}
-	images := (*p)[0]
-	*p = (*p)[1:]
+	images := (p.pairs)[0]
+	p.pairs = (p.pairs)[1:]
+	p.seen = time.Now()
 	return images[0], images[1], nil
 }
 
 func (m *mem) Set(_ context.Context, album string, token string, image string) error {
-	m.Lock()
-	defer m.Unlock()
+	m.syncTokens.Lock()
+	defer m.syncTokens.Unlock()
 	key := "album:" + album + ":token:" + token + ":image"
 	_, ok := m.tokens[key]
 	if ok {
 		return errors.Wrap(model.ErrTokenAlreadyExists)
 	}
-	m.tokens[key] = image
+	t := &tokenTime{}
+	t.token = image
+	t.seen = time.Now()
+	m.tokens[key] = t
 	return nil
 }
 
 func (m *mem) Get(_ context.Context, album string, token string) (string, error) {
-	m.Lock()
-	defer m.Unlock()
+	m.syncTokens.Lock()
+	defer m.syncTokens.Unlock()
 	key := "album:" + album + ":token:" + token + ":image"
 	image, ok := m.tokens[key]
 	if !ok {
 		return "", errors.Wrap(model.ErrTokenNotFound)
 	}
 	delete(m.tokens, key)
-	return image, nil
+	return image.token, nil
 }

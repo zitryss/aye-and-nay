@@ -6,6 +6,18 @@ import (
 	"github.com/spf13/viper"
 )
 
+func newMemConfig() memConfig {
+	return memConfig{
+		timeToLive:      viper.GetDuration("redis.timeToLive"),
+		cleanupInterval: viper.GetDuration("redis.cleanupInterval"),
+	}
+}
+
+type memConfig struct {
+	timeToLive      time.Duration
+	cleanupInterval time.Duration
+}
+
 func newMongoConfig() mongoConfig {
 	return mongoConfig{
 		host:    viper.GetString("mongo.host"),
@@ -30,7 +42,7 @@ func newRedisConfig() redisConfig {
 		port:       viper.GetString("redis.port"),
 		times:      viper.GetInt("redis.retry.times"),
 		pause:      viper.GetDuration("redis.retry.pause"),
-		expiration: viper.GetDuration("redis.expiration"),
+		timeToLive: viper.GetDuration("redis.timeToLive"),
 	}
 }
 
@@ -39,5 +51,5 @@ type redisConfig struct {
 	port       string
 	times      int
 	pause      time.Duration
-	expiration time.Duration
+	timeToLive time.Duration
 }

@@ -2,7 +2,6 @@ package http
 
 import (
 	"bufio"
-	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -12,6 +11,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/internal/pool"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/unit"
 )
@@ -59,7 +59,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			if err != nil {
 				return nil, request{}, errors.Wrap(err)
 			}
-			dst := bytes.Buffer{}
+			dst := pool.GetBuffer()
 			src := bufio.NewReader(f)
 			b, err := src.Peek(512)
 			if err != nil {
@@ -71,12 +71,13 @@ func (c *controller) handleAlbum() httprouter.Handle {
 				_ = f.Close()
 				return nil, request{}, errors.Wrap(model.ErrNotImage)
 			}
-			_, err = io.Copy(&dst, src)
+			_, err = io.Copy(dst, src)
 			if err != nil {
 				_ = f.Close()
 				return nil, request{}, errors.Wrap(err)
 			}
 			req.files = append(req.files, dst.Bytes())
+			pool.PutBuffer(dst)
 			err = f.Close()
 			if err != nil {
 				return nil, request{}, errors.Wrap(err)

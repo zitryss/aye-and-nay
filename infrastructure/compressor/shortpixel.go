@@ -1,7 +1,6 @@
 package compressor
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -11,6 +10,7 @@ import (
 	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/internal/pool"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
@@ -59,8 +59,9 @@ func (sp *shortpixel) compress(ctx context.Context, b []byte) ([]byte, error) {
 }
 
 func (sp *shortpixel) upload(ctx context.Context, b []byte) (string, error) {
-	body := bytes.Buffer{}
-	multi := multipart.NewWriter(&body)
+	body := pool.GetBuffer()
+	defer pool.PutBuffer(body)
+	multi := multipart.NewWriter(body)
 	part, err := multi.CreateFormField("key")
 	if err != nil {
 		return "", errors.Wrap(err)
@@ -114,7 +115,7 @@ func (sp *shortpixel) upload(ctx context.Context, b []byte) (string, error) {
 		return "", errors.Wrap(err)
 	}
 	c := http.Client{Timeout: sp.conf.uploadTimeout}
-	req, err := http.NewRequestWithContext(ctx, "POST", sp.conf.url, &body)
+	req, err := http.NewRequestWithContext(ctx, "POST", sp.conf.url, body)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -135,8 +136,9 @@ func (sp *shortpixel) upload(ctx context.Context, b []byte) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	buf := bytes.Buffer{}
-	_, err = io.Copy(&buf, resp.Body)
+	buf := pool.GetBuffer()
+	defer pool.PutBuffer(buf)
+	_, err = io.Copy(buf, resp.Body)
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
@@ -159,7 +161,7 @@ func (sp *shortpixel) upload(ctx context.Context, b []byte) (string, error) {
 		OriginalUrl string
 		LossyUrl    string
 	}{}
-	err = json.NewDecoder(&buf).Decode(&response)
+	err = json.NewDecoder(buf).Decode(&response)
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
@@ -188,7 +190,8 @@ func (sp *shortpixel) upload(ctx context.Context, b []byte) (string, error) {
 
 func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	time.Sleep(sp.conf.repeatIn)
-	body := bytes.Buffer{}
+	body := pool.GetBuffer()
+	defer pool.PutBuffer(body)
 	request := struct {
 		Key       string   `json:"key"`
 		Lossy     string   `json:"lossy"`
@@ -202,12 +205,12 @@ func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
 		Convertto: "png",
 		Urllist:   []string{src},
 	}
-	err := json.NewEncoder(&body).Encode(request)
+	err := json.NewEncoder(body).Encode(request)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
 	c := http.Client{Timeout: sp.conf.uploadTimeout}
-	req, err := http.NewRequestWithContext(ctx, "POST", sp.conf.url2, &body)
+	req, err := http.NewRequestWithContext(ctx, "POST", sp.conf.url2, body)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -227,8 +230,9 @@ func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	buf := bytes.Buffer{}
-	_, err = io.Copy(&buf, resp.Body)
+	buf := pool.GetBuffer()
+	defer pool.PutBuffer(buf)
+	_, err = io.Copy(buf, resp.Body)
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
@@ -250,7 +254,7 @@ func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
 		}
 		LossyUrl string
 	}{}
-	err = json.NewDecoder(&buf).Decode(&response)
+	err = json.NewDecoder(buf).Decode(&response)
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
@@ -293,8 +297,9 @@ func (sp *shortpixel) download(ctx context.Context, src string) ([]byte, error) 
 		return nil, errors.Wrap(err)
 	}
 
-	buf := bytes.Buffer{}
-	_, err = io.Copy(&buf, resp.Body)
+	buf := pool.GetBuffer()
+	defer pool.PutBuffer(buf)
+	_, err = io.Copy(buf, resp.Body)
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()

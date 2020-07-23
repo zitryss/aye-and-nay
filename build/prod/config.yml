@@ -1,4 +1,5 @@
 app:
+  ballast: 0
   log: debug
 server:
   host:

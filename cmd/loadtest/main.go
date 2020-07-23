@@ -253,6 +253,9 @@ func html(page string) {
 }
 
 func minio(src string) {
+	if minioAddress == "" {
+		return
+	}
 	req, err := http.NewRequest("GET", minioAddress+src, nil)
 	if err != nil {
 		return

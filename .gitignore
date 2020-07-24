@@ -11,3 +11,4 @@
 /build/prod/caddy/
 /build/prod/minio/
 /build/prod/mongo/
+/delivery/http/*_easyjson.go

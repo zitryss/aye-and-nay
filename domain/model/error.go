@@ -6,7 +6,6 @@ import (
 
 var (
 	ErrTooManyRequests       = errors.New("too many requests")
-	ErrForbinden             = errors.New("forbinden")
 	ErrNotEnoughImages       = errors.New("not enough images")
 	ErrTooManyImages         = errors.New("too many images")
 	ErrImageTooBig           = errors.New("image too big")

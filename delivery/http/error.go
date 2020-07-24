@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -35,9 +36,6 @@ func handleError(w http.ResponseWriter, err error) {
 	case model.ErrTooManyRequests:
 		http.Error(w, "Too Many Requests", 429)
 		log.Debug(err)
-	case model.ErrForbinden:
-		http.Error(w, "Forbidden", 403)
-		log.Debug(err)
 	case model.ErrNotEnoughImages:
 		http.Error(w, "Not Enough Images", 400)
 		log.Debug(err)
@@ -55,6 +53,18 @@ func handleError(w http.ResponseWriter, err error) {
 		log.Debug(err)
 	case model.ErrTokenNotFound:
 		http.Error(w, "Token Not Found", 404)
+		log.Debug(err)
+	case model.ErrThirdPartyUnavailable:
+		http.Error(w, "Internal Server Error", 500)
+		log.Critical(err)
+	case context.Canceled:
+		http.Error(w, "Internal Server Error", 500)
+		log.Debug(err)
+	case context.DeadlineExceeded:
+		http.Error(w, "Internal Server Error", 500)
+		log.Debug(err)
+	case http.ErrHandlerTimeout:
+		http.Error(w, "Internal Server Error", 500)
 		log.Debug(err)
 	default:
 		http.Error(w, "Internal Server Error", 500)

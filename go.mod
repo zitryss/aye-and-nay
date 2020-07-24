@@ -15,6 +15,7 @@ require (
 	github.com/klauspost/compress v1.10.4 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/lib/pq v1.3.0 // indirect
+	github.com/mailru/easyjson v0.7.1
 	github.com/minio/minio-go/v6 v6.0.53
 	github.com/mitchellh/mapstructure v1.2.2 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect

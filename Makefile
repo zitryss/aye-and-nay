@@ -1,15 +1,19 @@
-.PHONY: compile test test-int test-ci dev-up dev-down prod-up prod-down loadtest
+.PHONY: gen compile test test-int test-ci dev-up dev-down prod-up prod-down loadtest
 
-compile:
+gen:
+	go install github.com/mailru/easyjson/easyjson
+	go generate ./...
+
+compile: gen
 	CGO_ENABLED=0 go build -ldflags='-s -w'
 
-test:
+test: gen
 	go test -v -race -count=1 -cover ./...
 
-test-int:
+test-int: gen
 	go test -v -race -count=1 -cover -tags=integration ./...
 
-test-ci:
+test-ci: gen
 	go test -v -race -count=1 -tags=integration -failfast -coverprofile=coverage.txt -covermode=atomic ./...
 
 dev-up:

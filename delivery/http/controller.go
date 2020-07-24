@@ -29,72 +29,64 @@ type controller struct {
 }
 
 func (c *controller) handleAlbum() httprouter.Handle {
-	type request struct {
-		files [][]byte
-	}
-	type response struct {
-		Album struct {
-			Id string `json:"id"`
-		} `json:"album"`
-	}
-	input := func(r *http.Request, ps httprouter.Params) (context.Context, request, error) {
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, albumRequest, error) {
 		ctx := r.Context()
 		err := r.ParseMultipartForm(32 * unit.MB)
 		if err != nil {
-			return nil, request{}, errors.Wrap(err)
+			return nil, albumRequest{}, errors.Wrap(err)
 		}
 		fhs := r.MultipartForm.File["images"]
 		if len(fhs) < 2 {
-			return nil, request{}, errors.Wrap(model.ErrNotEnoughImages)
+			return nil, albumRequest{}, errors.Wrap(model.ErrNotEnoughImages)
 		}
 		if len(fhs) > c.conf.maxNumberOfFiles {
-			return nil, request{}, errors.Wrap(model.ErrTooManyImages)
+			return nil, albumRequest{}, errors.Wrap(model.ErrTooManyImages)
 		}
-		req := request{files: make([][]byte, 0, len(fhs))}
+		req := albumRequest{files: make([][]byte, 0, len(fhs))}
 		for _, fh := range fhs {
 			if fh.Size > c.conf.maxFileSize {
-				return nil, request{}, errors.Wrap(model.ErrImageTooBig)
+				return nil, albumRequest{}, errors.Wrap(model.ErrImageTooBig)
 			}
 			f, err := fh.Open()
 			if err != nil {
-				return nil, request{}, errors.Wrap(err)
+				return nil, albumRequest{}, errors.Wrap(err)
 			}
 			dst := pool.GetBuffer()
 			src := bufio.NewReader(f)
 			b, err := src.Peek(512)
 			if err != nil {
 				_ = f.Close()
-				return nil, request{}, errors.Wrap(err)
+				return nil, albumRequest{}, errors.Wrap(err)
 			}
 			typ := http.DetectContentType(b)
 			if !strings.HasPrefix(typ, "image/") {
 				_ = f.Close()
-				return nil, request{}, errors.Wrap(model.ErrNotImage)
+				return nil, albumRequest{}, errors.Wrap(model.ErrNotImage)
 			}
 			_, err = io.Copy(dst, src)
 			if err != nil {
 				_ = f.Close()
-				return nil, request{}, errors.Wrap(err)
+				return nil, albumRequest{}, errors.Wrap(err)
 			}
 			req.files = append(req.files, dst.Bytes())
 			pool.PutBuffer(dst)
 			err = f.Close()
 			if err != nil {
-				return nil, request{}, errors.Wrap(err)
+				return nil, albumRequest{}, errors.Wrap(err)
 			}
 		}
 		return ctx, req, nil
 	}
-	process := func(ctx context.Context, req request) (response, error) {
+	process := func(ctx context.Context, req albumRequest) (albumResponse, error) {
 		album, err := c.serv.Album(ctx, req.files)
 		if err != nil {
-			return response{}, errors.Wrap(err)
+			return albumResponse{}, errors.Wrap(err)
 		}
-		resp := response{}
+		resp := albumResponse{}
 		resp.Album.Id = album
 		return resp, nil
 	}
-	output := func(ctx context.Context, w http.ResponseWriter, resp response) error {
+	output := func(ctx context.Context, w http.ResponseWriter, resp albumResponse) error {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		w.WriteHeader(201)
 		err := json.NewEncoder(w).Encode(resp)
@@ -123,32 +115,22 @@ func (c *controller) handleAlbum() httprouter.Handle {
 }
 
 func (c *controller) handleReady() httprouter.Handle {
-	type request struct {
-		album struct {
-			id string
-		}
-	}
-	type response struct {
-		Album struct {
-			Progress float64 `json:"progress"`
-		} `json:"album"`
-	}
-	input := func(r *http.Request, ps httprouter.Params) (context.Context, request, error) {
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, readyRequest, error) {
 		ctx := r.Context()
-		req := request{}
+		req := readyRequest{}
 		req.album.id = ps.ByName("album")
 		return ctx, req, nil
 	}
-	process := func(ctx context.Context, req request) (response, error) {
+	process := func(ctx context.Context, req readyRequest) (readyResponse, error) {
 		p, err := c.serv.Progress(ctx, req.album.id)
 		if err != nil {
-			return response{}, errors.Wrap(err)
+			return readyResponse{}, errors.Wrap(err)
 		}
-		resp := response{}
+		resp := readyResponse{}
 		resp.Album.Progress = p
 		return resp, nil
 	}
-	output := func(ctx context.Context, w http.ResponseWriter, resp response) error {
+	output := func(ctx context.Context, w http.ResponseWriter, resp readyResponse) error {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err := json.NewEncoder(w).Encode(resp)
 		if err != nil {
@@ -176,40 +158,25 @@ func (c *controller) handleReady() httprouter.Handle {
 }
 
 func (c *controller) handlePair() httprouter.Handle {
-	type request struct {
-		album struct {
-			id string
-		}
-	}
-	type response struct {
-		Img1 struct {
-			Token string `json:"token"`
-			Src   string `json:"src"`
-		} `json:"img1"`
-		Img2 struct {
-			Token string `json:"token"`
-			Src   string `json:"src"`
-		} `json:"img2"`
-	}
-	input := func(r *http.Request, ps httprouter.Params) (context.Context, request, error) {
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, pairRequest, error) {
 		ctx := r.Context()
-		req := request{}
+		req := pairRequest{}
 		req.album.id = ps.ByName("album")
 		return ctx, req, nil
 	}
-	process := func(ctx context.Context, req request) (response, error) {
+	process := func(ctx context.Context, req pairRequest) (pairResponse, error) {
 		img1, img2, err := c.serv.Pair(ctx, req.album.id)
 		if err != nil {
-			return response{}, errors.Wrap(err)
+			return pairResponse{}, errors.Wrap(err)
 		}
-		resp := response{}
+		resp := pairResponse{}
 		resp.Img1.Src = img1.Src
 		resp.Img1.Token = img1.Token
 		resp.Img2.Src = img2.Src
 		resp.Img2.Token = img2.Token
 		return resp, nil
 	}
-	output := func(ctx context.Context, w http.ResponseWriter, resp response) error {
+	output := func(ctx context.Context, w http.ResponseWriter, resp pairResponse) error {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err := json.NewEncoder(w).Encode(resp)
 		if err != nil {
@@ -237,38 +204,25 @@ func (c *controller) handlePair() httprouter.Handle {
 }
 
 func (c *controller) handleVote() httprouter.Handle {
-	type request struct {
-		Album struct {
-			id      string
-			ImgFrom struct {
-				Token string
-			}
-			ImgTo struct {
-				Token string
-			}
-		}
-	}
-	type response struct {
-	}
-	input := func(r *http.Request, ps httprouter.Params) (context.Context, request, error) {
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, voteRequest, error) {
 		ctx := r.Context()
-		req := request{}
+		req := voteRequest{}
 		req.Album.id = ps.ByName("album")
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			return nil, request{}, errors.Wrap(err)
+			return nil, voteRequest{}, errors.Wrap(err)
 		}
 		return ctx, req, nil
 	}
-	process := func(ctx context.Context, req request) (response, error) {
+	process := func(ctx context.Context, req voteRequest) (voteResponse, error) {
 		err := c.serv.Vote(ctx, req.Album.id, req.Album.ImgFrom.Token, req.Album.ImgTo.Token)
 		if err != nil {
-			return response{}, errors.Wrap(err)
+			return voteResponse{}, errors.Wrap(err)
 		}
-		resp := response{}
+		resp := voteResponse{}
 		return resp, nil
 	}
-	output := func(ctx context.Context, w http.ResponseWriter, resp response) error {
+	output := func(ctx context.Context, w http.ResponseWriter, resp voteResponse) error {
 		return nil
 	}
 	return handleHttpRouterError(
@@ -291,37 +245,25 @@ func (c *controller) handleVote() httprouter.Handle {
 }
 
 func (c *controller) handleTop() httprouter.Handle {
-	type request struct {
-		album struct {
-			id string
-		}
-	}
-	type image struct {
-		Src    string  `json:"src"`
-		Rating float64 `json:"rating"`
-	}
-	type response struct {
-		Images []image `json:"images"`
-	}
-	input := func(r *http.Request, ps httprouter.Params) (context.Context, request, error) {
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, topRequest, error) {
 		ctx := r.Context()
-		req := request{}
+		req := topRequest{}
 		req.album.id = ps.ByName("album")
 		return ctx, req, nil
 	}
-	process := func(ctx context.Context, req request) (response, error) {
+	process := func(ctx context.Context, req topRequest) (topResponse, error) {
 		imgs, err := c.serv.Top(ctx, req.album.id)
 		if err != nil {
-			return response{}, errors.Wrap(err)
+			return topResponse{}, errors.Wrap(err)
 		}
-		resp := response{Images: make([]image, 0, len(imgs))}
+		resp := topResponse{Images: make([]image, 0, len(imgs))}
 		for _, img := range imgs {
 			image := image{img.Src, img.Rating}
 			resp.Images = append(resp.Images, image)
 		}
 		return resp, nil
 	}
-	output := func(ctx context.Context, w http.ResponseWriter, resp response) error {
+	output := func(ctx context.Context, w http.ResponseWriter, resp topResponse) error {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err := json.NewEncoder(w).Encode(resp)
 		if err != nil {

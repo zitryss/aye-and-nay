@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/log"
@@ -9,8 +11,6 @@ import (
 func handleError(err error) {
 	switch errors.Cause(err) {
 	case model.ErrTooManyRequests:
-		log.Debug(err)
-	case model.ErrForbinden:
 		log.Debug(err)
 	case model.ErrNotEnoughImages:
 		log.Debug(err)
@@ -23,6 +23,12 @@ func handleError(err error) {
 	case model.ErrAlbumNotFound:
 		log.Debug(err)
 	case model.ErrTokenNotFound:
+		log.Debug(err)
+	case model.ErrThirdPartyUnavailable:
+		log.Critical(err)
+	case context.Canceled:
+		log.Debug(err)
+	case context.DeadlineExceeded:
 		log.Debug(err)
 	default:
 		log.Error(err)

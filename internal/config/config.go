@@ -35,6 +35,6 @@ func init() {
 	viper.Set("redis.port", 6379)
 	viper.Set("redis.retry.times", 4)
 	viper.Set("redis.retry.pause", "5s")
-	viper.Set("redis.timeToLive", "500ms")
-	viper.Set("redis.cleanupInterval", "500ms")
+	viper.Set("redis.timeToLive", "1s")
+	viper.Set("redis.cleanupInterval", "1s")
 }

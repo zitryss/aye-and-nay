@@ -1,4 +1,4 @@
-//go:generate easyjson -all requests.go
+//go:generate $GOPATH/bin/easyjson -all requests.go
 
 package http
 

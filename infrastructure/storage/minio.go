@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"io/ioutil"
@@ -9,6 +8,7 @@ import (
 
 	minios3 "github.com/minio/minio-go/v6"
 
+	"github.com/zitryss/aye-and-nay/internal/pool"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
@@ -85,7 +85,9 @@ type minio struct {
 
 func (m *minio) Put(ctx context.Context, album string, image string, b []byte) (string, error) {
 	filename := "albums/" + album + "/images/" + image
-	buf := bytes.NewBuffer(b)
+	buf := pool.GetBuffer()
+	defer pool.PutBuffer(buf)
+	buf.Write(b)
 	_, err := m.client.PutObjectWithContext(ctx, "aye-and-nay", filename, buf, int64(buf.Len()), minios3.PutObjectOptions{})
 	if err != nil {
 		return "", errors.Wrap(err)
@@ -100,8 +102,9 @@ func (m *minio) Get(ctx context.Context, album string, image string) ([]byte, er
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	dst := bytes.Buffer{}
-	_, err = io.Copy(&dst, src)
+	dst := pool.GetBuffer()
+	defer pool.PutBuffer(dst)
+	_, err = io.Copy(dst, src)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}

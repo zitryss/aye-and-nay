@@ -18,6 +18,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
+var (
+	ballast []byte
+)
+
 func main() {
 	conf := ""
 	flag.StringVar(&conf, "config", ".", "relative path to config file")
@@ -30,6 +34,8 @@ func main() {
 		log.Critical(err)
 		os.Exit(1)
 	}
+
+	ballast = make([]byte, viper.GetInt64("app.ballast"))
 
 	lvl := viper.GetString("app.log")
 	log.SetOutput(os.Stderr)
@@ -93,6 +99,7 @@ func main() {
 		temp = &redis
 	} else {
 		mem := database.NewMem()
+		mem.Monitor()
 		temp = &mem
 	}
 

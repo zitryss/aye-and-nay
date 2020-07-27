@@ -83,7 +83,7 @@ func (r *redis) Push(_ context.Context, album string, pairs [][2]string) error {
 	for _, images := range pairs {
 		pipe.RPush(key, images[0]+":"+images[1])
 	}
-	pipe.Expire(key, r.conf.expiration)
+	pipe.Expire(key, r.conf.timeToLive)
 	_, err := pipe.Exec()
 	if err != nil {
 		return errors.Wrap(err)
@@ -117,7 +117,7 @@ func (r *redis) Set(_ context.Context, album string, token string, image string)
 	if n == 1 {
 		return errors.Wrap(model.ErrTokenAlreadyExists)
 	}
-	err = r.client.Set(key, image, r.conf.expiration).Err()
+	err = r.client.Set(key, image, r.conf.timeToLive).Err()
 	if err != nil {
 		return errors.Wrap(err)
 	}

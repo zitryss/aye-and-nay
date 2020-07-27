@@ -1,5 +1,6 @@
 app:
-  log: debug
+  ballast: 0
+  log: info
 server:
   host:
   port: 8001
@@ -62,4 +63,5 @@ redis:
   retry:
     times: 4
     pause: 5s
-  expiration: 1h
+  timeToLive: 1h
+  cleanupInterval: 1h

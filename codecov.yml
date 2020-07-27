@@ -1,0 +1,12 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 10%
+ignore:
+  - "main.go"
+  - "tools.go"
+  - "cmd/loadtest/main.go"
+  - "delivery/http/requests_easyjson.go"
+  - "delivery/http/responses_easyjson.go"

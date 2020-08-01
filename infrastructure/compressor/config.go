@@ -17,6 +17,7 @@ func newShortPixelConfig() shortPixelConfig {
 		uploadTimeout:   viper.GetDuration("shortpixel.uploadTimeout"),
 		downloadTimeout: viper.GetDuration("shortpixel.downloadTimeout"),
 		repeatIn:        viper.GetDuration("shortpixel.repeatIn"),
+		restartIn:       viper.GetDuration("shortpixel.restartIn"),
 	}
 }
 
@@ -30,4 +31,5 @@ type shortPixelConfig struct {
 	uploadTimeout   time.Duration
 	downloadTimeout time.Duration
 	repeatIn        time.Duration
+	restartIn       time.Duration
 }

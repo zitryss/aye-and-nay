@@ -8,7 +8,9 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
+	"time"
 
+	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -104,6 +106,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}()
 		ctx := context.Background()
 		comp := compressor.NewFail()
+		comp.Monitor()
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -141,6 +144,39 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 		v = <-heartbeatComp
 		p, ok := v.(float64)
+		if !ok {
+			t.Error("v.(type) != float64")
+		}
+		if !EqualFloat(p, 0.5) {
+			t.Error("p != 0.5")
+		}
+		v = <-heartbeatComp
+		p, ok = v.(float64)
+		if !ok {
+			t.Error("v.(type) != float64")
+		}
+		if !EqualFloat(p, 1) {
+			t.Error("p != 1")
+		}
+		time.Sleep(2 * viper.GetDuration("shortpixel.restartIn"))
+		_, err = serv.Album(ctx, files)
+		if err != nil {
+			t.Error(err)
+		}
+		v = <-heartbeatComp
+		err, ok = v.(error)
+		if !ok {
+			t.Error("v.(type) != error")
+		}
+		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
+			t.Error(err)
+		}
+		_, err = serv.Album(ctx, files)
+		if err != nil {
+			t.Error(err)
+		}
+		v = <-heartbeatComp
+		p, ok = v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
 		}

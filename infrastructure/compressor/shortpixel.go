@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -20,13 +22,15 @@ func NewShortPixel() shortpixel {
 	conf := newShortPixelConfig()
 	return shortpixel{
 		conf: conf,
-		err:  nil,
+		ch:   make(chan struct{}, 1),
 	}
 }
 
 type shortpixel struct {
 	conf shortPixelConfig
-	err  error
+	done uint32
+	m    sync.Mutex
+	ch   chan struct{}
 }
 
 func (sp *shortpixel) Ping() error {
@@ -37,13 +41,34 @@ func (sp *shortpixel) Ping() error {
 	return nil
 }
 
+func (sp *shortpixel) Monitor() {
+	go func() {
+		for {
+			<-sp.ch
+			time.Sleep(sp.conf.restartIn)
+			atomic.StoreUint32(&sp.done, 0)
+		}
+	}()
+}
+
 func (sp *shortpixel) Compress(ctx context.Context, b []byte) ([]byte, error) {
-	if errors.Is(sp.err, model.ErrThirdPartyUnavailable) {
+	if atomic.LoadUint32(&sp.done) != 0 {
 		return b, nil
 	}
-	bb := []byte(nil)
-	bb, sp.err = sp.compress(ctx, b)
-	return bb, errors.Wrap(sp.err)
+	bb, err := sp.compress(ctx, b)
+	if errors.Is(err, model.ErrThirdPartyUnavailable) {
+		sp.m.Lock()
+		defer sp.m.Unlock()
+		if atomic.LoadUint32(&sp.done) == 0 {
+			atomic.StoreUint32(&sp.done, 1)
+			sp.ch <- struct{}{}
+		}
+		return nil, errors.Wrap(err)
+	}
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	return bb, nil
 }
 
 func (sp *shortpixel) compress(ctx context.Context, b []byte) ([]byte, error) {

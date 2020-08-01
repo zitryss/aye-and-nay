@@ -12,8 +12,10 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/service"
@@ -315,6 +317,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		}()
 		ctx := context.Background()
 		comp := compressor.NewFail()
+		comp.Monitor()
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -397,6 +400,82 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc1/ready", nil)
 		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "jp8vH6TEapTGgSSc1"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":0}}`+"\n")
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc5/ready", nil)
+		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "jp8vH6TEapTGgSSc5"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 200)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
+		time.Sleep(2 * viper.GetDuration("shortpixel.restartIn"))
+		fn = contr.handleAlbum()
+		w = httptest.NewRecorder()
+		body = bytes.Buffer{}
+		multi = multipart.NewWriter(&body)
+		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err = multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r = httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", multi.FormDataContentType())
+		fn(w, r, nil)
+		CheckStatusCode(t, w, 201)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc9"}}`+"\n")
+		<-heartbeatComp
+		w = httptest.NewRecorder()
+		body = bytes.Buffer{}
+		multi = multipart.NewWriter(&body)
+		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err = multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r = httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", multi.FormDataContentType())
+		fn(w, r, nil)
+		CheckStatusCode(t, w, 201)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc13"}}`+"\n")
+		<-heartbeatComp
+		<-heartbeatComp
+		<-heartbeatComp
+		fn = contr.handleReady()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc1/ready", nil)
+		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "jp8vH6TEapTGgSSc1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 200)
 		CheckContentType(t, w, "application/json; charset=utf-8")

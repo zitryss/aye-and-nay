@@ -19,22 +19,19 @@ func (m *mock) Compress(_ context.Context, b []byte) ([]byte, error) {
 }
 
 func NewFail() fail {
-	return fail{}
+	conf := newShortPixelConfig()
+	return fail{
+		shortpixel: shortpixel{
+			conf: conf,
+			ch:   make(chan struct{}, 1),
+		},
+	}
 }
 
 type fail struct {
-	err error
-}
-
-func (f *fail) Compress(ctx context.Context, b []byte) ([]byte, error) {
-	if errors.Is(f.err, model.ErrThirdPartyUnavailable) {
-		return b, nil
-	}
-	bb := []byte(nil)
-	bb, f.err = f.compress(ctx, b)
-	return bb, errors.Wrap(f.err)
+	shortpixel
 }
 
 func (f *fail) compress(_ context.Context, _ []byte) ([]byte, error) {
-	return nil, model.ErrThirdPartyUnavailable
+	return nil, errors.Wrap(model.ErrThirdPartyUnavailable)
 }

@@ -35,6 +35,7 @@ shortpixel:
   uploadTimeout: 30s
   downloadTimeout: 5s
   repeatIn: 10s
+  restartIn: 15m
 minio:
   use: false
   host: localhost

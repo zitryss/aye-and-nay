@@ -54,6 +54,7 @@ func main() {
 			log.Critical(err)
 			os.Exit(1)
 		}
+		sp.Monitor()
 		comp = &sp
 	} else {
 		mock := compressor.NewMock()

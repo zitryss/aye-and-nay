@@ -17,6 +17,7 @@ func init() {
 	viper.Set("service.numberOfWorkersComp", 2)
 	viper.Set("shortpixel.uploadTimeout", "100ms")
 	viper.Set("shortpixel.downloadTimeout", "100ms")
+	viper.Set("shortpixel.restartIn", "100ms")
 	viper.Set("minio.host", "localhost")
 	viper.Set("minio.port", 9000)
 	viper.Set("minio.accessKey", "12345678")

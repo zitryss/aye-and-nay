@@ -95,7 +95,7 @@ func (m *mem) SaveAlbum(_ context.Context, alb model.Album) error {
 	defer m.syncAlbums.Unlock()
 	_, ok := m.albums[alb.Id]
 	if ok {
-		return errors.Wrap(model.ErrAblumAlreadyExists)
+		return errors.Wrap(model.ErrAlbumAlreadyExists)
 	}
 	edgs := make(map[string]map[string]int, len(alb.Images))
 	for _, img := range alb.Images {

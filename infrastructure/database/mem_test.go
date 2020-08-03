@@ -38,7 +38,7 @@ func TestMemAlbum(t *testing.T) {
 		}
 		alb = AlbumFullFactory("6FsUPNGm8XT89Vjg")
 		err = mem.SaveAlbum(context.Background(), alb)
-		if !errors.Is(err, model.ErrAblumAlreadyExists) {
+		if !errors.Is(err, model.ErrAlbumAlreadyExists) {
 			t.Error(err)
 		}
 	})

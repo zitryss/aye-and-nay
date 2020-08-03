@@ -45,7 +45,7 @@ func TestMongoAlbum(t *testing.T) {
 		}
 		alb = AlbumFullFactory("6FsUPNGm8XT89Vjg")
 		err = mongo.SaveAlbum(context.Background(), alb)
-		if !errors.Is(err, model.ErrAblumAlreadyExists) {
+		if !errors.Is(err, model.ErrAlbumAlreadyExists) {
 			t.Error(err)
 		}
 	})

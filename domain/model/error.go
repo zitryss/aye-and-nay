@@ -14,7 +14,7 @@ var (
 	ErrPairNotFound          = errors.New("pair not found")
 	ErrTokenNotFound         = errors.New("token not found")
 	ErrImageNotFound         = errors.New("image not found")
-	ErrAblumAlreadyExists    = errors.New("album already exists")
+	ErrAlbumAlreadyExists    = errors.New("album already exists")
 	ErrTokenAlreadyExists    = errors.New("token already exists")
 	ErrThirdPartyUnavailable = errors.New("third party unavailable")
 	ErrUnknown               = errors.New("unknown")

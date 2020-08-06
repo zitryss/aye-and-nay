@@ -68,6 +68,6 @@ func handleError(w http.ResponseWriter, err error) {
 		log.Debug(err)
 	default:
 		http.Error(w, "Internal Server Error", 500)
-		log.Error(err)
+		log.Errorf("%T %v", err, err)
 	}
 }

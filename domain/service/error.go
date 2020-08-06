@@ -31,6 +31,6 @@ func handleError(err error) {
 	case context.DeadlineExceeded:
 		log.Debug(err)
 	default:
-		log.Error(err)
+		log.Errorf("%T %v", err, err)
 	}
 }

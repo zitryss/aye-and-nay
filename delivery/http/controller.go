@@ -31,7 +31,7 @@ type controller struct {
 func (c *controller) handleAlbum() httprouter.Handle {
 	input := func(r *http.Request, ps httprouter.Params) (context.Context, albumRequest, error) {
 		ctx := r.Context()
-		err := r.ParseMultipartForm(32 * unit.MB)
+		err := r.ParseMultipartForm(0 * unit.MB)
 		if err != nil {
 			return nil, albumRequest{}, errors.Wrap(err)
 		}

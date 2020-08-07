@@ -28,6 +28,8 @@ var (
 	connections  int
 	testdata     string
 	verbose      bool
+	b            []byte
+	sep          string
 )
 
 func main() {
@@ -45,6 +47,8 @@ func main() {
 	if !verbose {
 		bar.SetWriter(ioutil.Discard)
 	}
+
+	readFiles()
 
 	sem := make(chan struct{}, connections)
 	for i := 0; i < n; i++ {
@@ -81,11 +85,7 @@ func main() {
 	fmt.Println(float64(n*94)/time.Since(bar.StartTime()).Seconds(), "rps")
 }
 
-func albumHtml() {
-	html("/index.html")
-}
-
-func albumApi() string {
+func readFiles() {
 	body := bytes.Buffer{}
 	multi := multipart.NewWriter(&body)
 	for i := 0; i < 4; i++ {
@@ -101,9 +101,19 @@ func albumApi() string {
 	err := multi.Close()
 	debug.Check(err)
 
-	req, err := http.NewRequest("POST", apiAddress+"/api/albums/", &body)
+	b = body.Bytes()
+	sep = multi.FormDataContentType()
+}
+
+func albumHtml() {
+	html("/index.html")
+}
+
+func albumApi() string {
+	body := bytes.NewReader(b)
+	req, err := http.NewRequest("POST", apiAddress+"/api/albums/", body)
 	debug.Check(err)
-	req.Header.Set("Content-Type", multi.FormDataContentType())
+	req.Header.Set("Content-Type", sep)
 
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)

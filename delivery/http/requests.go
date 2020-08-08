@@ -1,4 +1,4 @@
-//go:generate $GOPATH/bin/easyjson -all requests.go
+//go:generate $GOPATH/bin/easyjson requests.go
 
 package http
 
@@ -18,6 +18,7 @@ type pairRequest struct {
 	}
 }
 
+//easyjson:json
 type voteRequest struct {
 	Album struct {
 		id      string

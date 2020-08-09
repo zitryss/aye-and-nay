@@ -64,7 +64,7 @@ func handleError(w http.ResponseWriter, err error) {
 		http.Error(w, "Internal Server Error", 500)
 		log.Debug(err)
 	case http.ErrHandlerTimeout:
-		http.Error(w, "Internal Server Error", 500)
+		http.Error(w, "Service Unavailable", 503)
 		log.Debug(err)
 	default:
 		http.Error(w, "Internal Server Error", 500)

@@ -166,14 +166,14 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 						continue
 					}
 					for _, image := range images {
-						b, err := s.stor.Get(ctx, album, image)
+						f, err := s.stor.Get(ctx, album, image)
 						if err != nil {
 							err = errors.Wrap(err)
 							handleError(err)
 							e = err
 							continue outer
 						}
-						b, err = s.comp.Compress(ctx, b)
+						f, err = s.comp.Compress(ctx, f)
 						if errors.Is(err, model.ErrThirdPartyUnavailable) {
 							if heartbeat != nil {
 								heartbeat <- err
@@ -192,7 +192,7 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 							e = err
 							continue outer
 						}
-						_, err = s.stor.Put(ctx, album, image, b)
+						_, err = s.stor.Put(ctx, album, image, f)
 						if err != nil {
 							err = errors.Wrap(err)
 							handleError(err)
@@ -217,18 +217,18 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 	}()
 }
 
-func (s *service) Album(ctx context.Context, files [][]byte) (string, error) {
+func (s *service) Album(ctx context.Context, ff []model.File) (string, error) {
 	album, err := rand.Id(s.conf.albumIdLength)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	imgs := make([]model.Image, 0, len(files))
-	for _, b := range files {
+	imgs := make([]model.Image, 0, len(ff))
+	for _, f := range ff {
 		image, err := rand.Id(s.conf.imageIdLength)
 		if err != nil {
 			return "", errors.Wrap(err)
 		}
-		src, err := s.stor.Put(ctx, album, image, b)
+		src, err := s.stor.Put(ctx, album, image, f)
 		if err != nil {
 			return "", errors.Wrap(err)
 		}

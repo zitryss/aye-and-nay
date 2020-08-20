@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"bytes"
 	"math"
 	"net/http/httptest"
 	"reflect"
@@ -110,6 +111,25 @@ func EqualFloat(x, y float64) bool {
 	return true
 }
 
-func Png() []byte {
-	return []byte{137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0, 0, 0, 10, 73, 68, 65, 84, 120, 156, 99, 0, 1, 0, 0, 5, 0, 1, 13, 10, 45, 180, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130}
+func Png() model.File {
+	b := []byte{137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0, 13, 73, 72, 68, 82, 0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0, 31, 21, 196, 137, 0, 0, 0, 10, 73, 68, 65, 84, 120, 156, 99, 0, 1, 0, 0, 5, 0, 1, 13, 10, 45, 180, 0, 0, 0, 0, 73, 69, 78, 68, 174, 66, 96, 130}
+	buf := bytes.NewReader(b)
+	return model.File{Reader: buf, Size: int64(len(b))}
+}
+
+func EqualFile(x, y model.File) bool {
+	bx := make([]byte, x.Size)
+	_, err := x.Read(bx)
+	if err != nil {
+		return false
+	}
+	by := make([]byte, y.Size)
+	_, err = y.Read(by)
+	if err != nil {
+		return false
+	}
+	if !reflect.DeepEqual(bx, by) {
+		return false
+	}
+	return true
 }

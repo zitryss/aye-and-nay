@@ -1,12 +1,14 @@
 package compressor
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -51,11 +53,25 @@ func (sp *shortpixel) Monitor() {
 	}()
 }
 
-func (sp *shortpixel) Compress(ctx context.Context, b []byte) ([]byte, error) {
+func (sp *shortpixel) Compress(ctx context.Context, f model.File) (model.File, error) {
+	defer func() {
+		switch v := f.Reader.(type) {
+		case *os.File:
+			_ = v.Close()
+			_ = os.Remove(v.Name())
+		case *bytes.Buffer:
+			pool.PutBuffer(v)
+		}
+	}()
 	if atomic.LoadUint32(&sp.done) != 0 {
-		return b, nil
+		buf := pool.GetBuffer()
+		n, err := io.CopyN(buf, f, f.Size)
+		if err != nil {
+			return model.File{}, errors.Wrap(err)
+		}
+		return model.File{Reader: buf, Size: n}, nil
 	}
-	bb, err := sp.compress(ctx, b)
+	buf, err := sp.compress(ctx, f)
 	if errors.Is(err, model.ErrThirdPartyUnavailable) {
 		sp.m.Lock()
 		defer sp.m.Unlock()
@@ -63,27 +79,27 @@ func (sp *shortpixel) Compress(ctx context.Context, b []byte) ([]byte, error) {
 			atomic.StoreUint32(&sp.done, 1)
 			sp.ch <- struct{}{}
 		}
-		return nil, errors.Wrap(err)
+		return model.File{}, errors.Wrap(err)
 	}
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return model.File{}, errors.Wrap(err)
 	}
-	return bb, nil
+	return buf, nil
 }
 
-func (sp *shortpixel) compress(ctx context.Context, b []byte) ([]byte, error) {
-	src, err := sp.upload(ctx, b)
+func (sp *shortpixel) compress(ctx context.Context, f model.File) (model.File, error) {
+	src, err := sp.upload(ctx, f)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return model.File{}, errors.Wrap(err)
 	}
 	bb, err := sp.download(ctx, src)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return model.File{}, errors.Wrap(err)
 	}
 	return bb, nil
 }
 
-func (sp *shortpixel) upload(ctx context.Context, b []byte) (string, error) {
+func (sp *shortpixel) upload(ctx context.Context, f model.File) (string, error) {
 	body := pool.GetBuffer()
 	defer pool.PutBuffer(body)
 	multi := multipart.NewWriter(body)
@@ -131,7 +147,7 @@ func (sp *shortpixel) upload(ctx context.Context, b []byte) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	_, err = part.Write(b)
+	_, err = io.CopyN(part, f, f.Size)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -299,11 +315,11 @@ func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	}
 }
 
-func (sp *shortpixel) download(ctx context.Context, src string) ([]byte, error) {
+func (sp *shortpixel) download(ctx context.Context, src string) (model.File, error) {
 	c := http.Client{Timeout: sp.conf.downloadTimeout}
 	req, err := http.NewRequestWithContext(ctx, "GET", src, nil)
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return model.File{}, errors.Wrap(err)
 	}
 	resp := (*http.Response)(nil)
 	err = retry.Do(sp.conf.times, sp.conf.pause, func() error {
@@ -319,20 +335,18 @@ func (sp *shortpixel) download(ctx context.Context, src string) ([]byte, error) 
 		return nil
 	})
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return model.File{}, errors.Wrap(err)
 	}
-
 	buf := pool.GetBuffer()
-	defer pool.PutBuffer(buf)
-	_, err = io.Copy(buf, resp.Body)
+	n, err := io.Copy(buf, resp.Body)
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()
-		return nil, errors.Wrap(err)
+		return model.File{}, errors.Wrap(err)
 	}
 	err = resp.Body.Close()
 	if err != nil {
-		return nil, errors.Wrap(err)
+		return model.File{}, errors.Wrap(err)
 	}
-	return buf.Bytes(), nil
+	return model.File{Reader: buf, Size: n}, nil
 }

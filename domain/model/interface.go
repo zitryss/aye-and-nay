@@ -5,7 +5,7 @@ import (
 )
 
 type Servicer interface {
-	Album(ctx context.Context, files [][]byte) (string, error)
+	Album(ctx context.Context, ff []File) (string, error)
 	Pair(ctx context.Context, album string) (Image, Image, error)
 	Vote(ctx context.Context, album string, tokenFrom string, tokenTo string) error
 	Top(ctx context.Context, album string) ([]Image, error)
@@ -13,12 +13,12 @@ type Servicer interface {
 }
 
 type Compresser interface {
-	Compress(ctx context.Context, b []byte) ([]byte, error)
+	Compress(ctx context.Context, f File) (File, error)
 }
 
 type Storager interface {
-	Put(ctx context.Context, album string, image string, b []byte) (string, error)
-	Get(ctx context.Context, album string, image string) ([]byte, error)
+	Put(ctx context.Context, album string, image string, f File) (string, error)
+	Get(ctx context.Context, album string, image string) (File, error)
 	Remove(ctx context.Context, album string, image string) error
 }
 

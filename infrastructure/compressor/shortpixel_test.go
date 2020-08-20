@@ -43,7 +43,7 @@ type response []struct {
 func TestShortPixel(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			_, err := w.Write(Png())
+			_, err := io.Copy(w, Png())
 			if err != nil {
 				t.Error(err)
 			}
@@ -94,7 +94,7 @@ func TestShortPixel(t *testing.T) {
 	})
 	t.Run("Positive2", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			_, err := w.Write(Png())
+			_, err := io.Copy(w, Png())
 			if err != nil {
 				t.Error(err)
 			}
@@ -445,7 +445,7 @@ func TestShortPixel(t *testing.T) {
 	})
 	t.Run("PositiveRecovery1", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			_, err := w.Write(Png())
+			_, err := io.Copy(w, Png())
 			if err != nil {
 				t.Error(err)
 			}
@@ -519,7 +519,7 @@ func TestShortPixel(t *testing.T) {
 	})
 	t.Run("PositiveRecovery2", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			_, err := w.Write(Png())
+			_, err := io.Copy(w, Png())
 			if err != nil {
 				t.Error(err)
 			}

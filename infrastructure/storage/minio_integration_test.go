@@ -5,7 +5,6 @@ package storage
 import (
 	"context"
 	"os"
-	"reflect"
 	"testing"
 
 	minios3 "github.com/minio/minio-go/v6"
@@ -39,13 +38,13 @@ func TestMinio(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		b, err := minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		f, err := minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
 		e := (*minios3.ErrorResponse)(nil)
 		if errors.As(err, &e) {
 			t.Error(err)
 		}
-		if b != nil {
-			t.Error("b != nil")
+		if f.Reader != nil {
+			t.Error("f.Reader != nil")
 		}
 		src, err := minio.Put(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU", Png())
 		if err != nil {
@@ -54,24 +53,24 @@ func TestMinio(t *testing.T) {
 		if src != "/aye-and-nay/albums/pXFAGSZpY844QjvY/images/qmgc5mNJtxUtF8WU" {
 			t.Error("src != \"/aye-and-nay/albums/pXFAGSZpY844QjvY/images/qmgc5mNJtxUtF8WU\"")
 		}
-		b, err = minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		f, err = minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
 		if err != nil {
 			t.Error(err)
 		}
-		if !reflect.DeepEqual(b, Png()) {
-			t.Error("!reflect.DeepEqual(b, Png())")
+		if !EqualFile(f, Png()) {
+			t.Error("!EqualFile(f, Png())")
 		}
 		err = minio.Remove(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
 		if err != nil {
 			t.Error(err)
 		}
-		b, err = minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		f, err = minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
 		e = (*minios3.ErrorResponse)(nil)
 		if errors.As(err, &e) {
 			t.Error(err)
 		}
-		if b != nil {
-			t.Error("b != nil")
+		if f.Reader != nil {
+			t.Error("f.Reader != nil")
 		}
 	})
 	t.Run("", func(t *testing.T) {
@@ -86,12 +85,12 @@ func TestMinio(t *testing.T) {
 		if src != "/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D" {
 			t.Error("src != \"/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D\"")
 		}
-		b, err := minio.Get(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D")
+		f, err := minio.Get(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D")
 		if err != nil {
 			t.Error(err)
 		}
-		if !reflect.DeepEqual(b, Png()) {
-			t.Error("!reflect.DeepEqual(b, Png())")
+		if !EqualFile(f, Png()) {
+			t.Error("!EqualFile(f, Png())")
 		}
 		err = minio.Remove(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D")
 		if err != nil {

@@ -1,5 +1,9 @@
 package model
 
+import (
+	"io"
+)
+
 type Album struct {
 	Id     string
 	Images []Image
@@ -12,4 +16,9 @@ type Image struct {
 	Token      string
 	Rating     float64
 	Compressed bool
+}
+
+type File struct {
+	io.Reader
+	Size int64
 }

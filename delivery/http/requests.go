@@ -2,8 +2,15 @@
 
 package http
 
+import (
+	"mime/multipart"
+
+	"github.com/zitryss/aye-and-nay/domain/model"
+)
+
 type albumRequest struct {
-	files [][]byte
+	ff    []model.File
+	multi *multipart.Form
 }
 
 type readyRequest struct {

@@ -40,7 +40,7 @@ func TestServiceAlbum(t *testing.T) {
 		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
 		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
-		files := [][]byte{nil, nil}
+		files := []model.File{Png(), Png()}
 		_, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -82,7 +82,7 @@ func TestServiceAlbum(t *testing.T) {
 		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
 		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
-		files := [][]byte{nil, nil}
+		files := []model.File{Png(), Png()}
 		_, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -95,6 +95,7 @@ func TestServiceAlbum(t *testing.T) {
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
+		files = []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -116,6 +117,7 @@ func TestServiceAlbum(t *testing.T) {
 			t.Error("p != 1")
 		}
 		time.Sleep(2 * viper.GetDuration("shortpixel.restartIn"))
+		files = []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -128,6 +130,7 @@ func TestServiceAlbum(t *testing.T) {
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
+		files = []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -170,7 +173,7 @@ func TestServicePair(t *testing.T) {
 		queue1 := NewQueue("766fFt8nuJ5qRek2", &mem)
 		queue2 := NewQueue("bHL3nQpzPpXBffE9", &mem)
 		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
-		files := [][]byte{nil, nil}
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -258,7 +261,7 @@ func TestServiceVote(t *testing.T) {
 		queue1 := NewQueue("8eDkyz293xggaUpr", &mem)
 		queue2 := NewQueue("GKBK9ZgVbTpTL7Xc", &mem)
 		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
-		files := [][]byte{nil, nil}
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -290,7 +293,7 @@ func TestServiceVote(t *testing.T) {
 		queue1 := NewQueue("b8mKspbYz5FjQ7Mf", &mem)
 		queue2 := NewQueue("GfZ5H9twa6dVTLav", &mem)
 		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
-		files := [][]byte{nil, nil}
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -322,7 +325,7 @@ func TestServiceVote(t *testing.T) {
 		queue1 := NewQueue("nRQynzFJvPvcRZUt", &mem)
 		queue2 := NewQueue("HV4pLuMb4HRgrD2U", &mem)
 		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
-		files := [][]byte{nil, nil}
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -363,7 +366,7 @@ func TestServiceTop(t *testing.T) {
 		g2, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
 		serv.StartWorkingPoolComp(ctx2, g2, heartbeatComp)
-		files := [][]byte{nil, nil}
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)

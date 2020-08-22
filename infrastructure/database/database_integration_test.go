@@ -3,6 +3,7 @@
 package database
 
 import (
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -19,6 +20,7 @@ func TestMain(m *testing.M) {
 		docker := dockertest.New()
 		docker.RunMongo()
 		docker.RunRedis()
+		log.SetOutput(ioutil.Discard)
 		code := m.Run()
 		docker.Purge()
 		os.Exit(code)

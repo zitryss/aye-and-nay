@@ -27,7 +27,6 @@ import (
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/env"
 	"github.com/zitryss/aye-and-nay/pkg/log"
-	"github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
 func TestMain(m *testing.M) {
@@ -50,7 +49,7 @@ func TestMain(m *testing.M) {
 
 func TestControllerIntegrationHandleAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "N2fxX5zbDh8RJQvx"
 			i := 0
 			return func(length int) (string, error) {
@@ -74,7 +73,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		}
 		queue1 := service.NewQueue("HVyMn8HuDa8rdkyr", &redis)
 		queue2 := service.NewQueue("S8Lg9yR7JvfEqQgf", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1))
 		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
 		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
@@ -308,7 +307,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckBody(t, w, `Unsupported Media Type`+"\n")
 	})
 	t.Run("Negative5", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "jp8vH6TEapTGgSSc"
 			i := 0
 			return func(length int) (string, error) {
@@ -333,7 +332,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		}
 		queue1 := service.NewQueue("Y5gVnAXu4SUg8qK8", &redis)
 		queue2 := service.NewQueue("6kD5hhETBcYFbKbq", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1))
 		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
 		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
@@ -494,7 +493,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 
 func TestControllerIntegrationHandlePair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "DfsXRkDxVeH2xmme"
 			i := 0
 			return func(length int) (string, error) {
@@ -502,7 +501,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
@@ -519,7 +518,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		}
 		queue1 := service.NewQueue("93P3AU2V6RMcFND4", &redis)
 		queue2 := service.NewQueue("uq4TPwUqmj2MZaCv", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -586,7 +585,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 
 func TestControllerIntegrationHandleVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "MvdZUxVgPD5p6JTa"
 			i := 0
 			return func(length int) (string, error) {
@@ -594,7 +593,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
@@ -611,7 +610,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		}
 		queue1 := service.NewQueue("3L8E2zrdQtmJKEwa", &redis)
 		queue2 := service.NewQueue("L4kKdZpZZuTkSDmH", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -655,7 +654,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		CheckBody(t, w, ``)
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "xtq8FBDgkbk7nZ88"
 			i := 0
 			return func(length int) (string, error) {
@@ -663,7 +662,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
@@ -680,7 +679,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		}
 		queue1 := service.NewQueue("xGgXp5Pg5nKvGmBY", &redis)
 		queue2 := service.NewQueue("6qNjE2tha2Z8s73H", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -724,7 +723,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		CheckBody(t, w, `Token Not Found`+"\n")
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "u5u58akruMytGWch"
 			i := 0
 			return func(length int) (string, error) {
@@ -732,7 +731,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
@@ -749,7 +748,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		}
 		queue1 := service.NewQueue("RkAD9BHx8mTUBYRj", &redis)
 		queue2 := service.NewQueue("rY4ZJMbTwQGyDqHK", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -796,7 +795,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 
 func TestControllerIntegrationHandleTop(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "bYCppY8q6qjvXjMZ"
 			i := 0
 			return func(length int) (string, error) {
@@ -804,7 +803,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -822,7 +821,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		}
 		queue1 := service.NewQueue("qCzDFPuY53Y34mdS", &redis)
 		queue2 := service.NewQueue("YL3b99PHTrMnfX9c", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		heartbeatCalc := make(chan interface{})
 		serv.StartWorkingPoolCalc(ctx1, g1, heartbeatCalc)

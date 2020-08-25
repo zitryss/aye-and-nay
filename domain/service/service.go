@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math/rand"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -9,7 +10,7 @@ import (
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/linalg"
-	"github.com/zitryss/aye-and-nay/pkg/rand"
+	myrand "github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
 func NewService(
@@ -19,9 +20,10 @@ func NewService(
 	temp model.Temper,
 	queue1 *queue,
 	queue2 *queue,
+	opts ...options,
 ) service {
 	conf := newServiceConfig()
-	return service{
+	s := service{
 		conf,
 		comp,
 		stor,
@@ -35,6 +37,31 @@ func NewService(
 			queue1,
 			queue2,
 		},
+		struct {
+			id      func(length int) (string, error)
+			shuffle func(n int, swap func(i int, j int))
+		}{
+			myrand.Id,
+			rand.Shuffle,
+		},
+	}
+	for _, opt := range opts {
+		opt(&s)
+	}
+	return s
+}
+
+type options func(*service)
+
+func WithId(fn func(int) (string, error)) options {
+	return func(s *service) {
+		s.rand.id = fn
+	}
+}
+
+func WithShuffle(fn func(int, func(int, int))) options {
+	return func(s *service) {
+		s.rand.shuffle = fn
 	}
 }
 
@@ -48,6 +75,10 @@ type service struct {
 	queue struct {
 		calc *queue
 		comp *queue
+	}
+	rand struct {
+		id      func(length int) (string, error)
+		shuffle func(n int, swap func(i, j int))
 	}
 }
 
@@ -218,13 +249,13 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 }
 
 func (s *service) Album(ctx context.Context, ff []model.File) (string, error) {
-	album, err := rand.Id(s.conf.albumIdLength)
+	album, err := s.rand.id(s.conf.albumIdLength)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
 	imgs := make([]model.Image, 0, len(ff))
 	for _, f := range ff {
-		image, err := rand.Id(s.conf.imageIdLength)
+		image, err := s.rand.id(s.conf.imageIdLength)
 		if err != nil {
 			return "", errors.Wrap(err)
 		}
@@ -282,7 +313,7 @@ func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Im
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	token1, err := rand.Id(s.conf.tokenIdLength)
+	token1, err := s.rand.id(s.conf.tokenIdLength)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
@@ -291,7 +322,7 @@ func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Im
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
 	img1.Token = token1
-	token2, err := rand.Id(s.conf.tokenIdLength)
+	token2, err := s.rand.id(s.conf.tokenIdLength)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
@@ -308,7 +339,7 @@ func (s *service) genPairs(ctx context.Context, album string) error {
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	rand.Shuffle(len(images), func(i, j int) { images[i], images[j] = images[j], images[i] })
+	s.rand.shuffle(len(images), func(i, j int) { images[i], images[j] = images[j], images[i] })
 	images = append(images, images[0])
 	pairs := make([][2]string, 0, len(images)-1)
 	for i := 0; i < len(images)-1; i++ {
@@ -316,7 +347,7 @@ func (s *service) genPairs(ctx context.Context, album string) error {
 		image2 := images[i+1]
 		pairs = append(pairs, [2]string{image1, image2})
 	}
-	rand.Shuffle(len(pairs), func(i, j int) { pairs[i], pairs[j] = pairs[j], pairs[i] })
+	s.rand.shuffle(len(pairs), func(i, j int) { pairs[i], pairs[j] = pairs[j], pairs[i] })
 	err = s.pair.Push(ctx, album, pairs)
 	if err != nil {
 		return errors.Wrap(err)

@@ -17,12 +17,11 @@ import (
 	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
-	"github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
 func TestServiceAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "zcU244KtR3jJrnt9"
 			i := 0
 			return func(length int) (string, error) {
@@ -36,7 +35,7 @@ func TestServiceAlbum(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("VK4dE8CgS82B8yC7", &mem)
 		queue2 := NewQueue("TV7ZuMmhz3CDfa7n", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithId(fn1))
 		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
 		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
@@ -63,7 +62,7 @@ func TestServiceAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "wZE65QekXNTP9vpK"
 			i := 0
 			return func(length int) (string, error) {
@@ -78,7 +77,7 @@ func TestServiceAlbum(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("bn6Es8nvGu9KZwUk", &mem)
 		queue2 := NewQueue("mhynV9uhnGFEV4uf", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithId(fn1))
 		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
 		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
@@ -156,7 +155,7 @@ func TestServiceAlbum(t *testing.T) {
 
 func TestServicePair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "Rkur9G4z9PKtURHe"
 			i := 0
 			return func(length int) (string, error) {
@@ -164,7 +163,7 @@ func TestServicePair(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -172,7 +171,7 @@ func TestServicePair(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("766fFt8nuJ5qRek2", &mem)
 		queue2 := NewQueue("bHL3nQpzPpXBffE9", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -244,7 +243,7 @@ func TestServicePair(t *testing.T) {
 
 func TestServiceVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "kh6yGRSrzXXqW9Ap"
 			i := 0
 			return func(length int) (string, error) {
@@ -252,7 +251,7 @@ func TestServiceVote(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -260,7 +259,7 @@ func TestServiceVote(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("8eDkyz293xggaUpr", &mem)
 		queue2 := NewQueue("GKBK9ZgVbTpTL7Xc", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -276,7 +275,7 @@ func TestServiceVote(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "4UF24e4Ka9UWtEdg"
 			i := 0
 			return func(length int) (string, error) {
@@ -284,7 +283,7 @@ func TestServiceVote(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -292,7 +291,7 @@ func TestServiceVote(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("b8mKspbYz5FjQ7Mf", &mem)
 		queue2 := NewQueue("GfZ5H9twa6dVTLav", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -308,7 +307,7 @@ func TestServiceVote(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "hw9mwZyRgxBC9Xbt"
 			i := 0
 			return func(length int) (string, error) {
@@ -316,7 +315,7 @@ func TestServiceVote(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -324,7 +323,7 @@ func TestServiceVote(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("nRQynzFJvPvcRZUt", &mem)
 		queue2 := NewQueue("HV4pLuMb4HRgrD2U", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -343,7 +342,7 @@ func TestServiceVote(t *testing.T) {
 
 func TestServiceTop(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "L2j8Uc3z2HNLZHvJ"
 			i := 0
 			return func(length int) (string, error) {
@@ -351,7 +350,7 @@ func TestServiceTop(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -359,7 +358,7 @@ func TestServiceTop(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("RKvUKsDj7whcrpzA", &mem)
 		queue2 := NewQueue("2NPRqbKcbSX73vhr", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		heartbeatCalc := make(chan interface{})
 		serv.StartWorkingPoolCalc(ctx1, g1, heartbeatCalc)

@@ -36,14 +36,9 @@ func (m *mock) Compress(_ context.Context, f model.File) (model.File, error) {
 	return model.File{Reader: buf, Size: n}, nil
 }
 
-func NewFail() fail {
-	conf := newShortPixelConfig()
-	return fail{
-		shortpixel: shortpixel{
-			conf: conf,
-			ch:   make(chan struct{}, 1),
-		},
-	}
+func NewFail(opts ...options) fail {
+	sp := NewShortPixel(opts...)
+	return fail{sp}
 }
 
 type fail struct {

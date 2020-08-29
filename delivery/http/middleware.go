@@ -11,13 +11,26 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func newMiddleware() middleware {
+func newMiddleware(opts ...options) middleware {
 	conf := newMiddlewareConfig()
-	return middleware{conf}
+	m := middleware{conf: conf}
+	for _, opt := range opts {
+		opt(&m)
+	}
+	return m
+}
+
+type options func(*middleware)
+
+func WithHeartbeat(ch chan<- interface{}) options {
+	return func(m *middleware) {
+		m.heartbeat = ch
+	}
 }
 
 type middleware struct {
-	conf middlewareConfig
+	conf      middlewareConfig
+	heartbeat chan<- interface{}
 }
 
 func (m *middleware) chain(h http.Handler) http.Handler {
@@ -57,6 +70,9 @@ func (m *middleware) limit(h http.Handler) http.Handler {
 	sm := syncmap{data: map[string]*visitor{}}
 	go func() {
 		for {
+			if m.heartbeat != nil {
+				m.heartbeat <- struct{}{}
+			}
 			now := time.Now()
 			sm.Lock()
 			for k, v := range sm.data {
@@ -66,6 +82,9 @@ func (m *middleware) limit(h http.Handler) http.Handler {
 			}
 			sm.Unlock()
 			time.Sleep(m.conf.limiterCleanupInterval)
+			if m.heartbeat != nil {
+				m.heartbeat <- struct{}{}
+			}
 		}
 	}()
 	return handleHttpError(

@@ -12,10 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/service"
@@ -73,10 +71,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		}
 		queue1 := service.NewQueue("HVyMn8HuDa8rdkyr", &redis)
 		queue2 := service.NewQueue("S8Lg9yR7JvfEqQgf", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1))
-		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		g, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -316,7 +314,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			}
 		}()
 		ctx := context.Background()
-		comp := compressor.NewFail()
+		heartbeatRestart := make(chan interface{})
+		comp := compressor.NewFail(compressor.WithHeartbeatRestart(heartbeatRestart))
 		comp.Monitor()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -332,10 +331,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		}
 		queue1 := service.NewQueue("Y5gVnAXu4SUg8qK8", &redis)
 		queue2 := service.NewQueue("6kD5hhETBcYFbKbq", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1))
-		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		g, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -412,7 +411,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 200)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
-		time.Sleep(2 * viper.GetDuration("shortpixel.restartIn"))
+		<-heartbeatRestart
+		<-heartbeatRestart
 		fn = contr.handleAlbum()
 		w = httptest.NewRecorder()
 		body = bytes.Buffer{}
@@ -518,7 +518,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		}
 		queue1 := service.NewQueue("93P3AU2V6RMcFND4", &redis)
 		queue2 := service.NewQueue("uq4TPwUqmj2MZaCv", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -610,7 +610,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		}
 		queue1 := service.NewQueue("3L8E2zrdQtmJKEwa", &redis)
 		queue2 := service.NewQueue("L4kKdZpZZuTkSDmH", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -679,7 +679,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		}
 		queue1 := service.NewQueue("xGgXp5Pg5nKvGmBY", &redis)
 		queue2 := service.NewQueue("6qNjE2tha2Z8s73H", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -748,7 +748,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		}
 		queue1 := service.NewQueue("RkAD9BHx8mTUBYRj", &redis)
 		queue2 := service.NewQueue("rY4ZJMbTwQGyDqHK", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -821,13 +821,13 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		}
 		queue1 := service.NewQueue("qCzDFPuY53Y34mdS", &redis)
 		queue2 := service.NewQueue("YL3b99PHTrMnfX9c", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
-		g1, ctx1 := errgroup.WithContext(ctx)
 		heartbeatCalc := make(chan interface{})
-		serv.StartWorkingPoolCalc(ctx1, g1, heartbeatCalc)
-		g2, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g2, heartbeatComp)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc), service.WithHeartbeatComp(heartbeatComp))
+		g1, ctx1 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolCalc(ctx1, g1)
+		g2, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()

@@ -24,20 +24,20 @@ func NewService(
 ) service {
 	conf := newServiceConfig()
 	s := service{
-		conf,
-		comp,
-		stor,
-		pers,
-		temp,
-		temp,
-		struct {
+		conf:  conf,
+		comp:  comp,
+		stor:  stor,
+		pers:  pers,
+		pair:  temp,
+		token: temp,
+		queue: struct {
 			calc *queue
 			comp *queue
 		}{
 			queue1,
 			queue2,
 		},
-		struct {
+		rand: struct {
 			id      func(length int) (string, error)
 			shuffle func(n int, swap func(i int, j int))
 		}{
@@ -53,15 +53,27 @@ func NewService(
 
 type options func(*service)
 
-func WithId(fn func(int) (string, error)) options {
+func WithRandId(fn func(int) (string, error)) options {
 	return func(s *service) {
 		s.rand.id = fn
 	}
 }
 
-func WithShuffle(fn func(int, func(int, int))) options {
+func WithRandShuffle(fn func(int, func(int, int))) options {
 	return func(s *service) {
 		s.rand.shuffle = fn
+	}
+}
+
+func WithHeartbeatCalc(ch chan<- interface{}) options {
+	return func(s *service) {
+		s.heartbeat.calc = ch
+	}
+}
+
+func WithHeartbeatComp(ch chan<- interface{}) options {
+	return func(s *service) {
+		s.heartbeat.comp = ch
 	}
 }
 
@@ -80,9 +92,13 @@ type service struct {
 		id      func(length int) (string, error)
 		shuffle func(n int, swap func(i, j int))
 	}
+	heartbeat struct {
+		calc chan<- interface{}
+		comp chan<- interface{}
+	}
 }
 
-func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group, heartbeat chan<- interface{}) {
+func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 	go func() {
 		sem := make(chan struct{}, s.conf.numberOfWorkersCalc)
 		for {
@@ -138,8 +154,8 @@ func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group, h
 						e = err
 						continue
 					}
-					if heartbeat != nil {
-						heartbeat <- struct{}{}
+					if s.heartbeat.calc != nil {
+						s.heartbeat.calc <- struct{}{}
 					}
 				}
 			})
@@ -147,7 +163,7 @@ func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group, h
 	}()
 }
 
-func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, heartbeat chan<- interface{}) {
+func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 	go func() {
 		sem := make(chan struct{}, s.conf.numberOfWorkersComp)
 		for {
@@ -206,8 +222,8 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 						}
 						f, err = s.comp.Compress(ctx, f)
 						if errors.Is(err, model.ErrThirdPartyUnavailable) {
-							if heartbeat != nil {
-								heartbeat <- err
+							if s.heartbeat.comp != nil {
+								s.heartbeat.comp <- err
 							}
 						}
 						if err != nil {
@@ -237,9 +253,9 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 							e = err
 							continue outer
 						}
-						if heartbeat != nil {
+						if s.heartbeat.comp != nil {
 							p, _ := s.Progress(context.Background(), album)
-							heartbeat <- p
+							s.heartbeat.comp <- p
 						}
 					}
 				}

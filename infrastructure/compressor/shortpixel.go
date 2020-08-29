@@ -20,19 +20,41 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewShortPixel() shortpixel {
+func NewShortPixel(opts ...options) shortpixel {
 	conf := newShortPixelConfig()
-	return shortpixel{
+	sp := shortpixel{
 		conf: conf,
 		ch:   make(chan struct{}, 1),
+	}
+	for _, opt := range opts {
+		opt(&sp)
+	}
+	return sp
+}
+
+type options func(*shortpixel)
+
+func WithHeartbeatRestart(ch chan<- interface{}) options {
+	return func(sp *shortpixel) {
+		sp.heartbeat.restart = ch
+	}
+}
+
+func WithHeartbeatRepeat(ch chan<- interface{}) options {
+	return func(sp *shortpixel) {
+		sp.heartbeat.repeat = ch
 	}
 }
 
 type shortpixel struct {
-	conf shortPixelConfig
-	done uint32
-	m    sync.Mutex
-	ch   chan struct{}
+	conf      shortPixelConfig
+	done      uint32
+	m         sync.Mutex
+	ch        chan struct{}
+	heartbeat struct {
+		restart chan<- interface{}
+		repeat  chan<- interface{}
+	}
 }
 
 func (sp *shortpixel) Ping() error {
@@ -47,8 +69,14 @@ func (sp *shortpixel) Monitor() {
 	go func() {
 		for {
 			<-sp.ch
+			if sp.heartbeat.restart != nil {
+				sp.heartbeat.restart <- struct{}{}
+			}
 			time.Sleep(sp.conf.restartIn)
 			atomic.StoreUint32(&sp.done, 0)
+			if sp.heartbeat.restart != nil {
+				sp.heartbeat.restart <- struct{}{}
+			}
 		}
 	}()
 }
@@ -230,7 +258,13 @@ func (sp *shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 }
 
 func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
+	if sp.heartbeat.repeat != nil {
+		sp.heartbeat.repeat <- struct{}{}
+	}
 	time.Sleep(sp.conf.repeatIn)
+	if sp.heartbeat.repeat != nil {
+		sp.heartbeat.repeat <- struct{}{}
+	}
 	body := pool.GetBuffer()
 	defer pool.PutBuffer(body)
 	request := struct {

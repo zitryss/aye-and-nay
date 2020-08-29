@@ -31,7 +31,8 @@ func New() docker {
 		log.Critical("could not connect to docker:", err)
 		os.Exit(1)
 	}
-	return docker{hostname, pool, nil}
+	resources := []*dockertest.Resource(nil)
+	return docker{hostname, pool, resources}
 }
 
 type docker struct {

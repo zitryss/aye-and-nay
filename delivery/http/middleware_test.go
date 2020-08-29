@@ -49,7 +49,8 @@ func TestMiddlewareLimit(t *testing.T) {
 			w.WriteHeader(418)
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}
-		m := newMiddleware()
+		hb := make(chan interface{})
+		m := newMiddleware(WithHeartbeat(hb))
 		h := m.limit(http.HandlerFunc(fn))
 		rps := int(m.conf.limiterRequestsPerSecond)
 		for i := 0; i < rps; i++ {
@@ -61,7 +62,9 @@ func TestMiddlewareLimit(t *testing.T) {
 			CheckBody(t, w, `I'm a teapot`)
 			time.Sleep(time.Duration(1/float64(rps)*1000000000) * time.Nanosecond)
 		}
-		time.Sleep(m.conf.limiterTimeToLive + m.conf.limiterCleanupInterval)
+		time.Sleep(m.conf.limiterTimeToLive)
+		<-hb
+		<-hb
 		for i := 0; i < rps; i++ {
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest("GET", "/", nil)

@@ -12,14 +12,32 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMem() mem {
+func NewMem(opts ...options) mem {
 	conf := newMemConfig()
-	return mem{
-		conf,
-		syncAlbums{albums: map[string]model.Album{}},
-		syncQueues{queues: map[string]*linkedhashset.Set{}},
-		syncPairs{pairs: map[string]*pairsTime{}},
-		syncTokens{tokens: map[string]*tokenTime{}},
+	m := mem{
+		conf:       conf,
+		syncAlbums: syncAlbums{albums: map[string]model.Album{}},
+		syncQueues: syncQueues{queues: map[string]*linkedhashset.Set{}},
+		syncPairs:  syncPairs{pairs: map[string]*pairsTime{}},
+		syncTokens: syncTokens{tokens: map[string]*tokenTime{}},
+	}
+	for _, opt := range opts {
+		opt(&m)
+	}
+	return m
+}
+
+type options func(*mem)
+
+func WithHeartbeatPair(ch chan<- interface{}) options {
+	return func(m *mem) {
+		m.heartbeat.pair = ch
+	}
+}
+
+func WithHeartbeatToken(ch chan<- interface{}) options {
+	return func(m *mem) {
+		m.heartbeat.token = ch
 	}
 }
 
@@ -29,6 +47,10 @@ type mem struct {
 	syncQueues
 	syncPairs
 	syncTokens
+	heartbeat struct {
+		pair  chan<- interface{}
+		token chan<- interface{}
+	}
 }
 
 type syncAlbums struct {
@@ -64,6 +86,9 @@ type tokenTime struct {
 func (m *mem) Monitor() {
 	go func() {
 		for {
+			if m.heartbeat.pair != nil {
+				m.heartbeat.pair <- struct{}{}
+			}
 			now := time.Now()
 			m.syncPairs.Lock()
 			for k, v := range m.pairs {
@@ -73,10 +98,16 @@ func (m *mem) Monitor() {
 			}
 			m.syncPairs.Unlock()
 			time.Sleep(m.conf.cleanupInterval)
+			if m.heartbeat.pair != nil {
+				m.heartbeat.pair <- struct{}{}
+			}
 		}
 	}()
 	go func() {
 		for {
+			if m.heartbeat.token != nil {
+				m.heartbeat.token <- struct{}{}
+			}
 			now := time.Now()
 			m.syncTokens.Lock()
 			for k, v := range m.tokens {
@@ -86,6 +117,9 @@ func (m *mem) Monitor() {
 			}
 			m.syncTokens.Unlock()
 			time.Sleep(m.conf.cleanupInterval)
+			if m.heartbeat.token != nil {
+				m.heartbeat.token <- struct{}{}
+			}
 		}
 	}()
 }

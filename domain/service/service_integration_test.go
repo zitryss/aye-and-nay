@@ -9,9 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"testing"
-	"time"
 
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -70,10 +68,10 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 		queue1 := NewQueue("VK4dE8CgS82B8yC7", &redis)
 		queue2 := NewQueue("TV7ZuMmhz3CDfa7n", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithId(fn1))
-		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		g, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
@@ -106,7 +104,8 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			}
 		}()
 		ctx := context.Background()
-		comp := compressor.NewFail()
+		heartbeatRestart := make(chan interface{})
+		comp := compressor.NewFail(compressor.WithHeartbeatRestart(heartbeatRestart))
 		comp.Monitor()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -122,10 +121,10 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 		queue1 := NewQueue("bn6Es8nvGu9KZwUk", &redis)
 		queue2 := NewQueue("mhynV9uhnGFEV4uf", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithId(fn1))
-		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		g, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
@@ -160,7 +159,8 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if !EqualFloat(p, 1) {
 			t.Error("p != 1")
 		}
-		time.Sleep(2 * viper.GetDuration("shortpixel.restartIn"))
+		<-heartbeatRestart
+		<-heartbeatRestart
 		files = []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
@@ -226,7 +226,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 		queue1 := NewQueue("766fFt8nuJ5qRek2", &redis)
 		queue2 := NewQueue("bHL3nQpzPpXBffE9", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -334,7 +334,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		queue1 := NewQueue("8eDkyz293xggaUpr", &redis)
 		queue2 := NewQueue("GKBK9ZgVbTpTL7Xc", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -376,7 +376,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		queue1 := NewQueue("b8mKspbYz5FjQ7Mf", &redis)
 		queue2 := NewQueue("GfZ5H9twa6dVTLav", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -418,7 +418,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		queue1 := NewQueue("nRQynzFJvPvcRZUt", &redis)
 		queue2 := NewQueue("HV4pLuMb4HRgrD2U", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -463,13 +463,13 @@ func TestServiceIntegrationTop(t *testing.T) {
 		}
 		queue1 := NewQueue("RKvUKsDj7whcrpzA", &redis)
 		queue2 := NewQueue("2NPRqbKcbSX73vhr", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithId(fn1), WithShuffle(fn2))
-		g1, ctx1 := errgroup.WithContext(ctx)
 		heartbeatCalc := make(chan interface{})
-		serv.StartWorkingPoolCalc(ctx1, g1, heartbeatCalc)
-		g2, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g2, heartbeatComp)
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc), WithHeartbeatComp(heartbeatComp))
+		g1, ctx1 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolCalc(ctx1, g1)
+		g2, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g2)
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {

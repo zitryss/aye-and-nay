@@ -9,15 +9,13 @@ import (
 func init() {
 	viper.Set("middleware.limiter.requestsPerSecond", 100)
 	viper.Set("middleware.limiter.burst", 1)
-	viper.Set("middleware.limiter.timeToLive", "250ms")
-	viper.Set("middleware.limiter.cleanupInterval", "250ms")
+	viper.Set("middleware.limiter.timeToLive", "0ms")
 	viper.Set("controller.maxNumberOfFiles", 3)
 	viper.Set("controller.maxFileSize", 512*unit.KB)
 	viper.Set("service.numberOfWorkersCalc", 2)
 	viper.Set("service.numberOfWorkersComp", 2)
 	viper.Set("shortpixel.uploadTimeout", "250ms")
 	viper.Set("shortpixel.downloadTimeout", "250ms")
-	viper.Set("shortpixel.restartIn", "250ms")
 	viper.Set("minio.host", "localhost")
 	viper.Set("minio.port", 9000)
 	viper.Set("minio.accessKey", "12345678")
@@ -37,5 +35,4 @@ func init() {
 	viper.Set("redis.retry.times", 4)
 	viper.Set("redis.retry.pause", "5s")
 	viper.Set("redis.timeToLive", "1s")
-	viper.Set("redis.cleanupInterval", "1s")
 }

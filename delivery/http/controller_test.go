@@ -9,10 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/service"
@@ -39,10 +37,10 @@ func TestControllerHandleAlbum(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := service.NewQueue("HVyMn8HuDa8rdkyr", &mem)
 		queue2 := service.NewQueue("S8Lg9yR7JvfEqQgf", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithId(fn1))
-		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		g, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -242,16 +240,17 @@ func TestControllerHandleAlbum(t *testing.T) {
 			}
 		}()
 		ctx := context.Background()
-		comp := compressor.NewFail()
+		heartbeatRestart := make(chan interface{})
+		comp := compressor.NewFail(compressor.WithHeartbeatRestart(heartbeatRestart))
 		comp.Monitor()
 		stor := storage.NewMock()
 		mem := database.NewMem()
 		queue1 := service.NewQueue("Y5gVnAXu4SUg8qK8", &mem)
 		queue2 := service.NewQueue("6kD5hhETBcYFbKbq", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithId(fn1))
-		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		g, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -328,7 +327,8 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 200)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
-		time.Sleep(2 * viper.GetDuration("shortpixel.restartIn"))
+		<-heartbeatRestart
+		<-heartbeatRestart
 		fn = contr.handleAlbum()
 		w = httptest.NewRecorder()
 		body = bytes.Buffer{}
@@ -424,7 +424,7 @@ func TestControllerHandlePair(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := service.NewQueue("93P3AU2V6RMcFND4", &mem)
 		queue2 := service.NewQueue("uq4TPwUqmj2MZaCv", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -496,7 +496,7 @@ func TestControllerHandleVote(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := service.NewQueue("3L8E2zrdQtmJKEwa", &mem)
 		queue2 := service.NewQueue("L4kKdZpZZuTkSDmH", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -555,7 +555,7 @@ func TestControllerHandleVote(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := service.NewQueue("xGgXp5Pg5nKvGmBY", &mem)
 		queue2 := service.NewQueue("6qNjE2tha2Z8s73H", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -614,7 +614,7 @@ func TestControllerHandleVote(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := service.NewQueue("RkAD9BHx8mTUBYRj", &mem)
 		queue2 := service.NewQueue("rY4ZJMbTwQGyDqHK", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -677,13 +677,13 @@ func TestControllerHandleTop(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := service.NewQueue("qCzDFPuY53Y34mdS", &mem)
 		queue2 := service.NewQueue("YL3b99PHTrMnfX9c", &mem)
-		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithId(fn1), service.WithShuffle(fn2))
-		g1, ctx1 := errgroup.WithContext(ctx)
 		heartbeatCalc := make(chan interface{})
-		serv.StartWorkingPoolCalc(ctx1, g1, heartbeatCalc)
-		g2, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g2, heartbeatComp)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc), service.WithHeartbeatComp(heartbeatComp))
+		g1, ctx1 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolCalc(ctx1, g1)
+		g2, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()

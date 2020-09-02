@@ -29,4 +29,4 @@ prod-down:
 	docker-compose --file ./build/prod/docker-compose.yml down --rmi all -v
 
 loadtest:
-	go run ./cmd/loadtest/main.go -verbose=false
+	go run ./cmd/loadtest/main.go -verbose=true

@@ -11,7 +11,6 @@ import (
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
-	"github.com/zitryss/aye-and-nay/pkg/unit"
 )
 
 func newController(
@@ -29,7 +28,8 @@ type controller struct {
 func (c *controller) handleAlbum() httprouter.Handle {
 	input := func(r *http.Request, ps httprouter.Params) (context.Context, albumRequest, error) {
 		ctx := r.Context()
-		err := r.ParseMultipartForm(0 * unit.MB)
+		maxMemory := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
+		err := r.ParseMultipartForm(maxMemory)
 		if err != nil {
 			return nil, albumRequest{}, errors.Wrap(err)
 		}

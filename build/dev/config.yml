@@ -4,25 +4,25 @@ app:
 server:
   host: localhost
   port: 8001
-  readTimeout:  5s
-  writeTimeout: 10s
+  readTimeout:  60s
+  writeTimeout: 120s
   idleTimeout:  120s
   shutdownTimeout: 10s
 middleware:
   limiter:
     requestsPerSecond: 10000
-    burst: 5
-    timeToLive: 24h
-    cleanupInterval: 1h
+    burst: 10
+    timeToLive: 15m
+    cleanupInterval: 15m
 controller:
-  maxNumberOfFiles: 1000
-  maxFileSize: 2097152 # 2 MB
+  maxNumberOfFiles: 100
+  maxFileSize: 5242880 # 5 MB
 service:
   numberOfWorkersCalc: 8
   numberOfWorkersComp: 8
   albumIdLength: 8
-  imageIdLength: 16
-  tokenIdLength: 16
+  imageIdLength: 8
+  tokenIdLength: 8
 shortpixel:
   use: false
   url: https://api.shortpixel.com/v2/post-reducer.php
@@ -32,12 +32,13 @@ shortpixel:
     times: 2
     pause: 10s
   wait: 30
-  uploadTimeout: 30s
-  downloadTimeout: 5s
+  uploadTimeout: 60s
+  downloadTimeout: 60s
   repeatIn: 10s
+  restartIn: 15m
 minio:
   use: true
-  host: 192.168.99.106
+  host: localhost
   port: 9000
   accessKey: 12345678
   secretKey: qwertyui
@@ -45,23 +46,23 @@ minio:
   retry:
     times: 4
     pause: 5s
-    timeout: 5s
+    timeout: 10s
   location: eu-central-1
   prefix: http://localhost:9000
 mongo:
   use: true
-  host: 192.168.99.106
+  host: localhost
   port: 27017
   retry:
     times: 4
     pause: 5s
     timeout: 10s
 redis:
-  host: 192.168.99.106
   use: false
+  host: localhost
   port: 6379
   retry:
     times: 4
     pause: 5s
-  timeToLive: 1h
-  cleanupInterval: 1h
+  timeToLive: 15m
+  cleanupInterval: 15m

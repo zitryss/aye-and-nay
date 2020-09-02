@@ -5,7 +5,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	mongodb "go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	optionsdb "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -31,7 +31,7 @@ type edgeDao struct {
 func NewMongo() (mongo, error) {
 	conf := newMongoConfig()
 	ctx, _ := context.WithTimeout(context.Background(), conf.timeout)
-	opts := options.Client().ApplyURI("mongodb://" + conf.host + ":" + conf.port)
+	opts := optionsdb.Client().ApplyURI("mongodb://" + conf.host + ":" + conf.port)
 	client, err := mongodb.Connect(ctx, opts)
 	if err != nil {
 		return mongo{}, errors.Wrap(err)
@@ -66,7 +66,7 @@ func (m *mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 		return errors.Wrap(err)
 	}
 	if n > 0 {
-		return errors.Wrap(model.ErrAblumAlreadyExists)
+		return errors.Wrap(model.ErrAlbumAlreadyExists)
 	}
 	imgsDao := make([]interface{}, 0, len(alb.Images))
 	for _, img := range alb.Images {
@@ -217,7 +217,7 @@ func (m *mongo) SaveVote(ctx context.Context, album string, imageFrom string, im
 	}
 	filter = bson.D{{"album", album}, {"from", imageFrom}, {"to", imageTo}}
 	update := bson.D{{"$inc", bson.D{{"weight", 1}}}}
-	opts := options.Update().SetUpsert(true)
+	opts := optionsdb.Update().SetUpsert(true)
 	_, err = m.edges.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		return errors.Wrap(err)
@@ -314,7 +314,7 @@ func (m *mongo) GetImagesOrdered(ctx context.Context, album string) ([]model.Ima
 	}
 	imgs := make([]model.Image, 0, n)
 	filter = bson.D{{"album", album}}
-	opts := options.Find().SetSort(bson.D{{"rating", -1}})
+	opts := optionsdb.Find().SetSort(bson.D{{"rating", -1}})
 	cursor, err := m.images.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, errors.Wrap(err)

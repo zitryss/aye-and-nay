@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"math/rand"
 	"sync"
 
 	"golang.org/x/sync/errgroup"
@@ -9,7 +10,7 @@ import (
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/linalg"
-	"github.com/zitryss/aye-and-nay/pkg/rand"
+	myrand "github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
 func NewService(
@@ -19,22 +20,60 @@ func NewService(
 	temp model.Temper,
 	queue1 *queue,
 	queue2 *queue,
+	opts ...options,
 ) service {
 	conf := newServiceConfig()
-	return service{
-		conf,
-		comp,
-		stor,
-		pers,
-		temp,
-		temp,
-		struct {
+	s := service{
+		conf:  conf,
+		comp:  comp,
+		stor:  stor,
+		pers:  pers,
+		pair:  temp,
+		token: temp,
+		queue: struct {
 			calc *queue
 			comp *queue
 		}{
 			queue1,
 			queue2,
 		},
+		rand: struct {
+			id      func(length int) (string, error)
+			shuffle func(n int, swap func(i int, j int))
+		}{
+			myrand.Id,
+			rand.Shuffle,
+		},
+	}
+	for _, opt := range opts {
+		opt(&s)
+	}
+	return s
+}
+
+type options func(*service)
+
+func WithRandId(fn func(int) (string, error)) options {
+	return func(s *service) {
+		s.rand.id = fn
+	}
+}
+
+func WithRandShuffle(fn func(int, func(int, int))) options {
+	return func(s *service) {
+		s.rand.shuffle = fn
+	}
+}
+
+func WithHeartbeatCalc(ch chan<- interface{}) options {
+	return func(s *service) {
+		s.heartbeat.calc = ch
+	}
+}
+
+func WithHeartbeatComp(ch chan<- interface{}) options {
+	return func(s *service) {
+		s.heartbeat.comp = ch
 	}
 }
 
@@ -49,9 +88,17 @@ type service struct {
 		calc *queue
 		comp *queue
 	}
+	rand struct {
+		id      func(length int) (string, error)
+		shuffle func(n int, swap func(i, j int))
+	}
+	heartbeat struct {
+		calc chan<- interface{}
+		comp chan<- interface{}
+	}
 }
 
-func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group, heartbeat chan<- interface{}) {
+func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 	go func() {
 		sem := make(chan struct{}, s.conf.numberOfWorkersCalc)
 		for {
@@ -107,8 +154,8 @@ func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group, h
 						e = err
 						continue
 					}
-					if heartbeat != nil {
-						heartbeat <- struct{}{}
+					if s.heartbeat.calc != nil {
+						s.heartbeat.calc <- struct{}{}
 					}
 				}
 			})
@@ -116,7 +163,7 @@ func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group, h
 	}()
 }
 
-func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, heartbeat chan<- interface{}) {
+func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 	go func() {
 		sem := make(chan struct{}, s.conf.numberOfWorkersComp)
 		for {
@@ -166,17 +213,17 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 						continue
 					}
 					for _, image := range images {
-						b, err := s.stor.Get(ctx, album, image)
+						f, err := s.stor.Get(ctx, album, image)
 						if err != nil {
 							err = errors.Wrap(err)
 							handleError(err)
 							e = err
 							continue outer
 						}
-						b, err = s.comp.Compress(ctx, b)
+						f, err = s.comp.Compress(ctx, f)
 						if errors.Is(err, model.ErrThirdPartyUnavailable) {
-							if heartbeat != nil {
-								heartbeat <- err
+							if s.heartbeat.comp != nil {
+								s.heartbeat.comp <- err
 							}
 						}
 						if err != nil {
@@ -192,7 +239,7 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 							e = err
 							continue outer
 						}
-						_, err = s.stor.Put(ctx, album, image, b)
+						_, err = s.stor.Put(ctx, album, image, f)
 						if err != nil {
 							err = errors.Wrap(err)
 							handleError(err)
@@ -206,9 +253,9 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 							e = err
 							continue outer
 						}
-						if heartbeat != nil {
+						if s.heartbeat.comp != nil {
 							p, _ := s.Progress(context.Background(), album)
-							heartbeat <- p
+							s.heartbeat.comp <- p
 						}
 					}
 				}
@@ -217,18 +264,18 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group, h
 	}()
 }
 
-func (s *service) Album(ctx context.Context, files [][]byte) (string, error) {
-	album, err := rand.Id(s.conf.albumIdLength)
+func (s *service) Album(ctx context.Context, ff []model.File) (string, error) {
+	album, err := s.rand.id(s.conf.albumIdLength)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	imgs := make([]model.Image, 0, len(files))
-	for _, b := range files {
-		image, err := rand.Id(s.conf.imageIdLength)
+	imgs := make([]model.Image, 0, len(ff))
+	for _, f := range ff {
+		image, err := s.rand.id(s.conf.imageIdLength)
 		if err != nil {
 			return "", errors.Wrap(err)
 		}
-		src, err := s.stor.Put(ctx, album, image, b)
+		src, err := s.stor.Put(ctx, album, image, f)
 		if err != nil {
 			return "", errors.Wrap(err)
 		}
@@ -282,7 +329,7 @@ func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Im
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	token1, err := rand.Id(s.conf.tokenIdLength)
+	token1, err := s.rand.id(s.conf.tokenIdLength)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
@@ -291,7 +338,7 @@ func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Im
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
 	img1.Token = token1
-	token2, err := rand.Id(s.conf.tokenIdLength)
+	token2, err := s.rand.id(s.conf.tokenIdLength)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
@@ -308,7 +355,7 @@ func (s *service) genPairs(ctx context.Context, album string) error {
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	rand.Shuffle(len(images), func(i, j int) { images[i], images[j] = images[j], images[i] })
+	s.rand.shuffle(len(images), func(i, j int) { images[i], images[j] = images[j], images[i] })
 	images = append(images, images[0])
 	pairs := make([][2]string, 0, len(images)-1)
 	for i := 0; i < len(images)-1; i++ {
@@ -316,7 +363,7 @@ func (s *service) genPairs(ctx context.Context, album string) error {
 		image2 := images[i+1]
 		pairs = append(pairs, [2]string{image1, image2})
 	}
-	rand.Shuffle(len(pairs), func(i, j int) { pairs[i], pairs[j] = pairs[j], pairs[i] })
+	s.rand.shuffle(len(pairs), func(i, j int) { pairs[i], pairs[j] = pairs[j], pairs[i] })
 	err = s.pair.Push(ctx, album, pairs)
 	if err != nil {
 		return errors.Wrap(err)

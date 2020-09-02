@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"io"
@@ -11,9 +10,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
-	"github.com/zitryss/aye-and-nay/internal/pool"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
-	"github.com/zitryss/aye-and-nay/pkg/unit"
 )
 
 func newController(
@@ -31,7 +28,8 @@ type controller struct {
 func (c *controller) handleAlbum() httprouter.Handle {
 	input := func(r *http.Request, ps httprouter.Params) (context.Context, albumRequest, error) {
 		ctx := r.Context()
-		err := r.ParseMultipartForm(32 * unit.MB)
+		maxMemory := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
+		err := r.ParseMultipartForm(maxMemory)
 		if err != nil {
 			return nil, albumRequest{}, errors.Wrap(err)
 		}
@@ -42,7 +40,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		if len(fhs) > c.conf.maxNumberOfFiles {
 			return nil, albumRequest{}, errors.Wrap(model.ErrTooManyImages)
 		}
-		req := albumRequest{files: make([][]byte, 0, len(fhs))}
+		req := albumRequest{ff: make([]model.File, 0, len(fhs)), multi: r.MultipartForm}
 		for _, fh := range fhs {
 			if fh.Size > c.conf.maxFileSize {
 				return nil, albumRequest{}, errors.Wrap(model.ErrImageTooBig)
@@ -51,34 +49,46 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			if err != nil {
 				return nil, albumRequest{}, errors.Wrap(err)
 			}
-			dst := pool.GetBuffer()
-			src := bufio.NewReader(f)
-			b, err := src.Peek(512)
+			b := make([]byte, 512)
+			_, err = f.Read(b)
 			if err != nil {
 				_ = f.Close()
+				for _, f := range req.ff {
+					_ = f.Reader.(io.Closer).Close()
+				}
+				_ = req.multi.RemoveAll()
+				return nil, albumRequest{}, errors.Wrap(err)
+			}
+			_, err = f.Seek(0, io.SeekStart)
+			if err != nil {
+				_ = f.Close()
+				for _, f := range req.ff {
+					_ = f.Reader.(io.Closer).Close()
+				}
+				_ = req.multi.RemoveAll()
 				return nil, albumRequest{}, errors.Wrap(err)
 			}
 			typ := http.DetectContentType(b)
 			if !strings.HasPrefix(typ, "image/") {
 				_ = f.Close()
+				for _, f := range req.ff {
+					_ = f.Reader.(io.Closer).Close()
+				}
+				_ = req.multi.RemoveAll()
 				return nil, albumRequest{}, errors.Wrap(model.ErrNotImage)
 			}
-			_, err = io.Copy(dst, src)
-			if err != nil {
-				_ = f.Close()
-				return nil, albumRequest{}, errors.Wrap(err)
-			}
-			req.files = append(req.files, dst.Bytes())
-			pool.PutBuffer(dst)
-			err = f.Close()
-			if err != nil {
-				return nil, albumRequest{}, errors.Wrap(err)
-			}
+			req.ff = append(req.ff, model.File{Reader: f, Size: fh.Size})
 		}
 		return ctx, req, nil
 	}
 	process := func(ctx context.Context, req albumRequest) (albumResponse, error) {
-		album, err := c.serv.Album(ctx, req.files)
+		defer func() {
+			for _, f := range req.ff {
+				_ = f.Reader.(io.Closer).Close()
+			}
+			_ = req.multi.RemoveAll()
+		}()
+		album, err := c.serv.Album(ctx, req.ff)
 		if err != nil {
 			return albumResponse{}, errors.Wrap(err)
 		}

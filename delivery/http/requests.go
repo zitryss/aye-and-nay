@@ -1,9 +1,16 @@
-//go:generate $GOPATH/bin/easyjson -all requests.go
+//go:generate $GOPATH/bin/easyjson requests.go
 
 package http
 
+import (
+	"mime/multipart"
+
+	"github.com/zitryss/aye-and-nay/domain/model"
+)
+
 type albumRequest struct {
-	files [][]byte
+	ff    []model.File
+	multi *multipart.Form
 }
 
 type readyRequest struct {
@@ -18,6 +25,7 @@ type pairRequest struct {
 	}
 }
 
+//easyjson:json
 type voteRequest struct {
 	Album struct {
 		id      string

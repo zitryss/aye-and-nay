@@ -1,9 +1,13 @@
 package compressor
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"os"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/internal/pool"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
@@ -14,27 +18,33 @@ func NewMock() mock {
 type mock struct {
 }
 
-func (m *mock) Compress(_ context.Context, b []byte) ([]byte, error) {
-	return b, nil
+func (m *mock) Compress(_ context.Context, f model.File) (model.File, error) {
+	defer func() {
+		switch v := f.Reader.(type) {
+		case *os.File:
+			_ = v.Close()
+			_ = os.Remove(v.Name())
+		case *bytes.Buffer:
+			pool.PutBuffer(v)
+		}
+	}()
+	buf := pool.GetBuffer()
+	n, err := io.CopyN(buf, f, f.Size)
+	if err != nil {
+		return model.File{}, errors.Wrap(err)
+	}
+	return model.File{Reader: buf, Size: n}, nil
 }
 
-func NewFail() fail {
-	return fail{}
+func NewFail(opts ...options) fail {
+	sp := NewShortPixel(opts...)
+	return fail{sp}
 }
 
 type fail struct {
-	err error
+	shortpixel
 }
 
-func (f *fail) Compress(ctx context.Context, b []byte) ([]byte, error) {
-	if errors.Is(f.err, model.ErrThirdPartyUnavailable) {
-		return b, nil
-	}
-	bb := []byte(nil)
-	bb, f.err = f.compress(ctx, b)
-	return bb, errors.Wrap(f.err)
-}
-
-func (f *fail) compress(_ context.Context, _ []byte) ([]byte, error) {
-	return nil, model.ErrThirdPartyUnavailable
+func (f *fail) compress(_ context.Context, _ model.File) (model.File, error) {
+	return model.File{}, errors.Wrap(model.ErrThirdPartyUnavailable)
 }

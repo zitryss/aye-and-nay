@@ -54,6 +54,7 @@ func main() {
 			log.Critical(err)
 			os.Exit(1)
 		}
+		sp.Monitor()
 		comp = &sp
 	} else {
 		mock := compressor.NewMock()
@@ -112,14 +113,12 @@ func main() {
 	serv := service.NewService(comp, stor, pers, temp, &queue1, &queue2)
 
 	g1, ctx1 := errgroup.WithContext(ctx)
-	heartbeat := chan interface{}(nil)
 	log.Info("starting calculation worker pool")
-	serv.StartWorkingPoolCalc(ctx1, g1, heartbeat)
+	serv.StartWorkingPoolCalc(ctx1, g1)
 
 	g2, ctx2 := errgroup.WithContext(ctx)
-	heartbeat = chan interface{}(nil)
 	log.Info("starting compression worker pool")
-	serv.StartWorkingPoolComp(ctx2, g2, heartbeat)
+	serv.StartWorkingPoolComp(ctx2, g2)
 
 	srvWait := make(chan error, 1)
 	srv := http.NewServer(&serv, cancel, srvWait)

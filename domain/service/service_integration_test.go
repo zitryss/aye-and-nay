@@ -4,6 +4,7 @@ package service
 
 import (
 	"context"
+	"io/ioutil"
 	"os"
 	"reflect"
 	"strconv"
@@ -21,7 +22,6 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/env"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/log"
-	"github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
 func TestMain(m *testing.M) {
@@ -33,6 +33,7 @@ func TestMain(m *testing.M) {
 		docker.RunMongo()
 		docker.RunRedis()
 		docker.RunMinio()
+		log.SetOutput(ioutil.Discard)
 		code := m.Run()
 		docker.Purge()
 		os.Exit(code)
@@ -43,7 +44,7 @@ func TestMain(m *testing.M) {
 
 func TestServiceIntegrationAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "zcU244KtR3jJrnt9"
 			i := 0
 			return func(length int) (string, error) {
@@ -67,11 +68,11 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 		queue1 := NewQueue("VK4dE8CgS82B8yC7", &redis)
 		queue2 := NewQueue("TV7ZuMmhz3CDfa7n", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
-		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
-		files := [][]byte{nil, nil}
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		g, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g)
+		files := []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -94,7 +95,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "wZE65QekXNTP9vpK"
 			i := 0
 			return func(length int) (string, error) {
@@ -103,7 +104,9 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			}
 		}()
 		ctx := context.Background()
-		comp := compressor.NewFail()
+		heartbeatRestart := make(chan interface{})
+		comp := compressor.NewFail(compressor.WithHeartbeatRestart(heartbeatRestart))
+		comp.Monitor()
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -118,11 +121,11 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 		queue1 := NewQueue("bn6Es8nvGu9KZwUk", &redis)
 		queue2 := NewQueue("mhynV9uhnGFEV4uf", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
-		g, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g, heartbeatComp)
-		files := [][]byte{nil, nil}
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		g, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g)
+		files := []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -135,6 +138,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
+		files = []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -155,12 +159,48 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if !EqualFloat(p, 1) {
 			t.Error("p != 1")
 		}
+		<-heartbeatRestart
+		<-heartbeatRestart
+		files = []model.File{Png(), Png()}
+		_, err = serv.Album(ctx, files)
+		if err != nil {
+			t.Error(err)
+		}
+		v = <-heartbeatComp
+		err, ok = v.(error)
+		if !ok {
+			t.Error("v.(type) != error")
+		}
+		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
+			t.Error(err)
+		}
+		files = []model.File{Png(), Png()}
+		_, err = serv.Album(ctx, files)
+		if err != nil {
+			t.Error(err)
+		}
+		v = <-heartbeatComp
+		p, ok = v.(float64)
+		if !ok {
+			t.Error("v.(type) != float64")
+		}
+		if !EqualFloat(p, 0.5) {
+			t.Error("p != 0.5")
+		}
+		v = <-heartbeatComp
+		p, ok = v.(float64)
+		if !ok {
+			t.Error("v.(type) != float64")
+		}
+		if !EqualFloat(p, 1) {
+			t.Error("p != 1")
+		}
 	})
 }
 
 func TestServiceIntegrationPair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "Rkur9G4z9PKtURHe"
 			i := 0
 			return func(length int) (string, error) {
@@ -168,7 +208,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -186,8 +226,8 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 		queue1 := NewQueue("766fFt8nuJ5qRek2", &redis)
 		queue2 := NewQueue("bHL3nQpzPpXBffE9", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
-		files := [][]byte{nil, nil}
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -268,7 +308,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 
 func TestServiceIntegrationVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "kh6yGRSrzXXqW9Ap"
 			i := 0
 			return func(length int) (string, error) {
@@ -276,7 +316,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -294,8 +334,8 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		queue1 := NewQueue("8eDkyz293xggaUpr", &redis)
 		queue2 := NewQueue("GKBK9ZgVbTpTL7Xc", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
-		files := [][]byte{nil, nil}
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -310,7 +350,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "4UF24e4Ka9UWtEdg"
 			i := 0
 			return func(length int) (string, error) {
@@ -318,7 +358,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -336,8 +376,8 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		queue1 := NewQueue("b8mKspbYz5FjQ7Mf", &redis)
 		queue2 := NewQueue("GfZ5H9twa6dVTLav", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
-		files := [][]byte{nil, nil}
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -352,7 +392,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "hw9mwZyRgxBC9Xbt"
 			i := 0
 			return func(length int) (string, error) {
@@ -360,7 +400,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -378,8 +418,8 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		queue1 := NewQueue("nRQynzFJvPvcRZUt", &redis)
 		queue2 := NewQueue("HV4pLuMb4HRgrD2U", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
-		files := [][]byte{nil, nil}
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)
@@ -397,7 +437,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 
 func TestServiceIntegrationTop(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		rand.Id = func() func(int) (string, error) {
+		fn1 := func() func(int) (string, error) {
 			id := "L2j8Uc3z2HNLZHvJ"
 			i := 0
 			return func(length int) (string, error) {
@@ -405,7 +445,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		rand.Shuffle = func(n int, swap func(i int, j int)) {
+		fn2 := func(n int, swap func(i int, j int)) {
 		}
 		ctx := context.Background()
 		comp := compressor.NewMock()
@@ -423,14 +463,14 @@ func TestServiceIntegrationTop(t *testing.T) {
 		}
 		queue1 := NewQueue("RKvUKsDj7whcrpzA", &redis)
 		queue2 := NewQueue("2NPRqbKcbSX73vhr", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
-		g1, ctx1 := errgroup.WithContext(ctx)
 		heartbeatCalc := make(chan interface{})
-		serv.StartWorkingPoolCalc(ctx1, g1, heartbeatCalc)
-		g2, ctx2 := errgroup.WithContext(ctx)
 		heartbeatComp := make(chan interface{})
-		serv.StartWorkingPoolComp(ctx2, g2, heartbeatComp)
-		files := [][]byte{nil, nil}
+		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc), WithHeartbeatComp(heartbeatComp))
+		g1, ctx1 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolCalc(ctx1, g1)
+		g2, ctx2 := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctx2, g2)
+		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
 			t.Error(err)

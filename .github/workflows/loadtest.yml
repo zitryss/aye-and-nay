@@ -17,5 +17,5 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
       - run: make prod-up
-      - run: sleep 10 && make loadtest
+      - run: sleep 5 && make loadtest
       - run: make prod-down

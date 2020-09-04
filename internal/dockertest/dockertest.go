@@ -43,7 +43,7 @@ type docker struct {
 
 func (d *docker) RunMinio() {
 	repository := "minio/minio"
-	tag := "RELEASE.2020-06-22T03-12-50Z"
+	tag := "RELEASE.2020-09-02T18-19-50Z"
 	accessKey := viper.GetString("minio.accessKey")
 	secretKey := viper.GetString("minio.secretKey")
 	env := []string{"MINIO_ACCESS_KEY=" + accessKey, "MINIO_SECRET_KEY=" + secretKey}
@@ -71,7 +71,7 @@ func (d *docker) RunMongo() {
 
 func (d *docker) RunRedis() {
 	repository := "redis"
-	tag := "5-alpine"
+	tag := "6-alpine"
 	env := []string(nil)
 	cmd := []string(nil)
 	port := "6379/tcp"

@@ -12,7 +12,7 @@ import (
 )
 
 func TestRedisQueue(t *testing.T) {
-	redis, err := NewRedis(context.Background())
+	redis, err := NewRedis()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestRedisQueue(t *testing.T) {
 
 func TestRedisPair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		redis, err := NewRedis(context.Background())
+		redis, err := NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -125,7 +125,7 @@ func TestRedisPair(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		redis, err := NewRedis(context.Background())
+		redis, err := NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -135,7 +135,7 @@ func TestRedisPair(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		redis, err := NewRedis(context.Background())
+		redis, err := NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -158,7 +158,7 @@ func TestRedisPair(t *testing.T) {
 
 func TestRedisToken(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		redis, err := NewRedis(context.Background())
+		redis, err := NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -177,7 +177,7 @@ func TestRedisToken(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		redis, err := NewRedis(context.Background())
+		redis, err := NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -193,7 +193,7 @@ func TestRedisToken(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		redis, err := NewRedis(context.Background())
+		redis, err := NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -204,7 +204,7 @@ func TestRedisToken(t *testing.T) {
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		redis, err := NewRedis(context.Background())
+		redis, err := NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}

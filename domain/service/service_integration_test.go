@@ -62,7 +62,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -115,7 +115,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -220,7 +220,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -292,7 +292,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -328,7 +328,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -370,7 +370,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -412,7 +412,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -457,7 +457,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -517,7 +517,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}

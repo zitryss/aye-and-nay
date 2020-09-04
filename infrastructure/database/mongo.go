@@ -30,14 +30,14 @@ type edgeDao struct {
 
 func NewMongo() (mongo, error) {
 	conf := newMongoConfig()
-	ctx, _ := context.WithTimeout(context.Background(), conf.timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
+	defer cancel()
 	opts := optionsdb.Client().ApplyURI("mongodb://" + conf.host + ":" + conf.port)
 	client, err := mongodb.Connect(ctx, opts)
 	if err != nil {
 		return mongo{}, errors.Wrap(err)
 	}
 	err = retry.Do(conf.times, conf.pause, func() error {
-		ctx, _ := context.WithTimeout(context.Background(), conf.timeout)
 		err := client.Ping(ctx, readpref.Primary())
 		if err != nil {
 			return errors.Wrap(err)

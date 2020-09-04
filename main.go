@@ -92,7 +92,7 @@ func main() {
 	temp := model.Temper(nil)
 	if viper.GetBool("redis.use") {
 		log.Info("connecting to redis")
-		redis, err := database.NewRedis(ctx)
+		redis, err := database.NewRedis()
 		if err != nil {
 			log.Critical(err)
 			os.Exit(1)

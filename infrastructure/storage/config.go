@@ -12,6 +12,7 @@ func newMinioConfig() minioConfig {
 		port:      viper.GetString("minio.port"),
 		accessKey: viper.GetString("minio.accessKey"),
 		secretKey: viper.GetString("minio.secretKey"),
+		token:     viper.GetString("minio.token"),
 		secure:    viper.GetBool("minio.secure"),
 		times:     viper.GetInt("minio.retry.times"),
 		pause:     viper.GetDuration("minio.retry.pause"),
@@ -26,6 +27,7 @@ type minioConfig struct {
 	port      string
 	accessKey string
 	secretKey string
+	token     string
 	secure    bool
 	times     int
 	pause     time.Duration

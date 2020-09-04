@@ -65,7 +65,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -126,7 +126,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -173,7 +173,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -220,7 +220,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -267,7 +267,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -325,7 +325,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -512,7 +512,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -564,7 +564,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -604,7 +604,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -673,7 +673,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -742,7 +742,7 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -815,7 +815,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -901,7 +901,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis(context.Background())
+		redis, err := database.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}

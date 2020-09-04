@@ -8,7 +8,7 @@ import (
 	"os"
 	"testing"
 
-	minios3 "github.com/minio/minio-go/v6"
+	minios3 "github.com/minio/minio-go/v7"
 
 	_ "github.com/zitryss/aye-and-nay/internal/config"
 	"github.com/zitryss/aye-and-nay/internal/dockertest"

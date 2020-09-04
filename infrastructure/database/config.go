@@ -42,6 +42,7 @@ func newRedisConfig() redisConfig {
 		port:       viper.GetString("redis.port"),
 		times:      viper.GetInt("redis.retry.times"),
 		pause:      viper.GetDuration("redis.retry.pause"),
+		timeout:    viper.GetDuration("redis.retry.timeout"),
 		timeToLive: viper.GetDuration("redis.timeToLive"),
 	}
 }
@@ -51,5 +52,6 @@ type redisConfig struct {
 	port       string
 	times      int
 	pause      time.Duration
+	timeout    time.Duration
 	timeToLive time.Duration
 }

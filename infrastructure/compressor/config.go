@@ -13,6 +13,7 @@ func newShortPixelConfig() shortPixelConfig {
 		apiKey:          viper.GetString("shortpixel.apiKey"),
 		times:           viper.GetInt("shortpixel.retry.times"),
 		pause:           viper.GetDuration("shortpixel.retry.pause"),
+		timeout:         viper.GetDuration("shortpixel.retry.timeout"),
 		wait:            viper.GetString("shortpixel.wait"),
 		uploadTimeout:   viper.GetDuration("shortpixel.uploadTimeout"),
 		downloadTimeout: viper.GetDuration("shortpixel.downloadTimeout"),
@@ -27,6 +28,7 @@ type shortPixelConfig struct {
 	apiKey          string
 	times           int
 	pause           time.Duration
+	timeout         time.Duration
 	wait            string
 	uploadTimeout   time.Duration
 	downloadTimeout time.Duration

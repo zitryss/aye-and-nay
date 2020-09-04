@@ -58,7 +58,9 @@ type shortpixel struct {
 }
 
 func (sp *shortpixel) Ping() error {
-	_, err := sp.upload(context.Background(), Png())
+	ctx, cancel := context.WithTimeout(context.Background(), sp.conf.timeout)
+	defer cancel()
+	_, err := sp.upload(ctx, Png())
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -351,7 +353,8 @@ func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
 
 func (sp *shortpixel) download(ctx context.Context, src string) (model.File, error) {
 	c := http.Client{Timeout: sp.conf.downloadTimeout}
-	req, err := http.NewRequestWithContext(ctx, "GET", src, nil)
+	body := io.Reader(nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", src, body)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}

@@ -42,7 +42,7 @@ func handleError(w http.ResponseWriter, err error) {
 	case model.ErrTooManyImages:
 		http.Error(w, "Request Entity Too Large", 413)
 		log.Debug(err)
-	case model.ErrImageTooBig:
+	case model.ErrImageTooLarge:
 		http.Error(w, "Request Entity Too Large", 413)
 		log.Debug(err)
 	case model.ErrNotImage:

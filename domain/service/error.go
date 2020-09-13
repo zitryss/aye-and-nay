@@ -12,6 +12,8 @@ func handleError(err error) {
 	switch errors.Cause(err) {
 	case model.ErrTooManyRequests:
 		log.Debug(err)
+	case model.ErrWrongContentType:
+		log.Debug(err)
 	case model.ErrNotEnoughImages:
 		log.Debug(err)
 	case model.ErrTooManyImages:

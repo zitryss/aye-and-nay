@@ -29,6 +29,10 @@ func (c *controller) handleAlbum() httprouter.Handle {
 	input := func(r *http.Request, ps httprouter.Params) (context.Context, albumRequest, error) {
 		ctx := r.Context()
 		maxMemory := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
+		ct := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(ct, "multipart/form-data") {
+			return nil, albumRequest{}, errors.Wrap(model.ErrWrongContentType)
+		}
 		err := r.ParseMultipartForm(maxMemory)
 		if err != nil {
 			return nil, albumRequest{}, errors.Wrap(err)
@@ -218,6 +222,10 @@ func (c *controller) handleVote() httprouter.Handle {
 		ctx := r.Context()
 		req := voteRequest{}
 		req.Album.id = ps.ByName("album")
+		ct := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(ct, "application/json") {
+			return nil, voteRequest{}, errors.Wrap(model.ErrWrongContentType)
+		}
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			return nil, voteRequest{}, errors.Wrap(err)

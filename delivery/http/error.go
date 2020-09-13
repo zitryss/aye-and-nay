@@ -43,13 +43,13 @@ func handleError(w http.ResponseWriter, err error) {
 		http.Error(w, "Not Enough Images", 400)
 		log.Debug(err)
 	case model.ErrTooManyImages:
-		http.Error(w, "Request Entity Too Large", 413)
+		http.Error(w, "Too Many Images", 413)
 		log.Debug(err)
 	case model.ErrImageTooLarge:
-		http.Error(w, "Request Entity Too Large", 413)
+		http.Error(w, "Image Too Large", 413)
 		log.Debug(err)
 	case model.ErrNotImage:
-		http.Error(w, "Unsupported Media Type", 415)
+		http.Error(w, "Unsupported Image Format", 415)
 		log.Debug(err)
 	case model.ErrAlbumNotFound:
 		http.Error(w, "Album Not Found", 404)

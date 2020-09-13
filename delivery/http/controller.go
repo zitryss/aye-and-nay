@@ -43,7 +43,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		req := albumRequest{ff: make([]model.File, 0, len(fhs)), multi: r.MultipartForm}
 		for _, fh := range fhs {
 			if fh.Size > c.conf.maxFileSize {
-				return nil, albumRequest{}, errors.Wrap(model.ErrImageTooBig)
+				return nil, albumRequest{}, errors.Wrap(model.ErrImageTooLarge)
 			}
 			f, err := fh.Open()
 			if err != nil {

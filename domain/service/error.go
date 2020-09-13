@@ -16,7 +16,7 @@ func handleError(err error) {
 		log.Debug(err)
 	case model.ErrTooManyImages:
 		log.Debug(err)
-	case model.ErrImageTooBig:
+	case model.ErrImageTooLarge:
 		log.Debug(err)
 	case model.ErrNotImage:
 		log.Debug(err)

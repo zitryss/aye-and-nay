@@ -39,6 +39,9 @@ func handleError(w http.ResponseWriter, err error) {
 	case model.ErrTooManyRequests:
 		http.Error(w, "Too Many Requests", 429)
 		log.Debug(err)
+	case model.ErrBodyTooLarge:
+		http.Error(w, "Body Too Large", 413)
+		log.Debug(err)
 	case model.ErrWrongContentType:
 		http.Error(w, "Unsupported Content Type", 415)
 		log.Debug(err)

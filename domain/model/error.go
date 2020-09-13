@@ -6,6 +6,7 @@ import (
 
 var (
 	ErrTooManyRequests       = errors.New("too many requests")
+	ErrWrongContentType      = errors.New("wrong content type")
 	ErrNotEnoughImages       = errors.New("not enough images")
 	ErrTooManyImages         = errors.New("too many images")
 	ErrImageTooLarge         = errors.New("image too large")

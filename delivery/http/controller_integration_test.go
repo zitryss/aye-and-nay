@@ -177,6 +177,53 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		queue1 := service.NewQueue("Dr4fR2rEWgN7qLHf", &redis)
+		queue2 := service.NewQueue("4bHA74WR49xsb5ug", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		contr := newController(&serv)
+		fn := contr.handleAlbum()
+		w := httptest.NewRecorder()
+		body := bytes.Buffer{}
+		multi := multipart.NewWriter(&body)
+		for _, filename := range []string{"linus.jpg", "linus.jpg", "linus.jpg"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err = multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r := httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", multi.FormDataContentType())
+		fn(w, r, nil)
+		CheckStatusCode(t, w, 413)
+		CheckContentType(t, w, "text/plain; charset=utf-8")
+		CheckBody(t, w, `Body Too Large`+"\n")
+	})
+	t.Run("Negative3", func(t *testing.T) {
+		comp := compressor.NewMock()
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := database.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
 		queue1 := service.NewQueue("mEdFrvE3549LDFzx", &redis)
 		queue2 := service.NewQueue("5qxFFTgPtLVhhQU7", &redis)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
@@ -210,7 +257,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Not Enough Images`+"\n")
 	})
-	t.Run("Negative3", func(t *testing.T) {
+	t.Run("Negative4", func(t *testing.T) {
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -257,7 +304,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Too Many Images`+"\n")
 	})
-	t.Run("Negative4", func(t *testing.T) {
+	t.Run("Negative5", func(t *testing.T) {
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -304,7 +351,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Image Too Large`+"\n")
 	})
-	t.Run("Negative5", func(t *testing.T) {
+	t.Run("Negative6", func(t *testing.T) {
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -351,7 +398,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Unsupported Image Format`+"\n")
 	})
-	t.Run("Negative6", func(t *testing.T) {
+	t.Run("Negative7", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
 			id := "jp8vH6TEapTGgSSc"
 			i := 0

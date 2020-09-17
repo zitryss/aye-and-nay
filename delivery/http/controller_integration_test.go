@@ -208,7 +208,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 413)
 		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Request Entity Too Large`+"\n")
+		CheckBody(t, w, `Too Many Images`+"\n")
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -255,7 +255,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 413)
 		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Request Entity Too Large`+"\n")
+		CheckBody(t, w, `Image Too Large`+"\n")
 	})
 	t.Run("Negative4", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -302,7 +302,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 415)
 		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Unsupported Media Type`+"\n")
+		CheckBody(t, w, `Unsupported Image Format`+"\n")
 	})
 	t.Run("Negative5", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {

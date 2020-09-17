@@ -86,6 +86,43 @@ func TestControllerHandleAlbum(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
+		queue1 := service.NewQueue("nLSBLE5dVASgxDUp", &mem)
+		queue2 := service.NewQueue("vaJy6dswrxpjVn3R", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		contr := newController(&serv)
+		fn := contr.handleAlbum()
+		w := httptest.NewRecorder()
+		body := bytes.Buffer{}
+		multi := multipart.NewWriter(&body)
+		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err := multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r := httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", "application/json")
+		fn(w, r, nil)
+		CheckStatusCode(t, w, 415)
+		CheckContentType(t, w, "text/plain; charset=utf-8")
+		CheckBody(t, w, `Unsupported Content Type`+"\n")
+	})
+	t.Run("Negative2", func(t *testing.T) {
+		comp := compressor.NewMock()
+		stor := storage.NewMock()
+		mem := database.NewMem()
 		queue1 := service.NewQueue("mEdFrvE3549LDFzx", &mem)
 		queue2 := service.NewQueue("5qxFFTgPtLVhhQU7", &mem)
 		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
@@ -119,7 +156,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Not Enough Images`+"\n")
 	})
-	t.Run("Negative2", func(t *testing.T) {
+	t.Run("Negative3", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
@@ -156,7 +193,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Too Many Images`+"\n")
 	})
-	t.Run("Negative3", func(t *testing.T) {
+	t.Run("Negative4", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
@@ -193,7 +230,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Image Too Large`+"\n")
 	})
-	t.Run("Negative4", func(t *testing.T) {
+	t.Run("Negative5", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mem := database.NewMem()
@@ -230,7 +267,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Unsupported Image Format`+"\n")
 	})
-	t.Run("Negative5", func(t *testing.T) {
+	t.Run("Negative6", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
 			id := "jp8vH6TEapTGgSSc"
 			i := 0
@@ -541,6 +578,65 @@ func TestControllerHandleVote(t *testing.T) {
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
+			id := "7deCNcaJXzV8jvKP"
+			i := 0
+			return func(length int) (string, error) {
+				i++
+				return id + strconv.Itoa(i), nil
+			}
+		}()
+		fn2 := func(n int, swap func(i int, j int)) {
+		}
+		comp := compressor.NewMock()
+		stor := storage.NewMock()
+		mem := database.NewMem()
+		queue1 := service.NewQueue("GPmdYD9t2Judjyrc", &mem)
+		queue2 := service.NewQueue("RTJuYHpHJr3sKBrb", &mem)
+		serv := service.NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		contr := newController(&serv)
+		fn := contr.handleAlbum()
+		w := httptest.NewRecorder()
+		body := bytes.Buffer{}
+		multi := multipart.NewWriter(&body)
+		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err := multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r := httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", multi.FormDataContentType())
+		fn(w, r, nil)
+		fn = contr.handlePair()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/7deCNcaJXzV8jvKP1/", nil)
+		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "7deCNcaJXzV8jvKP1"}}
+		fn(w, r, ps)
+		fn = contr.handleVote()
+		w = httptest.NewRecorder()
+		json := strings.NewReader(`{"album":{"imgFrom":{"token":"7deCNcaJXzV8jvKP5"},"imgTo":{"token":"7deCNcaJXzV8jvKP6"}}}`)
+		r = httptest.NewRequest("PATCH", "/api/albums/7deCNcaJXzV8jvKP1/", json)
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "7deCNcaJXzV8jvKP1"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 415)
+		CheckContentType(t, w, "text/plain; charset=utf-8")
+		CheckBody(t, w, `Unsupported Content Type`+"\n")
+	})
+	t.Run("Negative2", func(t *testing.T) {
+		fn1 := func() func(int) (string, error) {
 			id := "xtq8FBDgkbk7nZ88"
 			i := 0
 			return func(length int) (string, error) {
@@ -598,7 +694,7 @@ func TestControllerHandleVote(t *testing.T) {
 		CheckContentType(t, w, "text/plain; charset=utf-8")
 		CheckBody(t, w, `Token Not Found`+"\n")
 	})
-	t.Run("Negative2", func(t *testing.T) {
+	t.Run("Negative3", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
 			id := "u5u58akruMytGWch"
 			i := 0

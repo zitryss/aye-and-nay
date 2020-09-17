@@ -28,13 +28,13 @@ type controller struct {
 func (c *controller) handleAlbum() httprouter.Handle {
 	input := func(r *http.Request, ps httprouter.Params) (context.Context, albumRequest, error) {
 		ctx := r.Context()
-		maxBodySize := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
-		if r.ContentLength > maxBodySize {
-			return nil, albumRequest{}, errors.Wrap(model.ErrBodyTooLarge)
-		}
 		ct := r.Header.Get("Content-Type")
 		if !strings.HasPrefix(ct, "multipart/form-data") {
 			return nil, albumRequest{}, errors.Wrap(model.ErrWrongContentType)
+		}
+		maxBodySize := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
+		if r.ContentLength > maxBodySize {
+			return nil, albumRequest{}, errors.Wrap(model.ErrBodyTooLarge)
 		}
 		err := r.ParseMultipartForm(r.ContentLength)
 		if err != nil {

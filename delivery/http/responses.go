@@ -18,14 +18,16 @@ type readyResponse struct {
 
 //easyjson:json
 type pairResponse struct {
-	Img1 struct {
-		Token string `json:"token"`
-		Src   string `json:"src"`
-	} `json:"img1"`
-	Img2 struct {
-		Token string `json:"token"`
-		Src   string `json:"src"`
-	} `json:"img2"`
+	Album struct {
+		Img1 struct {
+			Token string `json:"token"`
+			Src   string `json:"src"`
+		} `json:"img1"`
+		Img2 struct {
+			Token string `json:"token"`
+			Src   string `json:"src"`
+		} `json:"img2"`
+	} `json:"album"`
 }
 
 type voteResponse struct {
@@ -33,7 +35,9 @@ type voteResponse struct {
 
 //easyjson:json
 type topResponse struct {
-	Images []image `json:"images"`
+	Album struct {
+		Images []image `json:"images"`
+	} `json:"album"`
 }
 
 //easyjson:json

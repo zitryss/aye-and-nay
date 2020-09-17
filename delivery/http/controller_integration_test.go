@@ -646,7 +646,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 200)
 		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"img1":{"token":"DfsXRkDxVeH2xmme5","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme2"},"img2":{"token":"DfsXRkDxVeH2xmme6","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme3"}}`+"\n")
+		CheckBody(t, w, `{"album":{"img1":{"token":"DfsXRkDxVeH2xmme5","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme2"},"img2":{"token":"DfsXRkDxVeH2xmme6","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme3"}}}`+"\n")
 	})
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -1052,7 +1052,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 200)
 		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"images":[{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ2","rating":0.5},{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ3","rating":0.5}]}`+"\n")
+		CheckBody(t, w, `{"album":{"images":[{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ2","rating":0.5},{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ3","rating":0.5}]}}`+"\n")
 	})
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()

@@ -187,10 +187,10 @@ func (c *controller) handlePair() httprouter.Handle {
 			return pairResponse{}, errors.Wrap(err)
 		}
 		resp := pairResponse{}
-		resp.Img1.Src = img1.Src
-		resp.Img1.Token = img1.Token
-		resp.Img2.Src = img2.Src
-		resp.Img2.Token = img2.Token
+		resp.Album.Img1.Src = img1.Src
+		resp.Album.Img1.Token = img1.Token
+		resp.Album.Img2.Src = img2.Src
+		resp.Album.Img2.Token = img2.Token
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp pairResponse) error {
@@ -277,10 +277,11 @@ func (c *controller) handleTop() httprouter.Handle {
 		if err != nil {
 			return topResponse{}, errors.Wrap(err)
 		}
-		resp := topResponse{Images: make([]image, 0, len(imgs))}
+		resp := topResponse{}
+		resp.Album.Images = make([]image, 0, len(imgs))
 		for _, img := range imgs {
 			image := image{img.Src, img.Rating}
-			resp.Images = append(resp.Images, image)
+			resp.Album.Images = append(resp.Album.Images, image)
 		}
 		return resp, nil
 	}

@@ -33,9 +33,6 @@ func handleHttpError(fn func(w http.ResponseWriter, r *http.Request) error) http
 
 func handleError(w http.ResponseWriter, err error) {
 	switch errors.Cause(err) {
-	case http.ErrHandlerTimeout:
-		http.Error(w, "Service Unavailable", 503)
-		log.Debug(err)
 	case model.ErrTooManyRequests:
 		http.Error(w, "Too Many Requests", 429)
 		log.Debug(err)

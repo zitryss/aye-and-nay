@@ -116,8 +116,8 @@ func TestControllerHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", "application/json")
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 415)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Unsupported Content Type`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Unsupported Content Type"}}`+"\n")
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -153,8 +153,8 @@ func TestControllerHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 413)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Body Too Large`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Body Too Large"}}`+"\n")
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -190,8 +190,8 @@ func TestControllerHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 400)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Not Enough Images`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Not Enough Images"}}`+"\n")
 	})
 	t.Run("Negative4", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -227,8 +227,8 @@ func TestControllerHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 413)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Too Many Images`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Too Many Images"}}`+"\n")
 	})
 	t.Run("Negative5", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -264,8 +264,8 @@ func TestControllerHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 413)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Image Too Large`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Image Too Large"}}`+"\n")
 	})
 	t.Run("Negative6", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -301,8 +301,8 @@ func TestControllerHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 415)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Unsupported Image Format`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Unsupported Image Format"}}`+"\n")
 	})
 	t.Run("Negative7", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
@@ -548,8 +548,8 @@ func TestControllerHandlePair(t *testing.T) {
 		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "Tgn6aRNbtx85gz6p1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 404)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Album Not Found`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Album Not Found"}}`+"\n")
 	})
 }
 
@@ -669,8 +669,8 @@ func TestControllerHandleVote(t *testing.T) {
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "7deCNcaJXzV8jvKP1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 415)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Unsupported Content Type`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Unsupported Content Type"}}`+"\n")
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
@@ -728,8 +728,8 @@ func TestControllerHandleVote(t *testing.T) {
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "22UkVNQPj9nky2gM1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 404)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Token Not Found`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Token Not Found"}}`+"\n")
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
@@ -787,8 +787,8 @@ func TestControllerHandleVote(t *testing.T) {
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "u5u58akruMytGWch1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 404)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Token Not Found`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Token Not Found"}}`+"\n")
 	})
 }
 
@@ -894,7 +894,7 @@ func TestControllerHandleTop(t *testing.T) {
 		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "54KXhWeFfSK5WXHL1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 404)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Album Not Found`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Album Not Found"}}`+"\n")
 	})
 }

@@ -37,8 +37,8 @@ func TestMiddlewareRecover(t *testing.T) {
 		r := httptest.NewRequest("GET", "/", nil)
 		h.ServeHTTP(w, r)
 		CheckStatusCode(t, w, 500)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Internal Server Error`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Internal Server Error"}}`+"\n")
 	})
 }
 

@@ -45,3 +45,11 @@ type image struct {
 	Src    string  `json:"src"`
 	Rating float64 `json:"rating"`
 }
+
+//easyjson:json
+type errorResponse struct {
+	Error struct {
+		code int
+		Msg  string `json:"msg"`
+	} `json:"error"`
+}

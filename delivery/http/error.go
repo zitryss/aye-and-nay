@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
@@ -32,45 +33,63 @@ func handleHttpError(fn func(w http.ResponseWriter, r *http.Request) error) http
 }
 
 func handleError(w http.ResponseWriter, err error) {
+	resp := errorResponse{}
 	switch errors.Cause(err) {
 	case model.ErrTooManyRequests:
-		http.Error(w, "Too Many Requests", 429)
 		log.Debug(err)
+		resp.Error.code = 429
+		resp.Error.Msg = "Too Many Requests"
 	case model.ErrBodyTooLarge:
-		http.Error(w, "Body Too Large", 413)
 		log.Debug(err)
+		resp.Error.code = 413
+		resp.Error.Msg = "Body Too Large"
 	case model.ErrWrongContentType:
-		http.Error(w, "Unsupported Content Type", 415)
 		log.Debug(err)
+		resp.Error.code = 415
+		resp.Error.Msg = "Unsupported Content Type"
 	case model.ErrNotEnoughImages:
-		http.Error(w, "Not Enough Images", 400)
 		log.Debug(err)
+		resp.Error.code = 400
+		resp.Error.Msg = "Not Enough Images"
 	case model.ErrTooManyImages:
-		http.Error(w, "Too Many Images", 413)
 		log.Debug(err)
+		resp.Error.code = 413
+		resp.Error.Msg = "Too Many Images"
 	case model.ErrImageTooLarge:
-		http.Error(w, "Image Too Large", 413)
 		log.Debug(err)
+		resp.Error.code = 413
+		resp.Error.Msg = "Image Too Large"
 	case model.ErrNotImage:
-		http.Error(w, "Unsupported Image Format", 415)
 		log.Debug(err)
+		resp.Error.code = 415
+		resp.Error.Msg = "Unsupported Image Format"
 	case model.ErrAlbumNotFound:
-		http.Error(w, "Album Not Found", 404)
 		log.Debug(err)
+		resp.Error.code = 404
+		resp.Error.Msg = "Album Not Found"
 	case model.ErrTokenNotFound:
-		http.Error(w, "Token Not Found", 404)
 		log.Debug(err)
+		resp.Error.code = 404
+		resp.Error.Msg = "Token Not Found"
 	case model.ErrThirdPartyUnavailable:
-		http.Error(w, "Internal Server Error", 500)
 		log.Critical(err)
+		resp.Error.code = 500
+		resp.Error.Msg = "Internal Server Error"
 	case context.Canceled:
-		http.Error(w, "Internal Server Error", 500)
 		log.Debug(err)
+		resp.Error.code = 500
+		resp.Error.Msg = "Internal Server Error"
 	case context.DeadlineExceeded:
-		http.Error(w, "Internal Server Error", 500)
 		log.Debug(err)
+		resp.Error.code = 500
+		resp.Error.Msg = "Internal Server Error"
 	default:
-		http.Error(w, "Internal Server Error", 500)
 		log.Errorf("%T %v", err, err)
+		resp.Error.code = 500
+		resp.Error.Msg = "Internal Server Error"
 	}
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.WriteHeader(resp.Error.code)
+	_ = json.NewEncoder(w).Encode(resp)
 }

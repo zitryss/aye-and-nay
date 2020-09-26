@@ -9,6 +9,8 @@ server:
   idleTimeout:  120s
   shutdownTimeout: 10s
 middleware:
+  cors:
+    allowOrigin: https://localhost
   limiter:
     requestsPerSecond: 300
     burst: 10

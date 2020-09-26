@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/rs/cors"
 	"golang.org/x/time/rate"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -34,7 +35,11 @@ type middleware struct {
 }
 
 func (m *middleware) chain(h http.Handler) http.Handler {
-	return m.recover(m.limit(h))
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{m.conf.corsAllowOrigin},
+		AllowedMethods: []string{"GET", "POST", "PATCH"},
+	})
+	return c.Handler(m.recover(m.limit(h)))
 }
 
 func (m *middleware) recover(h http.Handler) http.Handler {

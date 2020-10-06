@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"os"
 
 	"github.com/spf13/viper"
@@ -31,7 +32,7 @@ func main() {
 	viper.AddConfigPath(conf)
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Critical(err)
+		_, _ = fmt.Fprintln(os.Stderr, "critical:", err)
 		os.Exit(1)
 	}
 

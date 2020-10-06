@@ -160,7 +160,7 @@ func pairHtml() {
 }
 
 func pairApi(album string) (string, string, string, string) {
-	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/", nil)
+	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/pair/", nil)
 	debug.Check(err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -194,7 +194,7 @@ func pairMinio(src1 string, src2 string) {
 
 func voteApi(album string, token1 string, token2 string) {
 	body := strings.NewReader("{\"album\":{\"imgFrom\":{\"token\":\"" + token1 + "\"},\"imgTo\":{\"token\":\"" + token2 + "\"}}}")
-	req, err := http.NewRequest("PATCH", apiAddress+"/api/albums/"+album+"/", body)
+	req, err := http.NewRequest("PATCH", apiAddress+"/api/albums/"+album+"/vote/", body)
 	debug.Check(err)
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 

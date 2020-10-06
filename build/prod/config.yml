@@ -10,7 +10,7 @@ server:
   shutdownTimeout: 10s
 middleware:
   cors:
-    allowOrigin: https://localhost
+    allowOrigin: "*"
   limiter:
     requestsPerSecond: 300
     burst: 10

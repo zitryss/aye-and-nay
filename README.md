@@ -6,3 +6,15 @@
 [![License](https://img.shields.io/badge/license-Unlicense-green.svg)](http://unlicense.org/)
 
 Back-End for à la FaceMash app written in Go. Work in progress.
+
+
+## High Level Architecture
+
+![high-level-architecture](https://user-images.githubusercontent.com/2380748/95228324-7a02f080-07ff-11eb-8a68-62eb1eeb60d4.png)
+
+
+## Usage
+
+```
+make prod-up
+```

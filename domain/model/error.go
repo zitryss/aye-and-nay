@@ -6,9 +6,11 @@ import (
 
 var (
 	ErrTooManyRequests       = errors.New("too many requests")
+	ErrBodyTooLarge          = errors.New("body too large")
+	ErrWrongContentType      = errors.New("wrong content type")
 	ErrNotEnoughImages       = errors.New("not enough images")
 	ErrTooManyImages         = errors.New("too many images")
-	ErrImageTooBig           = errors.New("image too big")
+	ErrImageTooLarge         = errors.New("image too large")
 	ErrNotImage              = errors.New("not image")
 	ErrAlbumNotFound         = errors.New("album not found")
 	ErrPairNotFound          = errors.New("pair not found")

@@ -28,8 +28,15 @@ type controller struct {
 func (c *controller) handleAlbum() httprouter.Handle {
 	input := func(r *http.Request, ps httprouter.Params) (context.Context, albumRequest, error) {
 		ctx := r.Context()
-		maxMemory := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
-		err := r.ParseMultipartForm(maxMemory)
+		ct := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(ct, "multipart/form-data") {
+			return nil, albumRequest{}, errors.Wrap(model.ErrWrongContentType)
+		}
+		maxBodySize := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
+		if r.ContentLength > maxBodySize {
+			return nil, albumRequest{}, errors.Wrap(model.ErrBodyTooLarge)
+		}
+		err := r.ParseMultipartForm(r.ContentLength)
 		if err != nil {
 			return nil, albumRequest{}, errors.Wrap(err)
 		}
@@ -43,7 +50,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		req := albumRequest{ff: make([]model.File, 0, len(fhs)), multi: r.MultipartForm}
 		for _, fh := range fhs {
 			if fh.Size > c.conf.maxFileSize {
-				return nil, albumRequest{}, errors.Wrap(model.ErrImageTooBig)
+				return nil, albumRequest{}, errors.Wrap(model.ErrImageTooLarge)
 			}
 			f, err := fh.Open()
 			if err != nil {
@@ -180,10 +187,10 @@ func (c *controller) handlePair() httprouter.Handle {
 			return pairResponse{}, errors.Wrap(err)
 		}
 		resp := pairResponse{}
-		resp.Img1.Src = img1.Src
-		resp.Img1.Token = img1.Token
-		resp.Img2.Src = img2.Src
-		resp.Img2.Token = img2.Token
+		resp.Album.Img1.Src = img1.Src
+		resp.Album.Img1.Token = img1.Token
+		resp.Album.Img2.Src = img2.Src
+		resp.Album.Img2.Token = img2.Token
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp pairResponse) error {
@@ -218,6 +225,10 @@ func (c *controller) handleVote() httprouter.Handle {
 		ctx := r.Context()
 		req := voteRequest{}
 		req.Album.id = ps.ByName("album")
+		ct := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(ct, "application/json") {
+			return nil, voteRequest{}, errors.Wrap(model.ErrWrongContentType)
+		}
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
 			return nil, voteRequest{}, errors.Wrap(err)
@@ -266,10 +277,11 @@ func (c *controller) handleTop() httprouter.Handle {
 		if err != nil {
 			return topResponse{}, errors.Wrap(err)
 		}
-		resp := topResponse{Images: make([]image, 0, len(imgs))}
+		resp := topResponse{}
+		resp.Album.Images = make([]image, 0, len(imgs))
 		for _, img := range imgs {
 			image := image{img.Src, img.Rating}
-			resp.Images = append(resp.Images, image)
+			resp.Album.Images = append(resp.Album.Images, image)
 		}
 		return resp, nil
 	}

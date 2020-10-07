@@ -130,6 +130,100 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		queue1 := service.NewQueue("nLSBLE5dVASgxDUp", &redis)
+		queue2 := service.NewQueue("vaJy6dswrxpjVn3R", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		contr := newController(&serv)
+		fn := contr.handleAlbum()
+		w := httptest.NewRecorder()
+		body := bytes.Buffer{}
+		multi := multipart.NewWriter(&body)
+		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err = multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r := httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", "application/json")
+		fn(w, r, nil)
+		CheckStatusCode(t, w, 415)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Unsupported Content Type"}}`+"\n")
+	})
+	t.Run("Negative2", func(t *testing.T) {
+		comp := compressor.NewMock()
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := database.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		queue1 := service.NewQueue("Dr4fR2rEWgN7qLHf", &redis)
+		queue2 := service.NewQueue("4bHA74WR49xsb5ug", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		contr := newController(&serv)
+		fn := contr.handleAlbum()
+		w := httptest.NewRecorder()
+		body := bytes.Buffer{}
+		multi := multipart.NewWriter(&body)
+		for _, filename := range []string{"linus.jpg", "linus.jpg", "linus.jpg"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err = multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r := httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", multi.FormDataContentType())
+		fn(w, r, nil)
+		CheckStatusCode(t, w, 413)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Body Too Large"}}`+"\n")
+	})
+	t.Run("Negative3", func(t *testing.T) {
+		comp := compressor.NewMock()
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := database.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
 		queue1 := service.NewQueue("mEdFrvE3549LDFzx", &redis)
 		queue2 := service.NewQueue("5qxFFTgPtLVhhQU7", &redis)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
@@ -160,10 +254,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 400)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Not Enough Images`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Not Enough Images"}}`+"\n")
 	})
-	t.Run("Negative2", func(t *testing.T) {
+	t.Run("Negative4", func(t *testing.T) {
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -207,10 +301,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 413)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Request Entity Too Large`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Too Many Images"}}`+"\n")
 	})
-	t.Run("Negative3", func(t *testing.T) {
+	t.Run("Negative5", func(t *testing.T) {
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -254,10 +348,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 413)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Request Entity Too Large`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Image Too Large"}}`+"\n")
 	})
-	t.Run("Negative4", func(t *testing.T) {
+	t.Run("Negative6", func(t *testing.T) {
 		comp := compressor.NewMock()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -301,10 +395,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
 		CheckStatusCode(t, w, 415)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Unsupported Media Type`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Unsupported Image Format"}}`+"\n")
 	})
-	t.Run("Negative5", func(t *testing.T) {
+	t.Run("Negative7", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
 			id := "jp8vH6TEapTGgSSc"
 			i := 0
@@ -552,7 +646,7 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 200)
 		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"img1":{"token":"DfsXRkDxVeH2xmme5","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme2"},"img2":{"token":"DfsXRkDxVeH2xmme6","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme3"}}`+"\n")
+		CheckBody(t, w, `{"album":{"img1":{"token":"DfsXRkDxVeH2xmme5","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme2"},"img2":{"token":"DfsXRkDxVeH2xmme6","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme3"}}}`+"\n")
 	})
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -578,8 +672,8 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "Tgn6aRNbtx85gz6p1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 404)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Album Not Found`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Album Not Found"}}`+"\n")
 	})
 }
 
@@ -655,6 +749,75 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
+			id := "7deCNcaJXzV8jvKP"
+			i := 0
+			return func(length int) (string, error) {
+				i++
+				return id + strconv.Itoa(i), nil
+			}
+		}()
+		fn2 := func(n int, swap func(i int, j int)) {
+		}
+		comp := compressor.NewMock()
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := database.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		queue1 := service.NewQueue("GPmdYD9t2Judjyrc", &redis)
+		queue2 := service.NewQueue("RTJuYHpHJr3sKBrb", &redis)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		contr := newController(&serv)
+		fn := contr.handleAlbum()
+		w := httptest.NewRecorder()
+		body := bytes.Buffer{}
+		multi := multipart.NewWriter(&body)
+		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png"} {
+			part, err := multi.CreateFormFile("images", filename)
+			if err != nil {
+				t.Error(err)
+			}
+			b, err := ioutil.ReadFile("../../testdata/" + filename)
+			if err != nil {
+				t.Error(err)
+			}
+			_, err = part.Write(b)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+		err = multi.Close()
+		if err != nil {
+			t.Error(err)
+		}
+		r := httptest.NewRequest("POST", "/api/albums/", &body)
+		r.Header.Set("Content-Type", multi.FormDataContentType())
+		fn(w, r, nil)
+		fn = contr.handlePair()
+		w = httptest.NewRecorder()
+		r = httptest.NewRequest("GET", "/api/albums/7deCNcaJXzV8jvKP1/", nil)
+		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "7deCNcaJXzV8jvKP1"}}
+		fn(w, r, ps)
+		fn = contr.handleVote()
+		w = httptest.NewRecorder()
+		json := strings.NewReader(`{"album":{"imgFrom":{"token":"7deCNcaJXzV8jvKP5"},"imgTo":{"token":"7deCNcaJXzV8jvKP6"}}}`)
+		r = httptest.NewRequest("PATCH", "/api/albums/7deCNcaJXzV8jvKP1/", json)
+		r.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "7deCNcaJXzV8jvKP1"}}
+		fn(w, r, ps)
+		CheckStatusCode(t, w, 415)
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Unsupported Content Type"}}`+"\n")
+	})
+	t.Run("Negative2", func(t *testing.T) {
+		fn1 := func() func(int) (string, error) {
 			id := "xtq8FBDgkbk7nZ88"
 			i := 0
 			return func(length int) (string, error) {
@@ -719,10 +882,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "22UkVNQPj9nky2gM1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 404)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Token Not Found`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Token Not Found"}}`+"\n")
 	})
-	t.Run("Negative2", func(t *testing.T) {
+	t.Run("Negative3", func(t *testing.T) {
 		fn1 := func() func(int) (string, error) {
 			id := "u5u58akruMytGWch"
 			i := 0
@@ -788,8 +951,8 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "u5u58akruMytGWch1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 404)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Token Not Found`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Token Not Found"}}`+"\n")
 	})
 }
 
@@ -889,7 +1052,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 200)
 		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"images":[{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ2","rating":0.5},{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ3","rating":0.5}]}`+"\n")
+		CheckBody(t, w, `{"album":{"images":[{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ2","rating":0.5},{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ3","rating":0.5}]}}`+"\n")
 	})
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()
@@ -915,7 +1078,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		ps := httprouter.Params{httprouter.Param{Key: "album", Value: "54KXhWeFfSK5WXHL1"}}
 		fn(w, r, ps)
 		CheckStatusCode(t, w, 404)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Album Not Found`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Album Not Found"}}`+"\n")
 	})
 }

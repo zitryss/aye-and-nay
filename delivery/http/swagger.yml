@@ -1,0 +1,292 @@
+openapi: 3.0.0
+info:
+  title: aye-and-nay API
+  version: 1.0.0
+servers:
+  - url: https://localhost
+    description: prod
+  - url: http://localhost:8001
+    description: dev
+paths:
+  /api/albums/:
+    post:
+      description: >
+        First request in a sequence. Server receives images and responds
+        with an ID for the new album.
+      requestBody:
+        $ref: '#/components/requestBodies/AlbumRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/AlbumResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/albums/{id}/ready/:
+    get:
+      description: >
+        Second request in a sequence. It informs about compression
+        process of an album. Once it shows 1, next request can be made.
+      parameters:
+        - $ref: '#/components/parameters/albumParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReadyResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/albums/{id}/pair/:
+    get:
+      description: >
+        Third request in a sequence. Response consists of 2 image
+        objects, each contains source and one-time token.
+      parameters:
+        - $ref: '#/components/parameters/albumParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/PairResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/albums/{id}/vote/:
+    patch:
+      description: >
+        Fourth request in a sequence. Request specifies a value transfer
+        link from one image to another. Token of the selected image
+        corresponds to `imgTo`. Respectively, token of the non-chosen
+        image belongs to `imgFrom`.
+      parameters:
+        - $ref: '#/components/parameters/albumParam'
+      requestBody:
+        $ref: '#/components/requestBodies/VoteRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/VoteResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '415':
+          $ref: '#/components/responses/UnsupportedMediaType'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/albums/{id}/top/:
+    get:
+      description: >
+        Fifth request in a sequence. Returns a list of all images in an
+        album. All the images are sorted according to rating in a
+        descending order.
+      parameters:
+        - $ref: '#/components/parameters/albumParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/TopResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+components:
+  schemas:
+    Id:
+      type: string
+      pattern: '^[ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789\-\_]*$'
+    AlbumRequest:
+      type: object
+      properties:
+        images:
+          type: array
+          items:
+            type: string
+            format: binary
+    AlbumResponse:
+      type: object
+      properties:
+        album:
+          type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/Id'
+    ReadyResponse:
+      type: object
+      properties:
+        album:
+          type: object
+          properties:
+            progress:
+              type: number
+              format: double
+    PairResponse:
+      type: object
+      properties:
+        album:
+          type: object
+          properties:
+            img1:
+              type: object
+              properties:
+                token:
+                  $ref: '#/components/schemas/Id'
+                src:
+                  type: string
+                  format: uri
+            img2:
+              type: object
+              properties:
+                token:
+                  $ref: '#/components/schemas/Id'
+                src:
+                  type: string
+                  format: uri
+    VoteRequest:
+      type: object
+      properties:
+        album:
+          type: object
+          properties:
+            imgFrom:
+              type: object
+              properties:
+                token:
+                  $ref: '#/components/schemas/Id'
+            imgTo:
+              type: object
+              properties:
+                token:
+                  $ref: '#/components/schemas/Id'
+    TopResponse:
+      type: object
+      properties:
+        album:
+          type: object
+          properties:
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  src:
+                    type: string
+                    format: uri
+                  rating:
+                    type: number
+                    format: double
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            msg:
+              type: string
+  parameters:
+    albumParam:
+      in: path
+      name: id
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+  requestBodies:
+    AlbumRequest:
+      content:
+        multipart/form-data:
+          schema:
+            $ref: '#/components/schemas/AlbumRequest'
+    VoteRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/VoteRequest'
+  responses:
+    AlbumResponse:
+      description: Created
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AlbumResponse'
+    ReadyResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ReadyResponse'
+    PairResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/PairResponse'
+    VoteResponse:
+      description: OK
+    TopResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TopResponse'
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    PayloadTooLarge:
+      description: Payload Too Large
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnsupportedMediaType:
+      description: Unsupported Media Type
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    TooManyRequests:
+      description: Too Many Requests
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailable:
+      description: Service Unavailable
+      content:
+        text/plain:
+          schema:
+            type: string
+            example: '<html><head><title>Timeout</title></head><body><h1>Timeout</h1></body></html>'

@@ -168,13 +168,15 @@ func pairApi(album string) (string, string, string, string) {
 	debug.Assert(resp.StatusCode == 200)
 
 	type result struct {
-		Img1 struct {
-			Token string
-			Src   string
-		}
-		Img2 struct {
-			Token string
-			Src   string
+		Album struct {
+			Img1 struct {
+				Token string
+				Src   string
+			}
+			Img2 struct {
+				Token string
+				Src   string
+			}
 		}
 	}
 
@@ -184,7 +186,7 @@ func pairApi(album string) (string, string, string, string) {
 	err = resp.Body.Close()
 	debug.Check(err)
 
-	return res.Img1.Src, res.Img1.Token, res.Img2.Src, res.Img2.Token
+	return res.Album.Img1.Src, res.Album.Img1.Token, res.Album.Img2.Src, res.Album.Img2.Token
 }
 
 func pairMinio(src1 string, src2 string) {
@@ -224,7 +226,9 @@ func topApi(album string) []string {
 		Rating float64
 	}
 	type result struct {
-		Images []image
+		Album struct {
+			Images []image
+		}
 	}
 
 	res := result{}
@@ -234,7 +238,7 @@ func topApi(album string) []string {
 	debug.Check(err)
 
 	src := []string(nil)
-	for _, image := range res.Images {
+	for _, image := range res.Album.Images {
 		src = append(src, image.Src)
 	}
 	return src

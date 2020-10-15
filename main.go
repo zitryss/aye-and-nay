@@ -117,9 +117,13 @@ func main() {
 	log.Info("starting calculation worker pool")
 	serv.StartWorkingPoolCalc(ctx1, g1)
 
-	g2, ctx2 := errgroup.WithContext(ctx)
-	log.Info("starting compression worker pool")
-	serv.StartWorkingPoolComp(ctx2, g2)
+	g2 := (*errgroup.Group)(nil)
+	ctx2 := context.Context(nil)
+	if viper.GetBool("shortpixel.use") {
+		g2, ctx2 = errgroup.WithContext(ctx)
+		log.Info("starting compression worker pool")
+		serv.StartWorkingPoolComp(ctx2, g2)
+	}
 
 	srvWait := make(chan error, 1)
 	srv := http.NewServer(&serv, cancel, srvWait)
@@ -137,12 +141,13 @@ func main() {
 		log.Error(err)
 		return
 	}
-
-	log.Info("stopping compression worker pool")
-	err = g2.Wait()
-	if err != nil {
-		log.Error(err)
-		return
+	if viper.GetBool("shortpixel.use") {
+		log.Info("stopping compression worker pool")
+		err = g2.Wait()
+		if err != nil {
+			log.Error(err)
+			return
+		}
 	}
 
 	log.Info("stopping calculation worker pool")

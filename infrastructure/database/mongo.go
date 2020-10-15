@@ -70,8 +70,7 @@ func (m *mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 	}
 	imgsDao := make([]interface{}, 0, len(alb.Images))
 	for _, img := range alb.Images {
-		compressed := false
-		imgDao := imageDao{alb.Id, img.Id, img.Src, img.Rating, compressed}
+		imgDao := imageDao{alb.Id, img.Id, img.Src, img.Rating, m.conf.compressed}
 		imgsDao = append(imgsDao, imgDao)
 	}
 	_, err = m.images.InsertMany(ctx, imgsDao)

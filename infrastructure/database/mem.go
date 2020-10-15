@@ -132,7 +132,9 @@ func (m *mem) SaveAlbum(_ context.Context, alb model.Album) error {
 		return errors.Wrap(model.ErrAlbumAlreadyExists)
 	}
 	edgs := make(map[string]map[string]int, len(alb.Images))
-	for _, img := range alb.Images {
+	for i := range alb.Images {
+		img := &alb.Images[i]
+		img.Compressed = m.conf.compressed
 		edgs[img.Id] = make(map[string]int, len(alb.Images))
 	}
 	alb.Edges = edgs

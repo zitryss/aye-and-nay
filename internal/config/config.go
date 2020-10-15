@@ -14,6 +14,7 @@ func init() {
 	viper.Set("controller.maxFileSize", 512*unit.KB)
 	viper.Set("service.numberOfWorkersCalc", 2)
 	viper.Set("service.numberOfWorkersComp", 2)
+	viper.Set("shortpixel.use", "true")
 	viper.Set("shortpixel.uploadTimeout", "250ms")
 	viper.Set("shortpixel.downloadTimeout", "250ms")
 	viper.Set("minio.host", "localhost")

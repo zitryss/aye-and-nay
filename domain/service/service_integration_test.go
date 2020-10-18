@@ -69,7 +69,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		queue1 := NewQueue("VK4dE8CgS82B8yC7", &redis)
 		queue2 := NewQueue("TV7ZuMmhz3CDfa7n", &redis)
 		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
@@ -122,7 +122,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		queue1 := NewQueue("bn6Es8nvGu9KZwUk", &redis)
 		queue2 := NewQueue("mhynV9uhnGFEV4uf", &redis)
 		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
@@ -226,7 +226,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 		queue1 := NewQueue("766fFt8nuJ5qRek2", &redis)
 		queue2 := NewQueue("bHL3nQpzPpXBffE9", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -298,7 +298,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 		queue1 := NewQueue("kRneghVzdmtScFYG", &redis)
 		queue2 := NewQueue("MP8qrmkmX8GEYtQd", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2)
 		_, _, err = serv.Pair(ctx, "A755jF7tvnTJrPCD")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
@@ -334,7 +334,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		queue1 := NewQueue("8eDkyz293xggaUpr", &redis)
 		queue2 := NewQueue("GKBK9ZgVbTpTL7Xc", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -376,7 +376,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		queue1 := NewQueue("b8mKspbYz5FjQ7Mf", &redis)
 		queue2 := NewQueue("GfZ5H9twa6dVTLav", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -418,7 +418,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		queue1 := NewQueue("nRQynzFJvPvcRZUt", &redis)
 		queue2 := NewQueue("HV4pLuMb4HRgrD2U", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -465,7 +465,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		queue2 := NewQueue("2NPRqbKcbSX73vhr", &redis)
 		heartbeatCalc := make(chan interface{})
 		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc), WithHeartbeatComp(heartbeatComp))
+		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc), WithHeartbeatComp(heartbeatComp))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctx1, g1)
 		g2, ctx2 := errgroup.WithContext(ctx)
@@ -523,7 +523,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		}
 		queue1 := NewQueue("YNhuDMs3jKpVBM7E", &redis)
 		queue2 := NewQueue("m6wZuHGa6RSfb4q7", &redis)
-		serv := NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2)
 		_, err = serv.Top(ctx, "XXAzCcc6EHr6mpcH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)

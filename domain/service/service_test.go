@@ -34,7 +34,7 @@ func TestServiceAlbum(t *testing.T) {
 		queue1 := NewQueue("VK4dE8CgS82B8yC7", &mem)
 		queue2 := NewQueue("TV7ZuMmhz3CDfa7n", &mem)
 		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
@@ -77,7 +77,7 @@ func TestServiceAlbum(t *testing.T) {
 		queue1 := NewQueue("bn6Es8nvGu9KZwUk", &mem)
 		queue2 := NewQueue("mhynV9uhnGFEV4uf", &mem)
 		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
@@ -171,7 +171,7 @@ func TestServicePair(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("766fFt8nuJ5qRek2", &mem)
 		queue2 := NewQueue("bHL3nQpzPpXBffE9", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -233,7 +233,7 @@ func TestServicePair(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("kRneghVzdmtScFYG", &mem)
 		queue2 := NewQueue("MP8qrmkmX8GEYtQd", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2)
 		_, _, err := serv.Pair(ctx, "A755jF7tvnTJrPCD")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
@@ -259,7 +259,7 @@ func TestServiceVote(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("8eDkyz293xggaUpr", &mem)
 		queue2 := NewQueue("GKBK9ZgVbTpTL7Xc", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -291,7 +291,7 @@ func TestServiceVote(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("b8mKspbYz5FjQ7Mf", &mem)
 		queue2 := NewQueue("GfZ5H9twa6dVTLav", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -323,7 +323,7 @@ func TestServiceVote(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("nRQynzFJvPvcRZUt", &mem)
 		queue2 := NewQueue("HV4pLuMb4HRgrD2U", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files)
 		if err != nil {
@@ -360,7 +360,7 @@ func TestServiceTop(t *testing.T) {
 		queue2 := NewQueue("2NPRqbKcbSX73vhr", &mem)
 		heartbeatCalc := make(chan interface{})
 		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc), WithHeartbeatComp(heartbeatComp))
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc), WithHeartbeatComp(heartbeatComp))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctx1, g1)
 		g2, ctx2 := errgroup.WithContext(ctx)
@@ -408,7 +408,7 @@ func TestServiceTop(t *testing.T) {
 		mem := database.NewMem()
 		queue1 := NewQueue("YNhuDMs3jKpVBM7E", &mem)
 		queue2 := NewQueue("m6wZuHGa6RSfb4q7", &mem)
-		serv := NewService(&comp, &stor, &mem, &mem, &queue1, &queue2)
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2)
 		_, err := serv.Top(ctx, "XXAzCcc6EHr6mpcH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)

@@ -108,10 +108,13 @@ func main() {
 	queue1 := service.NewQueue("calculation", temp)
 	queue1.Monitor(ctx)
 
-	queue2 := service.NewQueue("compression", temp)
-	queue2.Monitor(ctx)
+	queue2 := (*service.Queue)(nil)
+	if viper.GetBool("shortpixel.use") {
+		queue2 = service.NewQueue("compression", temp)
+		queue2.Monitor(ctx)
+	}
 
-	serv := service.NewService(comp, stor, pers, temp, &queue1, &queue2)
+	serv := service.NewService(comp, stor, pers, temp, queue1, queue2)
 
 	g1, ctx1 := errgroup.WithContext(ctx)
 	log.Info("starting calculation worker pool")

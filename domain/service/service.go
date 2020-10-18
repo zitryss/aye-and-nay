@@ -18,8 +18,8 @@ func NewService(
 	stor model.Storager,
 	pers model.Persister,
 	temp model.Temper,
-	queue1 *queue,
-	queue2 *queue,
+	queue1 *Queue,
+	queue2 *Queue,
 	opts ...options,
 ) service {
 	conf := newServiceConfig()
@@ -31,8 +31,8 @@ func NewService(
 		pair:  temp,
 		token: temp,
 		queue: struct {
-			calc *queue
-			comp *queue
+			calc *Queue
+			comp *Queue
 		}{
 			queue1,
 			queue2,
@@ -85,8 +85,8 @@ type service struct {
 	pair  model.Stacker
 	token model.Tokener
 	queue struct {
-		calc *queue
-		comp *queue
+		calc *Queue
+		comp *Queue
 	}
 	rand struct {
 		id      func(length int) (string, error)
@@ -399,37 +399,45 @@ func (s *service) Top(ctx context.Context, album string) ([]model.Image, error) 
 	return imgs, nil
 }
 
-func NewQueue(name string, q model.Queuer) queue {
-	return queue{
+func NewQueue(name string, q model.Queuer) *Queue {
+	return &Queue{
 		name:   name,
 		cond:   sync.NewCond(&sync.Mutex{}),
 		closed: false,
 		queue:  q,
+		valid:  true,
 	}
 }
 
-type queue struct {
+type Queue struct {
 	name   string
 	cond   *sync.Cond
 	closed bool
 	queue  model.Queuer
+	valid  bool
 }
 
-func (q *queue) Monitor(ctx context.Context) {
+func (q *Queue) Monitor(ctx context.Context) {
 	go func() {
 		<-ctx.Done()
 		q.close()
 	}()
 }
 
-func (q *queue) close() {
+func (q *Queue) close() {
+	if q == nil || !q.valid {
+		return
+	}
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
 	q.closed = true
 	q.cond.Broadcast()
 }
 
-func (q *queue) add(ctx context.Context, album string) error {
+func (q *Queue) add(ctx context.Context, album string) error {
+	if q == nil || !q.valid {
+		return nil
+	}
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
 	err := q.queue.Add(ctx, q.name, album)
@@ -440,7 +448,10 @@ func (q *queue) add(ctx context.Context, album string) error {
 	return nil
 }
 
-func (q *queue) poll(ctx context.Context) (string, error) {
+func (q *Queue) poll(ctx context.Context) (string, error) {
+	if q == nil || !q.valid {
+		return "", nil
+	}
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
 	n, err := q.queue.Size(ctx, q.name)

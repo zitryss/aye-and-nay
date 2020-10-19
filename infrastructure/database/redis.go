@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"strings"
+	"time"
 
 	redisdb "github.com/go-redis/redis/v8"
 
@@ -76,6 +77,22 @@ func (r *redis) Size(ctx context.Context, queue string) (int, error) {
 		return 0, errors.Wrap(err)
 	}
 	return int(n), nil
+}
+
+func (r *redis) PAdd(ctx context.Context, queue string, album string, expires time.Time) error {
+	return nil
+}
+
+func (r *redis) PPeek(ctx context.Context, queue string) (string, time.Time, error) {
+	return "", time.Time{}, nil
+}
+
+func (r *redis) PPoll(ctx context.Context, queue string) (string, time.Time, error) {
+	return "", time.Time{}, nil
+}
+
+func (r *redis) PSize(ctx context.Context, queue string) (int, error) {
+	return 0, nil
 }
 
 func (r *redis) Push(ctx context.Context, album string, pairs [][2]string) error {

@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"time"
 )
 
 type Servicer interface {
@@ -37,6 +38,7 @@ type Persister interface {
 
 type Temper interface {
 	Queuer
+	PQueuer
 	Stacker
 	Tokener
 }
@@ -45,6 +47,12 @@ type Queuer interface {
 	Add(ctx context.Context, queue string, album string) error
 	Poll(ctx context.Context, queue string) (string, error)
 	Size(ctx context.Context, queue string) (int, error)
+}
+
+type PQueuer interface {
+	PAdd(ctx context.Context, pqueue string, album string, expires time.Time) error
+	PPoll(ctx context.Context, pqueue string) (string, time.Time, error)
+	PSize(ctx context.Context, pqueue string) (int, error)
 }
 
 type Stacker interface {

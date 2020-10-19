@@ -326,6 +326,22 @@ func (m *mem) Size(_ context.Context, queue string) (int, error) {
 	return n, nil
 }
 
+func (m *mem) PAdd(_ context.Context, queue string, album string, expires time.Time) error {
+	return nil
+}
+
+func (m *mem) PPeek(_ context.Context, queue string) (string, time.Time, error) {
+	return "", time.Time{}, nil
+}
+
+func (m *mem) PPoll(_ context.Context, queue string) (string, time.Time, error) {
+	return "", time.Time{}, nil
+}
+
+func (m *mem) PSize(_ context.Context, queue string) (int, error) {
+	return 0, nil
+}
+
 func (m *mem) Push(_ context.Context, album string, pairs [][2]string) error {
 	m.syncPairs.Lock()
 	defer m.syncPairs.Unlock()

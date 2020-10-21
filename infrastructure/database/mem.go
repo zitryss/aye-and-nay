@@ -6,7 +6,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/emirpasic/gods/maps/treemap"
 	"github.com/emirpasic/gods/sets/linkedhashset"
+	"github.com/emirpasic/gods/utils"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -15,11 +17,12 @@ import (
 func NewMem(opts ...options) mem {
 	conf := newMemConfig()
 	m := mem{
-		conf:       conf,
-		syncAlbums: syncAlbums{albums: map[string]model.Album{}},
-		syncQueues: syncQueues{queues: map[string]*linkedhashset.Set{}},
-		syncPairs:  syncPairs{pairs: map[string]*pairsTime{}},
-		syncTokens: syncTokens{tokens: map[string]*tokenTime{}},
+		conf:        conf,
+		syncAlbums:  syncAlbums{albums: map[string]model.Album{}},
+		syncQueues:  syncQueues{queues: map[string]*linkedhashset.Set{}},
+		syncPQueues: syncPQueues{pqueues: map[string]*treemap.Map{}},
+		syncPairs:   syncPairs{pairs: map[string]*pairsTime{}},
+		syncTokens:  syncTokens{tokens: map[string]*tokenTime{}},
 	}
 	for _, opt := range opts {
 		opt(&m)
@@ -45,6 +48,7 @@ type mem struct {
 	conf memConfig
 	syncAlbums
 	syncQueues
+	syncPQueues
 	syncPairs
 	syncTokens
 	heartbeat struct {
@@ -61,6 +65,11 @@ type syncAlbums struct {
 type syncQueues struct {
 	sync.Mutex
 	queues map[string]*linkedhashset.Set
+}
+
+type syncPQueues struct {
+	sync.Mutex
+	pqueues map[string]*treemap.Map
 }
 
 type syncPairs struct {
@@ -326,20 +335,39 @@ func (m *mem) Size(_ context.Context, queue string) (int, error) {
 	return n, nil
 }
 
-func (m *mem) PAdd(_ context.Context, queue string, album string, expires time.Time) error {
+func (m *mem) PAdd(_ context.Context, pqueue string, album string, expires time.Time) error {
+	m.syncPQueues.Lock()
+	defer m.syncPQueues.Unlock()
+	pq, ok := m.pqueues[pqueue]
+	if !ok {
+		pq = treemap.NewWith(utils.TimeComparator)
+		m.pqueues[pqueue] = pq
+	}
+	pq.Put(expires, album)
 	return nil
 }
 
-func (m *mem) PPeek(_ context.Context, queue string) (string, time.Time, error) {
-	return "", time.Time{}, nil
+func (m *mem) PPoll(_ context.Context, pqueue string) (string, time.Time, error) {
+	m.syncPQueues.Lock()
+	defer m.syncPQueues.Unlock()
+	pq, ok := m.pqueues[pqueue]
+	if !ok {
+		return "", time.Time{}, errors.Wrap(model.ErrUnknown)
+	}
+	expires, album := pq.Min()
+	pq.Remove(expires)
+	return album.(string), expires.(time.Time), nil
 }
 
-func (m *mem) PPoll(_ context.Context, queue string) (string, time.Time, error) {
-	return "", time.Time{}, nil
-}
-
-func (m *mem) PSize(_ context.Context, queue string) (int, error) {
-	return 0, nil
+func (m *mem) PSize(_ context.Context, pqueue string) (int, error) {
+	m.syncPQueues.Lock()
+	defer m.syncPQueues.Unlock()
+	pq, ok := m.pqueues[pqueue]
+	if !ok {
+		return 0, nil
+	}
+	n := pq.Size()
+	return n, nil
 }
 
 func (m *mem) Push(_ context.Context, album string, pairs [][2]string) error {

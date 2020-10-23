@@ -6,9 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emirpasic/gods/maps/treemap"
 	"github.com/emirpasic/gods/sets/linkedhashset"
-	"github.com/emirpasic/gods/utils"
+	"github.com/emirpasic/gods/trees/binaryheap"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -20,7 +19,7 @@ func NewMem(opts ...options) mem {
 		conf:        conf,
 		syncAlbums:  syncAlbums{albums: map[string]model.Album{}},
 		syncQueues:  syncQueues{queues: map[string]*linkedhashset.Set{}},
-		syncPQueues: syncPQueues{pqueues: map[string]*treemap.Map{}},
+		syncPQueues: syncPQueues{pqueues: map[string]*binaryheap.Heap{}},
 		syncPairs:   syncPairs{pairs: map[string]*pairsTime{}},
 		syncTokens:  syncTokens{tokens: map[string]*tokenTime{}},
 	}
@@ -69,7 +68,7 @@ type syncQueues struct {
 
 type syncPQueues struct {
 	sync.Mutex
-	pqueues map[string]*treemap.Map
+	pqueues map[string]*binaryheap.Heap
 }
 
 type syncPairs struct {
@@ -90,6 +89,24 @@ type syncTokens struct {
 type tokenTime struct {
 	token string
 	seen  time.Time
+}
+
+type elem struct {
+	album   string
+	expires time.Time
+}
+
+func timeComparator(a, b interface{}) int {
+	tA := a.(elem).expires
+	tB := b.(elem).expires
+	switch {
+	case tA.After(tB):
+		return 1
+	case tA.Before(tB):
+		return -1
+	default:
+		return 0
+	}
 }
 
 func (m *mem) Monitor() {
@@ -340,10 +357,10 @@ func (m *mem) PAdd(_ context.Context, pqueue string, album string, expires time.
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
 	if !ok {
-		pq = treemap.NewWith(utils.TimeComparator)
+		pq = binaryheap.NewWith(timeComparator)
 		m.pqueues[pqueue] = pq
 	}
-	pq.Put(expires, album)
+	pq.Push(elem{album, expires})
 	return nil
 }
 
@@ -354,9 +371,11 @@ func (m *mem) PPoll(_ context.Context, pqueue string) (string, time.Time, error)
 	if !ok {
 		return "", time.Time{}, errors.Wrap(model.ErrUnknown)
 	}
-	expires, album := pq.Min()
-	pq.Remove(expires)
-	return album.(string), expires.(time.Time), nil
+	e, ok := pq.Pop()
+	if !ok {
+		return "", time.Time{}, errors.Wrap(model.ErrUnknown)
+	}
+	return e.(elem).album, e.(elem).expires, nil
 }
 
 func (m *mem) PSize(_ context.Context, pqueue string) (int, error) {

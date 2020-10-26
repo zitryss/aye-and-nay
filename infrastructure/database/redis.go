@@ -79,20 +79,33 @@ func (r *redis) Size(ctx context.Context, queue string) (int, error) {
 	return int(n), nil
 }
 
-func (r *redis) PAdd(ctx context.Context, queue string, album string, expires time.Time) error {
+func (r *redis) PAdd(ctx context.Context, pqueue string, album string, expires time.Time) error {
+	key := "pqueue:" + pqueue + ":sortedset"
+	err := r.client.ZAdd(ctx, key, &redisdb.Z{Score: float64(expires.UnixNano()), Member: album}).Err()
+	if err != nil {
+		return errors.Wrap(err)
+	}
 	return nil
 }
 
-func (r *redis) PPeek(ctx context.Context, queue string) (string, time.Time, error) {
-	return "", time.Time{}, nil
+func (r *redis) PPoll(ctx context.Context, pqueue string) (string, time.Time, error) {
+	key := "pqueue:" + pqueue + ":sortedset"
+	val, err := r.client.ZPopMin(ctx, key).Result()
+	if err != nil {
+		return "", time.Time{}, errors.Wrap(err)
+	}
+	album := val[0].Member.(string)
+	expires := time.Unix(0, int64(val[0].Score))
+	return album, expires, nil
 }
 
-func (r *redis) PPoll(ctx context.Context, queue string) (string, time.Time, error) {
-	return "", time.Time{}, nil
-}
-
-func (r *redis) PSize(ctx context.Context, queue string) (int, error) {
-	return 0, nil
+func (r *redis) PSize(ctx context.Context, pqueue string) (int, error) {
+	key := "pqueue:" + pqueue + ":sortedset"
+	n, err := r.client.ZCard(ctx, key).Result()
+	if err != nil {
+		return 0, errors.Wrap(err)
+	}
+	return int(n), nil
 }
 
 func (r *redis) Push(ctx context.Context, album string, pairs [][2]string) error {

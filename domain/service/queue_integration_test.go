@@ -1,3 +1,5 @@
+// +build integration
+
 package service
 
 import (
@@ -8,13 +10,16 @@ import (
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 )
 
-func TestPQueue(t *testing.T) {
-	mem := database.NewMem()
-	pq := NewPQueue("WM5BtzjdncQtExgY", &mem)
+func TestPQueueIntegration(t *testing.T) {
+	redis, err := database.NewRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	pq := NewPQueue("Bt5V9Kz3CVYtyDNj", &redis)
 	pq.Monitor(context.Background())
 	go func() {
 		<-time.After(100 * time.Millisecond)
-		err := pq.add(context.Background(), "ac/dc", time.Now().Add(400*time.Millisecond))
+		err = pq.add(context.Background(), "ac/dc", time.Now().Add(400*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}

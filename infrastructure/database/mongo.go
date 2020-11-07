@@ -338,3 +338,7 @@ func (m *mongo) GetImagesOrdered(ctx context.Context, album string) ([]model.Ima
 	}
 	return imgs, nil
 }
+
+func (m *mongo) DeleteAlbum(ctx context.Context, album string) error {
+	return nil
+}

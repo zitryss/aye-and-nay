@@ -315,6 +315,10 @@ func (m *mem) GetImagesOrdered(_ context.Context, album string) ([]model.Image, 
 	return imgs, nil
 }
 
+func (m *mem) DeleteAlbum(_ context.Context, album string) error {
+	return nil
+}
+
 func (m *mem) Add(_ context.Context, queue string, album string) error {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()

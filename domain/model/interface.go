@@ -34,6 +34,7 @@ type Persister interface {
 	GetEdges(ctx context.Context, album string) (map[string]map[string]int, error)
 	UpdateRatings(ctx context.Context, album string, vector map[string]float64) error
 	GetImagesOrdered(ctx context.Context, album string) ([]Image, error)
+	DeleteAlbum(ctx context.Context, album string) error
 }
 
 type Temper interface {

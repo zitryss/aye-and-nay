@@ -340,5 +340,21 @@ func (m *mongo) GetImagesOrdered(ctx context.Context, album string) ([]model.Ima
 }
 
 func (m *mongo) DeleteAlbum(ctx context.Context, album string) error {
+	filter := bson.D{{"album", album}}
+	n, err := m.images.CountDocuments(ctx, filter)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	if n == 0 {
+		return errors.Wrap(model.ErrAlbumNotFound)
+	}
+	_, err = m.images.DeleteMany(ctx, filter)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	_, err = m.edges.DeleteMany(ctx, filter)
+	if err != nil {
+		return errors.Wrap(err)
+	}
 	return nil
 }

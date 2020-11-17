@@ -316,6 +316,13 @@ func (m *mem) GetImagesOrdered(_ context.Context, album string) ([]model.Image, 
 }
 
 func (m *mem) DeleteAlbum(_ context.Context, album string) error {
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
+	_, ok := m.albums[album]
+	if !ok {
+		return errors.Wrap(model.ErrAlbumNotFound)
+	}
+	delete(m.albums, album)
 	return nil
 }
 

@@ -465,3 +465,45 @@ func TestMemToken(t *testing.T) {
 		}
 	})
 }
+
+func TestMemDelete(t *testing.T) {
+	t.Run("Positive", func(t *testing.T) {
+		mem := NewMem()
+		alb := AlbumEmptyFactory("CsRxWcm7bjhjCjPH")
+		_, err := mem.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+		err = mem.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		n, err := mem.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 5 {
+			t.Error("n != 5")
+		}
+		err = mem.DeleteAlbum(context.Background(), "CsRxWcm7bjhjCjPH")
+		if err != nil {
+			t.Error(err)
+		}
+		_, err = mem.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		mem := NewMem()
+		alb := AlbumEmptyFactory("pXHbPK8WuWC9x8cp")
+		err := mem.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		err = mem.DeleteAlbum(context.Background(), "9JFs2DWEDmZWXSyy")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+}

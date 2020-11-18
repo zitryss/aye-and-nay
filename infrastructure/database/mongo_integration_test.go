@@ -384,3 +384,51 @@ func TestMongoRatings(t *testing.T) {
 		}
 	})
 }
+
+func TestMongoDelete(t *testing.T) {
+	t.Run("Positive", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumEmptyFactory("CsRxWcm7bjhjCjPH")
+		_, err = mongo.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		n, err := mongo.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 5 {
+			t.Error("n != 5")
+		}
+		err = mongo.DeleteAlbum(context.Background(), "CsRxWcm7bjhjCjPH")
+		if err != nil {
+			t.Error(err)
+		}
+		_, err = mongo.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumEmptyFactory("pXHbPK8WuWC9x8cp")
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		err = mongo.DeleteAlbum(context.Background(), "9JFs2DWEDmZWXSyy")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+}

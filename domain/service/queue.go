@@ -137,12 +137,10 @@ func (pq *PQueue) poll(ctx context.Context) (string, error) {
 	if pq == nil || !pq.valid {
 		return "", nil
 	}
-	n, err := pq.pqueue.PSize(ctx, pq.name)
-	if err != nil {
-		return "", errors.Wrap(err)
-	}
-	if n < 1 {
-		<-pq.addCh
+	select {
+	case <-pq.closed:
+		return "", nil
+	case <-pq.addCh:
 	}
 	album, expires, err := pq.pqueue.PPoll(ctx, pq.name)
 	if err != nil {

@@ -114,7 +114,10 @@ func main() {
 		queue2.Monitor(ctx)
 	}
 
-	serv := service.NewService(comp, stor, pers, temp, queue1, queue2)
+	pqueue := service.NewPQueue("deletion", temp)
+	pqueue.Monitor(ctx)
+
+	serv := service.NewService(comp, stor, pers, temp, queue1, queue2, pqueue)
 
 	g1, ctx1 := errgroup.WithContext(ctx)
 	log.Info("starting calculation worker pool")
@@ -127,6 +130,10 @@ func main() {
 		log.Info("starting compression worker pool")
 		serv.StartWorkingPoolComp(ctx2, g2)
 	}
+
+	g3, ctx3 := errgroup.WithContext(ctx)
+	log.Info("starting deletion worker pool")
+	serv.StartWorkingPoolDel(ctx3, g3)
 
 	srvWait := make(chan error, 1)
 	srv := http.NewServer(&serv, cancel, srvWait)

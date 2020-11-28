@@ -100,6 +100,10 @@ func TestRedisQueue(t *testing.T) {
 	if n != 0 {
 		t.Error("n != 0")
 	}
+	_, err = redis.Poll(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if !errors.Is(err, model.ErrUnknown) {
+		t.Error(err)
+	}
 }
 
 func TestRedisPQueue(t *testing.T) {
@@ -176,6 +180,10 @@ func TestRedisPQueue(t *testing.T) {
 	}
 	if n != 0 {
 		t.Error("n != 0")
+	}
+	_, _, err = redis.PPoll(context.Background(), "d9YtN3xaf3z569Pa")
+	if !errors.Is(err, model.ErrUnknown) {
+		t.Error(err)
 	}
 }
 

@@ -346,7 +346,9 @@ func (m *mem) Poll(_ context.Context, queue string) (string, error) {
 		return "", errors.Wrap(model.ErrUnknown)
 	}
 	it := q.Iterator()
-	it.Next()
+	if !it.Next() {
+		return "", errors.Wrap(model.ErrUnknown)
+	}
 	album := it.Value().(string)
 	q.Remove(album)
 	return album, nil

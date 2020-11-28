@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 
@@ -95,7 +96,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			}
 			_ = req.multi.RemoveAll()
 		}()
-		album, err := c.serv.Album(ctx, req.ff)
+		album, err := c.serv.Album(ctx, req.ff, 5*time.Second)
 		if err != nil {
 			return albumResponse{}, errors.Wrap(err)
 		}

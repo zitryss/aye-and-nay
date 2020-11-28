@@ -346,7 +346,7 @@ func (s *service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
 	})
 }
 
-func (s *service) Album(ctx context.Context, ff []model.File) (string, error) {
+func (s *service) Album(ctx context.Context, ff []model.File, dur time.Duration) (string, error) {
 	album, err := s.rand.id(s.conf.albumIdLength)
 	if err != nil {
 		return "", errors.Wrap(err)
@@ -376,7 +376,7 @@ func (s *service) Album(ctx context.Context, ff []model.File) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	err = s.queue.del.add(ctx, album, s.rand.now().Add(5*time.Second))
+	err = s.queue.del.add(ctx, album, s.rand.now().Add(dur))
 	if err != nil {
 		return "", errors.Wrap(err)
 	}

@@ -6,7 +6,7 @@ import (
 )
 
 type Servicer interface {
-	Album(ctx context.Context, ff []File) (string, error)
+	Album(ctx context.Context, ff []File, dur time.Duration) (string, error)
 	Pair(ctx context.Context, album string) (Image, Image, error)
 	Vote(ctx context.Context, album string, tokenFrom string, tokenTo string) error
 	Top(ctx context.Context, album string) ([]Image, error)

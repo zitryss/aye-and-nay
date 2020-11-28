@@ -75,7 +75,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
-		_, err = serv.Album(ctx, files)
+		_, err = serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -129,7 +129,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
-		_, err = serv.Album(ctx, files)
+		_, err = serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -142,7 +142,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			t.Error(err)
 		}
 		files = []model.File{Png(), Png()}
-		_, err = serv.Album(ctx, files)
+		_, err = serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -165,7 +165,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		<-heartbeatRestart
 		<-heartbeatRestart
 		files = []model.File{Png(), Png()}
-		_, err = serv.Album(ctx, files)
+		_, err = serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -178,7 +178,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			t.Error(err)
 		}
 		files = []model.File{Png(), Png()}
-		_, err = serv.Album(ctx, files)
+		_, err = serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -232,7 +232,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		pqueue := (*PQueue)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
-		album, err := serv.Album(ctx, files)
+		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -342,7 +342,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		pqueue := (*PQueue)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
-		album, err := serv.Album(ctx, files)
+		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -385,7 +385,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		pqueue := (*PQueue)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
-		album, err := serv.Album(ctx, files)
+		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -428,7 +428,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		pqueue := (*PQueue)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
-		album, err := serv.Album(ctx, files)
+		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -480,7 +480,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		g2, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g2)
 		files := []model.File{Png(), Png()}
-		album, err := serv.Album(ctx, files)
+		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
@@ -568,15 +568,12 @@ func TestServiceIntegrationDelete(t *testing.T) {
 	g1, ctx1 := errgroup.WithContext(ctx)
 	serv.StartWorkingPoolDel(ctx1, g1)
 	files := []model.File{Png(), Png()}
-	album, err := serv.Album(ctx, files)
+	dur := 100 * time.Millisecond
+	album, err := serv.Album(ctx, files, dur)
 	if err != nil {
 		t.Error(err)
 	}
-	select {
-	case <-heartbeatDel:
-	case <-time.After(6 * time.Second):
-		t.Error("<-time.After(6 * time.Second)")
-	}
+	<-heartbeatDel
 	_, err = serv.Top(ctx, album)
 	if !errors.Is(err, model.ErrAlbumNotFound) {
 		t.Error(err)

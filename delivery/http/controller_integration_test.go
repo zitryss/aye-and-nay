@@ -1160,11 +1160,7 @@ func TestControllerIntegrationHandleDelete(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/albums/", &body)
 	r.Header.Set("Content-Type", multi.FormDataContentType())
 	fn(w, r, nil)
-	select {
-	case <-heartbeatDel:
-	case <-time.After(6 * time.Second):
-		t.Error("<-time.After(6 * time.Second)")
-	}
+	<-heartbeatDel
 	fn = contr.handleTop()
 	w = httptest.NewRecorder()
 	r = httptest.NewRequest("GET", "/api/albums/XmL9qT7kJA9uzZTC1/top/", nil)

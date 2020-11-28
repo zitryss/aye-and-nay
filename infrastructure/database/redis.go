@@ -59,8 +59,8 @@ func (r *redis) Add(ctx context.Context, queue string, album string) error {
 func (r *redis) Poll(ctx context.Context, queue string) (string, error) {
 	key1 := "queue:" + queue + ":list"
 	album, err := r.client.LPop(ctx, key1).Result()
-	if err != nil {
-		return "", errors.Wrap(err)
+	if errors.Is(err, redisdb.Nil) {
+		return "", errors.Wrap(model.ErrUnknown)
 	}
 	key2 := "queue:" + queue + ":set"
 	_, err = r.client.SRem(ctx, key2, album).Result()
@@ -93,6 +93,9 @@ func (r *redis) PPoll(ctx context.Context, pqueue string) (string, time.Time, er
 	val, err := r.client.ZPopMin(ctx, key).Result()
 	if err != nil {
 		return "", time.Time{}, errors.Wrap(err)
+	}
+	if len(val) == 0 {
+		return "", time.Time{}, errors.Wrap(model.ErrUnknown)
 	}
 	album := val[0].Member.(string)
 	expires := time.Unix(0, int64(val[0].Score))
@@ -136,6 +139,9 @@ func (r *redis) Pop(ctx context.Context, album string) (string, string, error) {
 		return "", "", errors.Wrap(err)
 	}
 	images := strings.Split(val, ":")
+	if len(images) != 2 {
+		return "", "", errors.Wrap(model.ErrUnknown)
+	}
 	return images[0], images[1], nil
 }
 

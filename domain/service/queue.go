@@ -137,10 +137,20 @@ func (pq *PQueue) poll(ctx context.Context) (string, error) {
 	if pq == nil || !pq.valid {
 		return "", nil
 	}
+	n, err := pq.pqueue.PSize(ctx, pq.name)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+	if n == 0 {
+		select {
+		case <-pq.closed:
+			return "", nil
+		case <-pq.addCh:
+		}
+	}
 	select {
-	case <-pq.closed:
-		return "", nil
 	case <-pq.addCh:
+	default:
 	}
 	album, expires, err := pq.pqueue.PPoll(ctx, pq.name)
 	if err != nil {
@@ -155,7 +165,9 @@ func (pq *PQueue) poll(ctx context.Context) (string, error) {
 		case <-pq.addCh:
 			newAlbum, newExpires, err := pq.pqueue.PPoll(ctx, pq.name)
 			if err != nil {
-				return "", errors.Wrap(err)
+				err = errors.Wrap(err)
+				handleError(err)
+				continue
 			}
 			if newExpires.After(expires) {
 				err := pq.pqueue.PAdd(ctx, pq.name, newAlbum, newExpires)

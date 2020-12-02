@@ -164,10 +164,13 @@ func (pq *PQueue) poll(ctx context.Context) (string, error) {
 			return "", nil
 		case <-pq.addCh:
 			newAlbum, newExpires, err := pq.pqueue.PPoll(ctx, pq.name)
-			if err != nil {
+			if errors.Is(err, model.ErrUnknown) {
 				err = errors.Wrap(err)
 				handleError(err)
 				continue
+			}
+			if err != nil {
+				return "", errors.Wrap(err)
 			}
 			if newExpires.After(expires) {
 				err := pq.pqueue.PAdd(ctx, pq.name, newAlbum, newExpires)

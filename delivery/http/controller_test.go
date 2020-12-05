@@ -62,7 +62,11 @@ func TestControllerHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -111,7 +115,11 @@ func TestControllerHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -149,7 +157,11 @@ func TestControllerHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -187,7 +199,11 @@ func TestControllerHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -225,7 +241,11 @@ func TestControllerHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -263,7 +283,11 @@ func TestControllerHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -301,7 +325,11 @@ func TestControllerHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -353,7 +381,11 @@ func TestControllerHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -380,6 +412,10 @@ func TestControllerHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -430,6 +466,10 @@ func TestControllerHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -457,6 +497,10 @@ func TestControllerHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -528,7 +572,11 @@ func TestControllerHandlePair(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -602,7 +650,11 @@ func TestControllerHandleVote(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -662,7 +714,11 @@ func TestControllerHandleVote(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -722,7 +778,11 @@ func TestControllerHandleVote(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -782,7 +842,11 @@ func TestControllerHandleVote(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -852,7 +916,11 @@ func TestControllerHandleTop(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		err := multi.Close()
+		err := multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
+		err = multi.Close()
 		if err != nil {
 			t.Error(err)
 		}
@@ -926,7 +994,7 @@ func TestControllerHandleDelete(t *testing.T) {
 		}
 	}()
 	fn2 := func() time.Time {
-		return time.Now()
+		return time.Now().Add(-1 * time.Hour).Add(100 * time.Millisecond)
 	}
 	ctx := context.Background()
 	comp := compressor.NewMock()
@@ -959,7 +1027,11 @@ func TestControllerHandleDelete(t *testing.T) {
 			t.Error(err)
 		}
 	}
-	err := multi.Close()
+	err := multi.WriteField("duration", "1H")
+	if err != nil {
+		t.Error(err)
+	}
+	err = multi.Close()
 	if err != nil {
 		t.Error(err)
 	}
@@ -968,8 +1040,8 @@ func TestControllerHandleDelete(t *testing.T) {
 	fn(w, r, nil)
 	select {
 	case <-heartbeatDel:
-	case <-time.After(6 * time.Second):
-		t.Error("<-time.After(6 * time.Second)")
+	case <-time.After(120 * time.Millisecond):
+		t.Error("<-time.After(120 * time.Millisecond)")
 	}
 	fn = contr.handleTop()
 	w = httptest.NewRecorder()

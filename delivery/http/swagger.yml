@@ -122,6 +122,18 @@ components:
           items:
             type: string
             format: binary
+        duration:
+          type: string
+          enum:
+            - 1H
+            - 2H
+            - 3H
+            - 6H
+            - 12H
+            - 1D
+            - 2D
+            - 3D
+            - 1W
     AlbumResponse:
       type: object
       properties:

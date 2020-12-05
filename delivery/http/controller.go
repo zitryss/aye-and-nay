@@ -49,6 +49,12 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			return nil, albumRequest{}, errors.Wrap(model.ErrTooManyImages)
 		}
 		req := albumRequest{ff: make([]model.File, 0, len(fhs)), multi: r.MultipartForm}
+		defer func() {
+			for _, f := range req.ff {
+				_ = f.Reader.(io.Closer).Close()
+			}
+			_ = req.multi.RemoveAll()
+		}()
 		for _, fh := range fhs {
 			if fh.Size > c.conf.maxFileSize {
 				return nil, albumRequest{}, errors.Wrap(model.ErrImageTooLarge)
@@ -61,31 +67,45 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			_, err = f.Read(b)
 			if err != nil {
 				_ = f.Close()
-				for _, f := range req.ff {
-					_ = f.Reader.(io.Closer).Close()
-				}
-				_ = req.multi.RemoveAll()
 				return nil, albumRequest{}, errors.Wrap(err)
 			}
 			_, err = f.Seek(0, io.SeekStart)
 			if err != nil {
 				_ = f.Close()
-				for _, f := range req.ff {
-					_ = f.Reader.(io.Closer).Close()
-				}
-				_ = req.multi.RemoveAll()
 				return nil, albumRequest{}, errors.Wrap(err)
 			}
 			typ := http.DetectContentType(b)
 			if !strings.HasPrefix(typ, "image/") {
 				_ = f.Close()
-				for _, f := range req.ff {
-					_ = f.Reader.(io.Closer).Close()
-				}
-				_ = req.multi.RemoveAll()
 				return nil, albumRequest{}, errors.Wrap(model.ErrNotImage)
 			}
 			req.ff = append(req.ff, model.File{Reader: f, Size: fh.Size})
+		}
+		vals := r.MultipartForm.Value["duration"]
+		if len(vals) == 0 {
+			return nil, albumRequest{}, errors.Wrap(model.ErrDurationNotSet)
+		}
+		switch vals[0] {
+		case "1H":
+			req.dur = 1 * time.Hour
+		case "2H":
+			req.dur = 2 * time.Hour
+		case "3H":
+			req.dur = 3 * time.Hour
+		case "6H":
+			req.dur = 6 * time.Hour
+		case "12H":
+			req.dur = 12 * time.Hour
+		case "1D":
+			req.dur = 24 * time.Hour
+		case "2D":
+			req.dur = 48 * time.Hour
+		case "3D":
+			req.dur = 72 * time.Hour
+		case "1W":
+			req.dur = 168 * time.Hour
+		default:
+			return nil, albumRequest{}, errors.Wrap(model.ErrDurationInvalid)
 		}
 		return ctx, req, nil
 	}
@@ -96,7 +116,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			}
 			_ = req.multi.RemoveAll()
 		}()
-		album, err := c.serv.Album(ctx, req.ff, 5*time.Second)
+		album, err := c.serv.Album(ctx, req.ff, req.dur)
 		if err != nil {
 			return albumResponse{}, errors.Wrap(err)
 		}

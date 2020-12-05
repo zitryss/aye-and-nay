@@ -12,6 +12,8 @@ var (
 	ErrTooManyImages         = errors.New("too many images")
 	ErrImageTooLarge         = errors.New("image too large")
 	ErrNotImage              = errors.New("not image")
+	ErrDurationNotSet        = errors.New("duration not set")
+	ErrDurationInvalid       = errors.New("duration invalid")
 	ErrAlbumNotFound         = errors.New("album not found")
 	ErrPairNotFound          = errors.New("pair not found")
 	ErrTokenNotFound         = errors.New("token not found")

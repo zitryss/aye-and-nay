@@ -96,6 +96,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -155,6 +159,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -202,6 +210,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -251,6 +263,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -298,6 +314,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -347,6 +367,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -394,6 +418,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -457,6 +485,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -484,6 +516,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -534,6 +570,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -561,6 +601,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -641,6 +685,10 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -736,6 +784,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -805,6 +857,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -876,6 +932,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -945,6 +1005,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -1025,6 +1089,10 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -1110,7 +1178,7 @@ func TestControllerIntegrationHandleDelete(t *testing.T) {
 		}
 	}()
 	fn2 := func() time.Time {
-		return time.Now()
+		return time.Now().Add(-1 * time.Hour).Add(100 * time.Millisecond)
 	}
 	ctx := context.Background()
 	comp := compressor.NewMock()
@@ -1152,6 +1220,10 @@ func TestControllerIntegrationHandleDelete(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+	}
+	err = multi.WriteField("duration", "1H")
+	if err != nil {
+		t.Error(err)
 	}
 	err = multi.Close()
 	if err != nil {

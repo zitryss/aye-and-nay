@@ -24,6 +24,10 @@ func handleError(err error) {
 		log.Debug(err)
 	case model.ErrNotImage:
 		log.Debug(err)
+	case model.ErrDurationNotSet:
+		log.Debug(err)
+	case model.ErrDurationInvalid:
+		log.Debug(err)
 	case model.ErrAlbumNotFound:
 		log.Debug(err)
 	case model.ErrTokenNotFound:

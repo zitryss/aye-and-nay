@@ -63,6 +63,14 @@ func handleError(w http.ResponseWriter, err error) {
 		log.Debug(err)
 		resp.Error.code = 415
 		resp.Error.Msg = "Unsupported Image Format"
+	case model.ErrDurationNotSet:
+		log.Debug(err)
+		resp.Error.code = 400
+		resp.Error.Msg = "Duration Not Set"
+	case model.ErrDurationInvalid:
+		log.Debug(err)
+		resp.Error.code = 400
+		resp.Error.Msg = "Duration Invalid"
 	case model.ErrAlbumNotFound:
 		log.Debug(err)
 		resp.Error.code = 404

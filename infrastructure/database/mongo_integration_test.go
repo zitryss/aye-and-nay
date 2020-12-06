@@ -71,192 +71,6 @@ func TestMongoAlbum(t *testing.T) {
 	})
 }
 
-func TestMongoVote(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		alb := AlbumFullFactory("nAUeQgkR82njjGjB")
-		err = mongo.SaveAlbum(context.Background(), alb)
-		if err != nil {
-			t.Error(err)
-		}
-		imageFrom := "442BbctbQhcQHrgH"
-		imageTo := "qBmu5KGTqCdvfgTU"
-		err = mongo.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
-		if err != nil {
-			t.Error(err)
-		}
-		err = mongo.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
-		if err != nil {
-			t.Error(err)
-		}
-		edgs, err := mongo.GetEdges(context.Background(), "nAUeQgkR82njjGjB")
-		if err != nil {
-			t.Error(err)
-		}
-		if edgs["442BbctbQhcQHrgH"]["qBmu5KGTqCdvfgTU"] != 2 {
-			t.Error("edgs[imageFrom][imageTo] != 2")
-		}
-	})
-	t.Run("Negative", func(t *testing.T) {
-		mongo, err := NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		imageFrom := "hQXK3DTRrQ8AHCcd"
-		imageTo := "gukYVmHFmnB6fg7Q"
-		err = mongo.SaveVote(context.Background(), "Xuz8ZqVt8k3mAC6d", imageFrom, imageTo)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
-			t.Error(err)
-		}
-	})
-}
-
-func TestMongoRatings(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		alb := AlbumFullFactory("Tz6NXWHXFzvWpumP")
-		err = mongo.SaveAlbum(context.Background(), alb)
-		if err != nil {
-			t.Error(err)
-		}
-		img1 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/6sgsr8WwqudTDzhR", Rating: 0.54412788}
-		img2 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/2H7NpJkPwBWUk6gL", Rating: 0.32537162}
-		img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/kUrtHH5hTLbcSJdu", Rating: 0.43185491}
-		img4 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/428PcLG7e7VZHyAJ", Rating: 0.57356209}
-		img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/gXR6VrL9h7E3pFVY", Rating: 0.61438023}
-		imgs1 := []model.Image{img1, img2, img3, img4, img5}
-		vector := map[string]float64{}
-		vector[img1.Id] = img1.Rating
-		vector[img2.Id] = img2.Rating
-		vector[img3.Id] = img3.Rating
-		vector[img4.Id] = img4.Rating
-		vector[img5.Id] = img5.Rating
-		err = mongo.UpdateRatings(context.Background(), "Tz6NXWHXFzvWpumP", vector)
-		if err != nil {
-			t.Error(err)
-		}
-		imgs2, err := mongo.GetImagesOrdered(context.Background(), "Tz6NXWHXFzvWpumP")
-		if err != nil {
-			t.Error(err)
-		}
-		sort.Slice(imgs1, func(i, j int) bool { return imgs1[i].Rating > imgs1[j].Rating })
-		if !reflect.DeepEqual(imgs1, imgs2) {
-			t.Error("imgs1 != imgs2")
-		}
-	})
-	t.Run("Negative", func(t *testing.T) {
-		mongo, err := NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		img1 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/6sgsr8WwqudTDzhR", Rating: 0.54412788}
-		img2 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/2H7NpJkPwBWUk6gL", Rating: 0.32537162}
-		img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/kUrtHH5hTLbcSJdu", Rating: 0.43185491}
-		img4 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/428PcLG7e7VZHyAJ", Rating: 0.57356209}
-		img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/gXR6VrL9h7E3pFVY", Rating: 0.61438023}
-		vector := map[string]float64{}
-		vector[img1.Id] = img1.Rating
-		vector[img2.Id] = img2.Rating
-		vector[img3.Id] = img3.Rating
-		vector[img4.Id] = img4.Rating
-		vector[img5.Id] = img5.Rating
-		err = mongo.UpdateRatings(context.Background(), "PB6wujzcRKjGKVzd", vector)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
-			t.Error(err)
-		}
-	})
-}
-
-func TestMongoSort(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		alb := AlbumFullFactory("Xr5qXyfQAgnSNTzM")
-		err = mongo.SaveAlbum(context.Background(), alb)
-		if err != nil {
-			t.Error(err)
-		}
-		imgs1, err := mongo.GetImagesOrdered(context.Background(), "Xr5qXyfQAgnSNTzM")
-		if err != nil {
-			t.Error(err)
-		}
-		img1 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/428PcLG7e7VZHyAJ", Rating: 0.77920413}
-		img2 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/6sgsr8WwqudTDzhR", Rating: 0.48954984}
-		img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/kUrtHH5hTLbcSJdu", Rating: 0.41218211}
-		img4 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/2H7NpJkPwBWUk6gL", Rating: 0.19186324}
-		img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/gXR6VrL9h7E3pFVY", Rating: 0.13278389}
-		imgs2 := []model.Image{img1, img2, img3, img4, img5}
-		if !reflect.DeepEqual(imgs1, imgs2) {
-			t.Error("imgs1 != imgs2")
-		}
-	})
-	t.Run("Negative", func(t *testing.T) {
-		mongo, err := NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		_, err = mongo.GetImagesOrdered(context.Background(), "M6cMTehk3LfV5CBy")
-		if !errors.Is(err, model.ErrAlbumNotFound) {
-			t.Error(err)
-		}
-	})
-}
-
-func TestMongoImage(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		alb := AlbumEmptyFactory("k9YA7PJmcMcdqEcR")
-		err = mongo.SaveAlbum(context.Background(), alb)
-		if err != nil {
-			t.Error(err)
-		}
-		img1, err := mongo.GetImage(context.Background(), "k9YA7PJmcMcdqEcR", "VYFczQcF45x7gLYH")
-		if err != nil {
-			t.Error(err)
-		}
-		img2 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/k9YA7PJmcMcdqEcR/images/428PcLG7e7VZHyAJ"}
-		if !reflect.DeepEqual(img1, img2) {
-			t.Error("img1 != img2")
-		}
-	})
-	t.Run("Negative1", func(t *testing.T) {
-		mongo, err := NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		_, err = mongo.GetImage(context.Background(), "8856LWPRnuSckPCa", "VYFczQcF45x7gLYH")
-		if !errors.Is(err, model.ErrAlbumNotFound) {
-			t.Error(err)
-		}
-	})
-	t.Run("Negative2", func(t *testing.T) {
-		mongo, err := NewMongo()
-		if err != nil {
-			t.Fatal(err)
-		}
-		alb := AlbumEmptyFactory("g3VSAWnwX5fDkjcr")
-		err = mongo.SaveAlbum(context.Background(), alb)
-		if err != nil {
-			t.Error(err)
-		}
-		_, err = mongo.GetImage(context.Background(), "g3VSAWnwX5fDkjcr", "W3rdTdrbRN3jedHB")
-		if !errors.Is(err, model.ErrImageNotFound) {
-			t.Error(err)
-		}
-	})
-}
-
 func TestMongoCount(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mongo, err := NewMongo()
@@ -380,6 +194,240 @@ func TestMongoCount(t *testing.T) {
 		}
 		err = mongo.UpdateCompressionStatus(context.Background(), "2drK8rREqpFS2WYp", "EC5md2qhemwAZmGf")
 		if !errors.Is(err, model.ErrImageNotFound) {
+			t.Error(err)
+		}
+	})
+}
+
+func TestMongoImage(t *testing.T) {
+	t.Run("Positive", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumEmptyFactory("k9YA7PJmcMcdqEcR")
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		img1, err := mongo.GetImage(context.Background(), "k9YA7PJmcMcdqEcR", "VYFczQcF45x7gLYH")
+		if err != nil {
+			t.Error(err)
+		}
+		img2 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/k9YA7PJmcMcdqEcR/images/428PcLG7e7VZHyAJ"}
+		if !reflect.DeepEqual(img1, img2) {
+			t.Error("img1 != img2")
+		}
+	})
+	t.Run("Negative1", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = mongo.GetImage(context.Background(), "8856LWPRnuSckPCa", "VYFczQcF45x7gLYH")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative2", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumEmptyFactory("g3VSAWnwX5fDkjcr")
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		_, err = mongo.GetImage(context.Background(), "g3VSAWnwX5fDkjcr", "W3rdTdrbRN3jedHB")
+		if !errors.Is(err, model.ErrImageNotFound) {
+			t.Error(err)
+		}
+	})
+}
+
+func TestMongoVote(t *testing.T) {
+	t.Run("Positive", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumFullFactory("nAUeQgkR82njjGjB")
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		imageFrom := "442BbctbQhcQHrgH"
+		imageTo := "qBmu5KGTqCdvfgTU"
+		err = mongo.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
+		if err != nil {
+			t.Error(err)
+		}
+		err = mongo.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
+		if err != nil {
+			t.Error(err)
+		}
+		edgs, err := mongo.GetEdges(context.Background(), "nAUeQgkR82njjGjB")
+		if err != nil {
+			t.Error(err)
+		}
+		if edgs["442BbctbQhcQHrgH"]["qBmu5KGTqCdvfgTU"] != 2 {
+			t.Error("edgs[imageFrom][imageTo] != 2")
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		imageFrom := "hQXK3DTRrQ8AHCcd"
+		imageTo := "gukYVmHFmnB6fg7Q"
+		err = mongo.SaveVote(context.Background(), "Xuz8ZqVt8k3mAC6d", imageFrom, imageTo)
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+}
+
+func TestMongoSort(t *testing.T) {
+	t.Run("Positive", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumFullFactory("Xr5qXyfQAgnSNTzM")
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		imgs1, err := mongo.GetImagesOrdered(context.Background(), "Xr5qXyfQAgnSNTzM")
+		if err != nil {
+			t.Error(err)
+		}
+		img1 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/428PcLG7e7VZHyAJ", Rating: 0.77920413}
+		img2 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/6sgsr8WwqudTDzhR", Rating: 0.48954984}
+		img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/kUrtHH5hTLbcSJdu", Rating: 0.41218211}
+		img4 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/2H7NpJkPwBWUk6gL", Rating: 0.19186324}
+		img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/gXR6VrL9h7E3pFVY", Rating: 0.13278389}
+		imgs2 := []model.Image{img1, img2, img3, img4, img5}
+		if !reflect.DeepEqual(imgs1, imgs2) {
+			t.Error("imgs1 != imgs2")
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = mongo.GetImagesOrdered(context.Background(), "M6cMTehk3LfV5CBy")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+}
+
+func TestMongoRatings(t *testing.T) {
+	t.Run("Positive", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumFullFactory("Tz6NXWHXFzvWpumP")
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		img1 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/6sgsr8WwqudTDzhR", Rating: 0.54412788}
+		img2 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/2H7NpJkPwBWUk6gL", Rating: 0.32537162}
+		img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/kUrtHH5hTLbcSJdu", Rating: 0.43185491}
+		img4 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/428PcLG7e7VZHyAJ", Rating: 0.57356209}
+		img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/gXR6VrL9h7E3pFVY", Rating: 0.61438023}
+		imgs1 := []model.Image{img1, img2, img3, img4, img5}
+		vector := map[string]float64{}
+		vector[img1.Id] = img1.Rating
+		vector[img2.Id] = img2.Rating
+		vector[img3.Id] = img3.Rating
+		vector[img4.Id] = img4.Rating
+		vector[img5.Id] = img5.Rating
+		err = mongo.UpdateRatings(context.Background(), "Tz6NXWHXFzvWpumP", vector)
+		if err != nil {
+			t.Error(err)
+		}
+		imgs2, err := mongo.GetImagesOrdered(context.Background(), "Tz6NXWHXFzvWpumP")
+		if err != nil {
+			t.Error(err)
+		}
+		sort.Slice(imgs1, func(i, j int) bool { return imgs1[i].Rating > imgs1[j].Rating })
+		if !reflect.DeepEqual(imgs1, imgs2) {
+			t.Error("imgs1 != imgs2")
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		img1 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/6sgsr8WwqudTDzhR", Rating: 0.54412788}
+		img2 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/2H7NpJkPwBWUk6gL", Rating: 0.32537162}
+		img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/kUrtHH5hTLbcSJdu", Rating: 0.43185491}
+		img4 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/428PcLG7e7VZHyAJ", Rating: 0.57356209}
+		img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/gXR6VrL9h7E3pFVY", Rating: 0.61438023}
+		vector := map[string]float64{}
+		vector[img1.Id] = img1.Rating
+		vector[img2.Id] = img2.Rating
+		vector[img3.Id] = img3.Rating
+		vector[img4.Id] = img4.Rating
+		vector[img5.Id] = img5.Rating
+		err = mongo.UpdateRatings(context.Background(), "PB6wujzcRKjGKVzd", vector)
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+}
+
+func TestMongoDelete(t *testing.T) {
+	t.Run("Positive", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumEmptyFactory("CsRxWcm7bjhjCjPH")
+		_, err = mongo.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		n, err := mongo.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		if err != nil {
+			t.Error(err)
+		}
+		if n != 5 {
+			t.Error("n != 5")
+		}
+		err = mongo.DeleteAlbum(context.Background(), "CsRxWcm7bjhjCjPH")
+		if err != nil {
+			t.Error(err)
+		}
+		_, err = mongo.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumEmptyFactory("pXHbPK8WuWC9x8cp")
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		err = mongo.DeleteAlbum(context.Background(), "9JFs2DWEDmZWXSyy")
+		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})

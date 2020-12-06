@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"math/rand"
-	"sync"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -18,8 +18,9 @@ func NewService(
 	stor model.Storager,
 	pers model.Persister,
 	temp model.Temper,
-	queue1 *queue,
-	queue2 *queue,
+	queue1 *Queue,
+	queue2 *Queue,
+	pqueue *PQueue,
 	opts ...options,
 ) service {
 	conf := newServiceConfig()
@@ -31,18 +32,22 @@ func NewService(
 		pair:  temp,
 		token: temp,
 		queue: struct {
-			calc *queue
-			comp *queue
+			calc *Queue
+			comp *Queue
+			del  *PQueue
 		}{
 			queue1,
 			queue2,
+			pqueue,
 		},
 		rand: struct {
 			id      func(length int) (string, error)
 			shuffle func(n int, swap func(i int, j int))
+			now     func() time.Time
 		}{
 			myrand.Id,
 			rand.Shuffle,
+			time.Now,
 		},
 	}
 	for _, opt := range opts {
@@ -65,6 +70,12 @@ func WithRandShuffle(fn func(int, func(int, int))) options {
 	}
 }
 
+func WithRandNow(fn func() time.Time) options {
+	return func(s *service) {
+		s.rand.now = fn
+	}
+}
+
 func WithHeartbeatCalc(ch chan<- interface{}) options {
 	return func(s *service) {
 		s.heartbeat.calc = ch
@@ -77,6 +88,12 @@ func WithHeartbeatComp(ch chan<- interface{}) options {
 	}
 }
 
+func WithHeartbeatDel(ch chan<- interface{}) options {
+	return func(s *service) {
+		s.heartbeat.del = ch
+	}
+}
+
 type service struct {
 	conf  serviceConfig
 	comp  model.Compresser
@@ -85,16 +102,19 @@ type service struct {
 	pair  model.Stacker
 	token model.Tokener
 	queue struct {
-		calc *queue
-		comp *queue
+		calc *Queue
+		comp *Queue
+		del  *PQueue
 	}
 	rand struct {
 		id      func(length int) (string, error)
 		shuffle func(n int, swap func(i, j int))
+		now     func() time.Time
 	}
 	heartbeat struct {
 		calc chan<- interface{}
 		comp chan<- interface{}
+		del  chan<- interface{}
 	}
 }
 
@@ -264,7 +284,69 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 	}()
 }
 
-func (s *service) Album(ctx context.Context, ff []model.File) (string, error) {
+func (s *service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
+	g.Go(func() (e error) {
+		defer func() {
+			v := recover()
+			if v == nil {
+				return
+			}
+			err, ok := v.(error)
+			if ok {
+				e = errors.Wrap(err)
+			} else {
+				e = errors.Wrapf(model.ErrUnknown, "%v", v)
+			}
+		}()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			album, err := s.queue.del.poll(ctx)
+			if err != nil {
+				err = errors.Wrap(err)
+				handleError(err)
+				e = err
+				continue
+			}
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			images, err := s.pers.GetImages(ctx, album)
+			if err != nil {
+				err = errors.Wrap(err)
+				handleError(err)
+				e = err
+				continue
+			}
+			err = s.pers.DeleteAlbum(ctx, album)
+			if err != nil {
+				err = errors.Wrap(err)
+				handleError(err)
+				e = err
+				continue
+			}
+			for _, image := range images {
+				err = s.stor.Remove(ctx, album, image)
+				if err != nil {
+					err = errors.Wrap(err)
+					handleError(err)
+					e = err
+					continue
+				}
+			}
+			if s.heartbeat.del != nil {
+				s.heartbeat.del <- struct{}{}
+			}
+		}
+	})
+}
+
+func (s *service) Album(ctx context.Context, ff []model.File, dur time.Duration) (string, error) {
 	album, err := s.rand.id(s.conf.albumIdLength)
 	if err != nil {
 		return "", errors.Wrap(err)
@@ -291,6 +373,10 @@ func (s *service) Album(ctx context.Context, ff []model.File) (string, error) {
 		return "", errors.Wrap(err)
 	}
 	err = s.queue.comp.add(ctx, album)
+	if err != nil {
+		return "", errors.Wrap(err)
+	}
+	err = s.queue.del.add(ctx, album, s.rand.now().Add(dur))
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -397,69 +483,4 @@ func (s *service) Top(ctx context.Context, album string) ([]model.Image, error) 
 		return nil, errors.Wrap(err)
 	}
 	return imgs, nil
-}
-
-func NewQueue(name string, q model.Queuer) queue {
-	return queue{
-		name:   name,
-		cond:   sync.NewCond(&sync.Mutex{}),
-		closed: false,
-		queue:  q,
-	}
-}
-
-type queue struct {
-	name   string
-	cond   *sync.Cond
-	closed bool
-	queue  model.Queuer
-}
-
-func (q *queue) Monitor(ctx context.Context) {
-	go func() {
-		<-ctx.Done()
-		q.close()
-	}()
-}
-
-func (q *queue) close() {
-	q.cond.L.Lock()
-	defer q.cond.L.Unlock()
-	q.closed = true
-	q.cond.Broadcast()
-}
-
-func (q *queue) add(ctx context.Context, album string) error {
-	q.cond.L.Lock()
-	defer q.cond.L.Unlock()
-	err := q.queue.Add(ctx, q.name, album)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-	q.cond.Signal()
-	return nil
-}
-
-func (q *queue) poll(ctx context.Context) (string, error) {
-	q.cond.L.Lock()
-	defer q.cond.L.Unlock()
-	n, err := q.queue.Size(ctx, q.name)
-	if err != nil {
-		return "", errors.Wrap(err)
-	}
-	for n == 0 {
-		q.cond.Wait()
-		if q.closed {
-			return "", nil
-		}
-		n, err = q.queue.Size(ctx, q.name)
-		if err != nil {
-			return "", errors.Wrap(err)
-		}
-	}
-	album, err := q.queue.Poll(ctx, q.name)
-	if err != nil {
-		return "", errors.Wrap(err)
-	}
-	return album, nil
 }

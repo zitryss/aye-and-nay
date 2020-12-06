@@ -4,6 +4,7 @@ package http
 
 import (
 	"mime/multipart"
+	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 )
@@ -11,6 +12,7 @@ import (
 type albumRequest struct {
 	ff    []model.File
 	multi *multipart.Form
+	dur   time.Duration
 }
 
 type readyRequest struct {

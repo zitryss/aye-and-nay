@@ -98,7 +98,9 @@ func readFiles() {
 			debug.Check(err)
 		}
 	}
-	err := multi.Close()
+	err := multi.WriteField("duration", "1H")
+	debug.Check(err)
+	err = multi.Close()
 	debug.Check(err)
 
 	b = body.Bytes()

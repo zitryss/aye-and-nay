@@ -9,7 +9,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -49,7 +48,6 @@ func WithHeartbeatRepeat(ch chan<- interface{}) options {
 type shortpixel struct {
 	conf      shortPixelConfig
 	done      uint32
-	m         sync.Mutex
 	ch        chan struct{}
 	heartbeat struct {
 		restart chan<- interface{}
@@ -103,10 +101,7 @@ func (sp *shortpixel) Compress(ctx context.Context, f model.File) (model.File, e
 	}
 	buf, err := sp.compress(ctx, f)
 	if errors.Is(err, model.ErrThirdPartyUnavailable) {
-		sp.m.Lock()
-		defer sp.m.Unlock()
-		if atomic.LoadUint32(&sp.done) == 0 {
-			atomic.StoreUint32(&sp.done, 1)
+		if atomic.CompareAndSwapUint32(&sp.done, 0, 1) {
 			sp.ch <- struct{}{}
 		}
 		return model.File{}, errors.Wrap(err)

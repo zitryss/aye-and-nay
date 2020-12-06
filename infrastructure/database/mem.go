@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/emirpasic/gods/sets/linkedhashset"
+	"github.com/emirpasic/gods/trees/binaryheap"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -15,11 +16,12 @@ import (
 func NewMem(opts ...options) mem {
 	conf := newMemConfig()
 	m := mem{
-		conf:       conf,
-		syncAlbums: syncAlbums{albums: map[string]model.Album{}},
-		syncQueues: syncQueues{queues: map[string]*linkedhashset.Set{}},
-		syncPairs:  syncPairs{pairs: map[string]*pairsTime{}},
-		syncTokens: syncTokens{tokens: map[string]*tokenTime{}},
+		conf:        conf,
+		syncAlbums:  syncAlbums{albums: map[string]model.Album{}},
+		syncQueues:  syncQueues{queues: map[string]*linkedhashset.Set{}},
+		syncPQueues: syncPQueues{pqueues: map[string]*binaryheap.Heap{}},
+		syncPairs:   syncPairs{pairs: map[string]*pairsTime{}},
+		syncTokens:  syncTokens{tokens: map[string]*tokenTime{}},
 	}
 	for _, opt := range opts {
 		opt(&m)
@@ -45,6 +47,7 @@ type mem struct {
 	conf memConfig
 	syncAlbums
 	syncQueues
+	syncPQueues
 	syncPairs
 	syncTokens
 	heartbeat struct {
@@ -61,6 +64,11 @@ type syncAlbums struct {
 type syncQueues struct {
 	sync.Mutex
 	queues map[string]*linkedhashset.Set
+}
+
+type syncPQueues struct {
+	sync.Mutex
+	pqueues map[string]*binaryheap.Heap
 }
 
 type syncPairs struct {
@@ -81,6 +89,24 @@ type syncTokens struct {
 type tokenTime struct {
 	token string
 	seen  time.Time
+}
+
+type elem struct {
+	album   string
+	expires time.Time
+}
+
+func timeComparator(a, b interface{}) int {
+	tA := a.(elem).expires
+	tB := b.(elem).expires
+	switch {
+	case tA.After(tB):
+		return 1
+	case tA.Before(tB):
+		return -1
+	default:
+		return 0
+	}
 }
 
 func (m *mem) Monitor() {
@@ -289,6 +315,17 @@ func (m *mem) GetImagesOrdered(_ context.Context, album string) ([]model.Image, 
 	return imgs, nil
 }
 
+func (m *mem) DeleteAlbum(_ context.Context, album string) error {
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
+	_, ok := m.albums[album]
+	if !ok {
+		return errors.Wrap(model.ErrAlbumNotFound)
+	}
+	delete(m.albums, album)
+	return nil
+}
+
 func (m *mem) Add(_ context.Context, queue string, album string) error {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
@@ -309,7 +346,9 @@ func (m *mem) Poll(_ context.Context, queue string) (string, error) {
 		return "", errors.Wrap(model.ErrUnknown)
 	}
 	it := q.Iterator()
-	it.Next()
+	if !it.Next() {
+		return "", errors.Wrap(model.ErrUnknown)
+	}
 	album := it.Value().(string)
 	q.Remove(album)
 	return album, nil
@@ -323,6 +362,43 @@ func (m *mem) Size(_ context.Context, queue string) (int, error) {
 		return 0, nil
 	}
 	n := q.Size()
+	return n, nil
+}
+
+func (m *mem) PAdd(_ context.Context, pqueue string, album string, expires time.Time) error {
+	m.syncPQueues.Lock()
+	defer m.syncPQueues.Unlock()
+	pq, ok := m.pqueues[pqueue]
+	if !ok {
+		pq = binaryheap.NewWith(timeComparator)
+		m.pqueues[pqueue] = pq
+	}
+	pq.Push(elem{album, expires})
+	return nil
+}
+
+func (m *mem) PPoll(_ context.Context, pqueue string) (string, time.Time, error) {
+	m.syncPQueues.Lock()
+	defer m.syncPQueues.Unlock()
+	pq, ok := m.pqueues[pqueue]
+	if !ok {
+		return "", time.Time{}, errors.Wrap(model.ErrUnknown)
+	}
+	e, ok := pq.Pop()
+	if !ok {
+		return "", time.Time{}, errors.Wrap(model.ErrUnknown)
+	}
+	return e.(elem).album, e.(elem).expires, nil
+}
+
+func (m *mem) PSize(_ context.Context, pqueue string) (int, error) {
+	m.syncPQueues.Lock()
+	defer m.syncPQueues.Unlock()
+	pq, ok := m.pqueues[pqueue]
+	if !ok {
+		return 0, nil
+	}
+	n := pq.Size()
 	return n, nil
 }
 

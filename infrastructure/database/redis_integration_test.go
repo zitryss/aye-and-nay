@@ -5,6 +5,7 @@ package database
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	_ "github.com/zitryss/aye-and-nay/internal/config"
@@ -98,6 +99,91 @@ func TestRedisQueue(t *testing.T) {
 	}
 	if n != 0 {
 		t.Error("n != 0")
+	}
+	_, err = redis.Poll(context.Background(), "8wwEdmRqQnQ6Yhjy")
+	if !errors.Is(err, model.ErrUnknown) {
+		t.Error(err)
+	}
+}
+
+func TestRedisPQueue(t *testing.T) {
+	redis, err := NewRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	n, err := redis.PSize(context.Background(), "d9YtN3xaf3z569Pa")
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 0 {
+		t.Error("n != 0")
+	}
+	err = redis.PAdd(context.Background(), "d9YtN3xaf3z569Pa", "3SNvbjeg5uuEK9yz", time.Unix(904867200, 0))
+	if err != nil {
+		t.Error(err)
+	}
+	err = redis.PAdd(context.Background(), "d9YtN3xaf3z569Pa", "uneKPF2Fy43yj8yz", time.Unix(1075852800, 0))
+	if err != nil {
+		t.Error(err)
+	}
+	err = redis.PAdd(context.Background(), "d9YtN3xaf3z569Pa", "EHJajVMUAu3ewR5B", time.Unix(681436800, 0))
+	if err != nil {
+		t.Error(err)
+	}
+	n, err = redis.PSize(context.Background(), "d9YtN3xaf3z569Pa")
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 3 {
+		t.Error("n != 3")
+	}
+	album, expires, err := redis.PPoll(context.Background(), "d9YtN3xaf3z569Pa")
+	if err != nil {
+		t.Error(err)
+	}
+	if album != "EHJajVMUAu3ewR5B" {
+		t.Error("album != \"EHJajVMUAu3ewR5B\"")
+	}
+	if !expires.Equal(time.Unix(681436800, 0)) {
+		t.Error("!expires.Equal(time.Unix(681436800, 0))")
+	}
+	n, err = redis.PSize(context.Background(), "d9YtN3xaf3z569Pa")
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 2 {
+		t.Error("n != 2")
+	}
+	album, expires, err = redis.PPoll(context.Background(), "d9YtN3xaf3z569Pa")
+	if err != nil {
+		t.Error(err)
+	}
+	if album != "3SNvbjeg5uuEK9yz" {
+		t.Error("album != \"3SNvbjeg5uuEK9yz\"")
+	}
+	if !expires.Equal(time.Unix(904867200, 0)) {
+		t.Error("!expires.Equal(time.Unix(904867200, 0))")
+	}
+	album, expires, err = redis.PPoll(context.Background(), "d9YtN3xaf3z569Pa")
+	if err != nil {
+		t.Error(err)
+	}
+	if album != "uneKPF2Fy43yj8yz" {
+		t.Error("album != \"uneKPF2Fy43yj8yz\"")
+	}
+	if !expires.Equal(time.Unix(1075852800, 0)) {
+		t.Error("!expires.Equal(time.Unix(1075852800, 0))")
+	}
+	n, err = redis.PSize(context.Background(), "d9YtN3xaf3z569Pa")
+	if err != nil {
+		t.Error(err)
+	}
+	if n != 0 {
+		t.Error("n != 0")
+	}
+	_, _, err = redis.PPoll(context.Background(), "d9YtN3xaf3z569Pa")
+	if !errors.Is(err, model.ErrUnknown) {
+		t.Error(err)
 	}
 }
 

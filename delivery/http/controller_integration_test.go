@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/sync/errgroup"
@@ -69,10 +70,11 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("HVyMn8HuDa8rdkyr", &redis)
+		queue1 := (*service.Queue)(nil)
 		queue2 := service.NewQueue("S8Lg9yR7JvfEqQgf", &redis)
+		pqueue := (*service.PQueue)(nil)
 		heartbeatComp := make(chan interface{})
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
@@ -93,6 +95,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -130,9 +136,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("nLSBLE5dVASgxDUp", &redis)
-		queue2 := service.NewQueue("vaJy6dswrxpjVn3R", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -151,6 +158,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -177,9 +188,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("Dr4fR2rEWgN7qLHf", &redis)
-		queue2 := service.NewQueue("4bHA74WR49xsb5ug", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -198,6 +210,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -224,9 +240,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("mEdFrvE3549LDFzx", &redis)
-		queue2 := service.NewQueue("5qxFFTgPtLVhhQU7", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -245,6 +262,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -271,9 +292,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("xQWGJjTtetde2DdB", &redis)
-		queue2 := service.NewQueue("g2YS5KE5KeyGU2bG", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -292,6 +314,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -318,9 +344,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("eQupRzAY56Qp5E4U", &redis)
-		queue2 := service.NewQueue("959UpyN6T8uYaFeB", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -339,6 +366,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -365,9 +396,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("Au4DBRQhyEJV99wh", &redis)
-		queue2 := service.NewQueue("Zk3KEUJEjDwcsc8u", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -386,6 +418,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -423,10 +459,11 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("Y5gVnAXu4SUg8qK8", &redis)
+		queue1 := (*service.Queue)(nil)
 		queue2 := service.NewQueue("6kD5hhETBcYFbKbq", &redis)
+		pqueue := (*service.PQueue)(nil)
 		heartbeatComp := make(chan interface{})
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
@@ -447,6 +484,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -475,6 +516,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -525,6 +570,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 				t.Error(err)
 			}
 		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
+		}
 		err = multi.Close()
 		if err != nil {
 			t.Error(err)
@@ -552,6 +601,10 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -610,9 +663,10 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("93P3AU2V6RMcFND4", &redis)
-		queue2 := service.NewQueue("uq4TPwUqmj2MZaCv", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -631,6 +685,10 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -662,9 +720,10 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("WTuVh4YDCdZM4af6", &redis)
-		queue2 := service.NewQueue("FNQjKB4hGJC25PJY", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handlePair()
 		w := httptest.NewRecorder()
@@ -702,9 +761,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("3L8E2zrdQtmJKEwa", &redis)
-		queue2 := service.NewQueue("L4kKdZpZZuTkSDmH", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -723,6 +783,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -771,9 +835,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("GPmdYD9t2Judjyrc", &redis)
-		queue2 := service.NewQueue("RTJuYHpHJr3sKBrb", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -792,6 +857,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -840,9 +909,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("xGgXp5Pg5nKvGmBY", &redis)
-		queue2 := service.NewQueue("6qNjE2tha2Z8s73H", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -861,6 +931,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -909,9 +983,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("RkAD9BHx8mTUBYRj", &redis)
-		queue2 := service.NewQueue("rY4ZJMbTwQGyDqHK", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -930,6 +1005,10 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -984,9 +1063,10 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		}
 		queue1 := service.NewQueue("qCzDFPuY53Y34mdS", &redis)
 		queue2 := service.NewQueue("YL3b99PHTrMnfX9c", &redis)
+		pqueue := (*service.PQueue)(nil)
 		heartbeatCalc := make(chan interface{})
 		heartbeatComp := make(chan interface{})
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc), service.WithHeartbeatComp(heartbeatComp))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc), service.WithHeartbeatComp(heartbeatComp))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctx1, g1)
 		g2, ctx2 := errgroup.WithContext(ctx)
@@ -1009,6 +1089,10 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
+		}
+		err = multi.WriteField("duration", "1H")
+		if err != nil {
+			t.Error(err)
 		}
 		err = multi.Close()
 		if err != nil {
@@ -1068,9 +1152,10 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("732qurKQkxYDsG6L", &redis)
-		queue2 := service.NewQueue("eJRsgrtZPVc8RE7q", &redis)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, &queue1, &queue2)
+		queue1 := (*service.Queue)(nil)
+		queue2 := (*service.Queue)(nil)
+		pqueue := (*service.PQueue)(nil)
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleTop()
 		w := httptest.NewRecorder()
@@ -1081,4 +1166,79 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"error":{"msg":"Album Not Found"}}`+"\n")
 	})
+}
+
+func TestControllerIntegrationHandleDelete(t *testing.T) {
+	fn1 := func() func(int) (string, error) {
+		id := "XmL9qT7kJA9uzZTC"
+		i := 0
+		return func(length int) (string, error) {
+			i++
+			return id + strconv.Itoa(i), nil
+		}
+	}()
+	fn2 := func() time.Time {
+		return time.Now().Add(-1 * time.Hour).Add(100 * time.Millisecond)
+	}
+	ctx := context.Background()
+	comp := compressor.NewMock()
+	minio, err := storage.NewMinio()
+	if err != nil {
+		t.Fatal(err)
+	}
+	mongo, err := database.NewMongo()
+	if err != nil {
+		t.Fatal(err)
+	}
+	redis, err := database.NewRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	queue1 := (*service.Queue)(nil)
+	queue2 := (*service.Queue)(nil)
+	pqueue := service.NewPQueue("WTgtJN2TemW3vLcT", &redis)
+	pqueue.Monitor(ctx)
+	heartbeatDel := make(chan interface{})
+	serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandNow(fn2), service.WithHeartbeatDel(heartbeatDel))
+	g1, ctx1 := errgroup.WithContext(ctx)
+	serv.StartWorkingPoolDel(ctx1, g1)
+	contr := newController(&serv)
+	fn := contr.handleAlbum()
+	w := httptest.NewRecorder()
+	body := bytes.Buffer{}
+	multi := multipart.NewWriter(&body)
+	for _, filename := range []string{"alan.jpg", "john.bmp"} {
+		part, err := multi.CreateFormFile("images", filename)
+		if err != nil {
+			t.Error(err)
+		}
+		b, err := ioutil.ReadFile("../../testdata/" + filename)
+		if err != nil {
+			t.Error(err)
+		}
+		_, err = part.Write(b)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+	err = multi.WriteField("duration", "1H")
+	if err != nil {
+		t.Error(err)
+	}
+	err = multi.Close()
+	if err != nil {
+		t.Error(err)
+	}
+	r := httptest.NewRequest("POST", "/api/albums/", &body)
+	r.Header.Set("Content-Type", multi.FormDataContentType())
+	fn(w, r, nil)
+	<-heartbeatDel
+	fn = contr.handleTop()
+	w = httptest.NewRecorder()
+	r = httptest.NewRequest("GET", "/api/albums/XmL9qT7kJA9uzZTC1/top/", nil)
+	ps := httprouter.Params{httprouter.Param{Key: "album", Value: "XmL9qT7kJA9uzZTC1"}}
+	fn(w, r, ps)
+	CheckStatusCode(t, w, 404)
+	CheckContentType(t, w, "application/json; charset=utf-8")
+	CheckBody(t, w, `{"error":{"msg":"Album Not Found"}}`+"\n")
 }

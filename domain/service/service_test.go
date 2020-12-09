@@ -365,22 +365,17 @@ func TestServiceTop(t *testing.T) {
 		stor := storage.NewMock()
 		mem := database.NewMem()
 		queue1 := NewQueue("RKvUKsDj7whcrpzA", &mem)
-		queue2 := NewQueue("2NPRqbKcbSX73vhr", &mem)
+		queue2 := (*Queue)(nil)
 		pqueue := (*PQueue)(nil)
 		heartbeatCalc := make(chan interface{})
-		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc), WithHeartbeatComp(heartbeatComp))
+		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctx1, g1)
-		g2, ctx2 := errgroup.WithContext(ctx)
-		serv.StartWorkingPoolComp(ctx2, g2)
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
-		<-heartbeatComp
-		<-heartbeatComp
 		img1, img2, err := serv.Pair(ctx, album)
 		if err != nil {
 			t.Error(err)
@@ -403,8 +398,8 @@ func TestServiceTop(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img5 := model.Image{Id: "L2j8Uc3z2HNLZHvJ2", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ2", Rating: 0.5, Compressed: true}
-		img6 := model.Image{Id: "L2j8Uc3z2HNLZHvJ3", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ3", Rating: 0.5, Compressed: true}
+		img5 := model.Image{Id: "L2j8Uc3z2HNLZHvJ2", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ2", Rating: 0.5, Compressed: false}
+		img6 := model.Image{Id: "L2j8Uc3z2HNLZHvJ3", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ3", Rating: 0.5, Compressed: false}
 		imgs2 := []model.Image{img5, img6}
 		if !reflect.DeepEqual(imgs1, imgs2) {
 			t.Error("imgs1 != imgs2")

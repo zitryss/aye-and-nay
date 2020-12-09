@@ -1062,15 +1062,12 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 			t.Fatal(err)
 		}
 		queue1 := service.NewQueue("qCzDFPuY53Y34mdS", &redis)
-		queue2 := service.NewQueue("YL3b99PHTrMnfX9c", &redis)
+		queue2 := (*service.Queue)(nil)
 		pqueue := (*service.PQueue)(nil)
 		heartbeatCalc := make(chan interface{})
-		heartbeatComp := make(chan interface{})
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc), service.WithHeartbeatComp(heartbeatComp))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctx1, g1)
-		g2, ctx2 := errgroup.WithContext(ctx)
-		serv.StartWorkingPoolComp(ctx2, g2)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -1101,8 +1098,6 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		r := httptest.NewRequest("POST", "/api/albums/", &body)
 		r.Header.Set("Content-Type", multi.FormDataContentType())
 		fn(w, r, nil)
-		<-heartbeatComp
-		<-heartbeatComp
 		fn = contr.handlePair()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/", nil)

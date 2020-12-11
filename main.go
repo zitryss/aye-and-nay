@@ -151,6 +151,14 @@ func main() {
 		log.Error(err)
 		return
 	}
+
+	log.Info("stopping deletion worker pool")
+	err = g3.Wait()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
 	if viper.GetBool("shortpixel.use") {
 		log.Info("stopping compression worker pool")
 		err = g2.Wait()

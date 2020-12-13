@@ -76,9 +76,9 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"N2fxX5zbDh8RJQvx1"}}`+"\n")
-		<-heartbeatComp
-		<-heartbeatComp
-		<-heartbeatComp
+		CheckChannel(t, heartbeatComp)
+		CheckChannel(t, heartbeatComp)
+		CheckChannel(t, heartbeatComp)
 		fn = contr.handleReady()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/N2fxX5zbDh8RJQvx1/ready", nil)
@@ -395,7 +395,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc1"}}`+"\n")
-		<-heartbeatComp
+		CheckChannel(t, heartbeatComp)
 		w = httptest.NewRecorder()
 		body = bytes.Buffer{}
 		multi = multipart.NewWriter(&body)
@@ -427,9 +427,9 @@ func TestControllerHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc5"}}`+"\n")
-		<-heartbeatComp
-		<-heartbeatComp
-		<-heartbeatComp
+		CheckChannel(t, heartbeatComp)
+		CheckChannel(t, heartbeatComp)
+		CheckChannel(t, heartbeatComp)
 		fn = contr.handleReady()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc1/ready", nil)

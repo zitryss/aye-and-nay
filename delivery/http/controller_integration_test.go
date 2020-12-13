@@ -110,8 +110,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"N2fxX5zbDh8RJQvx1"}}`+"\n")
-		<-heartbeatComp
-		<-heartbeatComp
+		CheckChannel(t, heartbeatComp)
+		CheckChannel(t, heartbeatComp)
 		<-heartbeatComp
 		fn = contr.handleReady()
 		w = httptest.NewRecorder()
@@ -499,7 +499,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc1"}}`+"\n")
-		<-heartbeatComp
+		CheckChannel(t, heartbeatComp)
 		w = httptest.NewRecorder()
 		body = bytes.Buffer{}
 		multi = multipart.NewWriter(&body)
@@ -531,9 +531,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc5"}}`+"\n")
-		<-heartbeatComp
-		<-heartbeatComp
-		<-heartbeatComp
+		CheckChannel(t, heartbeatComp)
+		CheckChannel(t, heartbeatComp)
+		CheckChannel(t, heartbeatComp)
 		fn = contr.handleReady()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc1/ready", nil)
@@ -550,8 +550,8 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 200)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"progress":1}}`+"\n")
-		<-heartbeatRestart
-		<-heartbeatRestart
+		CheckChannel(t, heartbeatRestart)
+		CheckChannel(t, heartbeatRestart)
 		fn = contr.handleAlbum()
 		w = httptest.NewRecorder()
 		body = bytes.Buffer{}
@@ -584,7 +584,7 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc9"}}`+"\n")
-		<-heartbeatComp
+		CheckChannel(t, heartbeatComp)
 		w = httptest.NewRecorder()
 		body = bytes.Buffer{}
 		multi = multipart.NewWriter(&body)
@@ -616,9 +616,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		CheckStatusCode(t, w, 201)
 		CheckContentType(t, w, "application/json; charset=utf-8")
 		CheckBody(t, w, `{"album":{"id":"jp8vH6TEapTGgSSc13"}}`+"\n")
-		<-heartbeatComp
-		<-heartbeatComp
-		<-heartbeatComp
+		CheckChannel(t, heartbeatComp)
+		CheckChannel(t, heartbeatComp)
+		CheckChannel(t, heartbeatComp)
 		fn = contr.handleReady()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/jp8vH6TEapTGgSSc1/ready", nil)
@@ -1110,7 +1110,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "bYCppY8q6qjvXjMZ1"}}
 		fn(w, r, ps)
-		<-heartbeatCalc
+		CheckChannel(t, heartbeatCalc)
 		fn = contr.handlePair()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/", nil)
@@ -1123,7 +1123,7 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		r.Header.Set("Content-Type", "application/json; charset=utf-8")
 		ps = httprouter.Params{httprouter.Param{Key: "album", Value: "bYCppY8q6qjvXjMZ1"}}
 		fn(w, r, ps)
-		<-heartbeatCalc
+		CheckChannel(t, heartbeatCalc)
 		fn = contr.handleTop()
 		w = httptest.NewRecorder()
 		r = httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/top/", nil)
@@ -1227,7 +1227,7 @@ func TestControllerIntegrationHandleDelete(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/albums/", &body)
 	r.Header.Set("Content-Type", multi.FormDataContentType())
 	fn(w, r, nil)
-	<-heartbeatDel
+	CheckChannel(t, heartbeatDel)
 	fn = contr.handleTop()
 	w = httptest.NewRecorder()
 	r = httptest.NewRequest("GET", "/api/albums/XmL9qT7kJA9uzZTC1/top/", nil)

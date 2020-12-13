@@ -414,8 +414,8 @@ func TestMemPair(t *testing.T) {
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		hbp := make(chan interface{})
-		mem := NewMem(WithHeartbeatPair(hbp))
+		heartbeatPair := make(chan interface{})
+		mem := NewMem(WithHeartbeatPair(heartbeatPair))
 		mem.Monitor()
 		image1 := "RYvhkVCK3WAhULBa"
 		image2 := "2EWKZXVVuh27sRkL"
@@ -424,8 +424,8 @@ func TestMemPair(t *testing.T) {
 			t.Error(err)
 		}
 		time.Sleep(mem.conf.timeToLive)
-		<-hbp
-		<-hbp
+		CheckChannel(t, heartbeatPair)
+		CheckChannel(t, heartbeatPair)
 		_, _, err = mem.Pop(context.Background(), "rtxyfrCFm6LYcVwF")
 		if !errors.Is(err, model.ErrPairNotFound) {
 			t.Error(err)
@@ -489,8 +489,8 @@ func TestMemToken(t *testing.T) {
 		}
 	})
 	t.Run("Negative4", func(t *testing.T) {
-		hbt := make(chan interface{})
-		mem := NewMem(WithHeartbeatToken(hbt))
+		heartbeatToken := make(chan interface{})
+		mem := NewMem(WithHeartbeatToken(heartbeatToken))
 		mem.Monitor()
 		image := "mHz9nH5nwCfZHn5C"
 		token := "ebqwp4yEHuH2eB2U"
@@ -499,8 +499,8 @@ func TestMemToken(t *testing.T) {
 			t.Error(err)
 		}
 		time.Sleep(mem.conf.timeToLive)
-		<-hbt
-		<-hbt
+		CheckChannel(t, heartbeatToken)
+		CheckChannel(t, heartbeatToken)
 		_, err = mem.Get(context.Background(), "xZALPEN7kt7RS5rz", token)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)

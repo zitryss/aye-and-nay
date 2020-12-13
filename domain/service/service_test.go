@@ -44,7 +44,7 @@ func TestServiceAlbum(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		v := <-heartbeatComp
+		v := CheckChannel(t, heartbeatComp)
 		p, ok := v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -52,7 +52,7 @@ func TestServiceAlbum(t *testing.T) {
 		if !EqualFloat(p, 0.5) {
 			t.Error("p != 0.5")
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok = v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -88,7 +88,7 @@ func TestServiceAlbum(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		v := <-heartbeatComp
+		v := CheckChannel(t, heartbeatComp)
 		err, ok := v.(error)
 		if !ok {
 			t.Error("v.(type) != error")
@@ -101,7 +101,7 @@ func TestServiceAlbum(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok := v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -109,7 +109,7 @@ func TestServiceAlbum(t *testing.T) {
 		if !EqualFloat(p, 0.5) {
 			t.Error("p != 0.5")
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok = v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -117,14 +117,14 @@ func TestServiceAlbum(t *testing.T) {
 		if !EqualFloat(p, 1) {
 			t.Error("p != 1")
 		}
-		<-heartbeatRestart
-		<-heartbeatRestart
+		CheckChannel(t, heartbeatRestart)
+		CheckChannel(t, heartbeatRestart)
 		files = []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		err, ok = v.(error)
 		if !ok {
 			t.Error("v.(type) != error")
@@ -137,7 +137,7 @@ func TestServiceAlbum(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok = v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -145,7 +145,7 @@ func TestServiceAlbum(t *testing.T) {
 		if !EqualFloat(p, 0.5) {
 			t.Error("p != 0.5")
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok = v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -384,7 +384,7 @@ func TestServiceTop(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		<-heartbeatCalc
+		CheckChannel(t, heartbeatCalc)
 		img3, img4, err := serv.Pair(ctx, album)
 		if err != nil {
 			t.Error(err)
@@ -393,7 +393,7 @@ func TestServiceTop(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		<-heartbeatCalc
+		CheckChannel(t, heartbeatCalc)
 		imgs1, err := serv.Top(ctx, album)
 		if err != nil {
 			t.Error(err)

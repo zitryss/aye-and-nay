@@ -4,15 +4,36 @@ package database
 
 import (
 	"context"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"sort"
 	"testing"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	_ "github.com/zitryss/aye-and-nay/internal/config"
+	"github.com/zitryss/aye-and-nay/internal/dockertest"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
+	"github.com/zitryss/aye-and-nay/pkg/env"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
+	"github.com/zitryss/aye-and-nay/pkg/log"
 )
+
+func TestMain(m *testing.M) {
+	_, err := env.Lookup("CONTINUOUS_INTEGRATION")
+	if err != nil {
+		log.SetOutput(os.Stderr)
+		log.SetLevel(log.Lcritical)
+		docker := dockertest.New()
+		docker.RunMongo()
+		log.SetOutput(ioutil.Discard)
+		code := m.Run()
+		docker.Purge()
+		os.Exit(code)
+	}
+	code := m.Run()
+	os.Exit(code)
+}
 
 func TestMongoAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {

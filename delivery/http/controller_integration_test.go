@@ -70,9 +70,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := service.NewQueue("S8Lg9yR7JvfEqQgf", &redis)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := service.NewQueueComp("S8Lg9yR7JvfEqQgf", &redis)
+		pqueue := (*service.QueueDel)(nil)
 		heartbeatComp := make(chan interface{})
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
@@ -136,9 +136,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -188,9 +188,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -240,9 +240,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -292,9 +292,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -344,9 +344,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -396,9 +396,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -459,9 +459,9 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := service.NewQueue("6kD5hhETBcYFbKbq", &redis)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := service.NewQueueComp("6kD5hhETBcYFbKbq", &redis)
+		pqueue := (*service.QueueDel)(nil)
 		heartbeatComp := make(chan interface{})
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
@@ -663,9 +663,9 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -720,9 +720,9 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handlePair()
@@ -761,9 +761,9 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -835,9 +835,9 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -909,9 +909,9 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -983,9 +983,9 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
@@ -1061,9 +1061,9 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueue("qCzDFPuY53Y34mdS", &redis)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := service.NewQueueCalc("qCzDFPuY53Y34mdS", &redis)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		heartbeatCalc := make(chan interface{})
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc))
 		g1, ctx1 := errgroup.WithContext(ctx)
@@ -1147,9 +1147,9 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.Queue)(nil)
-		queue2 := (*service.Queue)(nil)
-		pqueue := (*service.PQueue)(nil)
+		queue1 := (*service.QueueCalc)(nil)
+		queue2 := (*service.QueueComp)(nil)
+		pqueue := (*service.QueueDel)(nil)
 		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		contr := newController(&serv)
 		fn := contr.handleTop()
@@ -1189,9 +1189,9 @@ func TestControllerIntegrationHandleDelete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	queue1 := (*service.Queue)(nil)
-	queue2 := (*service.Queue)(nil)
-	pqueue := service.NewPQueue("WTgtJN2TemW3vLcT", &redis)
+	queue1 := (*service.QueueCalc)(nil)
+	queue2 := (*service.QueueComp)(nil)
+	pqueue := service.NewQueueDel("WTgtJN2TemW3vLcT", &redis)
 	pqueue.Monitor(ctx)
 	heartbeatDel := make(chan interface{})
 	serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandNow(fn2), service.WithHeartbeatDel(heartbeatDel))

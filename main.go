@@ -105,16 +105,16 @@ func main() {
 		temp = &mem
 	}
 
-	queue1 := service.NewQueue("calculation", temp)
+	queue1 := service.NewQueueCalc("calculation", temp)
 	queue1.Monitor(ctx)
 
-	queue2 := (*service.Queue)(nil)
+	queue2 := (*service.QueueComp)(nil)
 	if viper.GetBool("shortpixel.use") {
-		queue2 = service.NewQueue("compression", temp)
+		queue2 = service.NewQueueComp("compression", temp)
 		queue2.Monitor(ctx)
 	}
 
-	pqueue := service.NewPQueue("deletion", temp)
+	pqueue := service.NewQueueDel("deletion", temp)
 	pqueue.Monitor(ctx)
 
 	serv := service.NewService(comp, stor, pers, temp, queue1, queue2, pqueue)

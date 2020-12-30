@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zitryss/aye-and-nay/infrastructure/database"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 )
 
 func TestPQueueIntegration(t *testing.T) {
-	redis, err := database.NewRedis()
+	redis, err := cache.NewRedis()
 	if err != nil {
 		t.Fatal(err)
 	}

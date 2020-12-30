@@ -23,7 +23,7 @@ type Storager interface {
 	Remove(ctx context.Context, album string, image string) error
 }
 
-type Persister interface {
+type Databaser interface {
 	SaveAlbum(ctx context.Context, alb Album) error
 	CountImages(ctx context.Context, album string) (int, error)
 	CountImagesCompressed(ctx context.Context, album string) (int, error)
@@ -37,7 +37,7 @@ type Persister interface {
 	DeleteAlbum(ctx context.Context, album string) error
 }
 
-type Temper interface {
+type Cacher interface {
 	Queuer
 	PQueuer
 	Stacker

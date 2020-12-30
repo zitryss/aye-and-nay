@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zitryss/aye-and-nay/infrastructure/database"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 )
 
 func TestPQueue(t *testing.T) {
-	mem := database.NewMem()
+	mem := cache.NewMem()
 	pq := newPQueue("WM5BtzjdncQtExgY", &mem)
 	pq.Monitor(context.Background())
 	go func() {

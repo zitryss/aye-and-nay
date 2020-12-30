@@ -8,16 +8,12 @@ import (
 
 func newMemConfig() memConfig {
 	return memConfig{
-		timeToLive:      viper.GetDuration("redis.timeToLive"),
-		cleanupInterval: viper.GetDuration("redis.cleanupInterval"),
-		compressed:      !viper.GetBool("shortpixel.use"),
+		compressed: !viper.GetBool("shortpixel.use"),
 	}
 }
 
 type memConfig struct {
-	timeToLive      time.Duration
-	cleanupInterval time.Duration
-	compressed      bool
+	compressed bool
 }
 
 func newMongoConfig() mongoConfig {
@@ -38,24 +34,4 @@ type mongoConfig struct {
 	pause      time.Duration
 	timeout    time.Duration
 	compressed bool
-}
-
-func newRedisConfig() redisConfig {
-	return redisConfig{
-		host:       viper.GetString("redis.host"),
-		port:       viper.GetString("redis.port"),
-		times:      viper.GetInt("redis.retry.times"),
-		pause:      viper.GetDuration("redis.retry.pause"),
-		timeout:    viper.GetDuration("redis.retry.timeout"),
-		timeToLive: viper.GetDuration("redis.timeToLive"),
-	}
-}
-
-type redisConfig struct {
-	host       string
-	port       string
-	times      int
-	pause      time.Duration
-	timeout    time.Duration
-	timeToLive time.Duration
 }

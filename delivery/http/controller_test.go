@@ -15,6 +15,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/service"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
@@ -35,12 +36,13 @@ func TestControllerHandleAlbum(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := service.NewQueueComp("S8Lg9yR7JvfEqQgf", &mem)
-		pqueue := (*service.QueueDel)(nil)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := service.NewQueueComp("S8Lg9yR7JvfEqQgf", &mCache)
+		qDel := &service.QueueDel{}
 		heartbeatComp := make(chan interface{})
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
@@ -91,11 +93,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 	t.Run("Negative1", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -133,11 +136,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 	t.Run("Negative2", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -175,11 +179,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 	t.Run("Negative3", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -217,11 +222,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 	t.Run("Negative4", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -259,11 +265,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 	t.Run("Negative5", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -301,11 +308,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 	t.Run("Negative6", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -354,12 +362,13 @@ func TestControllerHandleAlbum(t *testing.T) {
 		comp := compressor.NewFail(compressor.WithHeartbeatRestart(heartbeatRestart))
 		comp.Monitor()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := service.NewQueueComp("6kD5hhETBcYFbKbq", &mem)
-		pqueue := (*service.QueueDel)(nil)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := service.NewQueueComp("6kD5hhETBcYFbKbq", &mCache)
+		qDel := &service.QueueDel{}
 		heartbeatComp := make(chan interface{})
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
@@ -548,11 +557,12 @@ func TestControllerHandlePair(t *testing.T) {
 		}
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -595,11 +605,12 @@ func TestControllerHandlePair(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handlePair()
 		w := httptest.NewRecorder()
@@ -626,11 +637,12 @@ func TestControllerHandleVote(t *testing.T) {
 		}
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -690,11 +702,12 @@ func TestControllerHandleVote(t *testing.T) {
 		}
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -754,11 +767,12 @@ func TestControllerHandleVote(t *testing.T) {
 		}
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -818,11 +832,12 @@ func TestControllerHandleVote(t *testing.T) {
 		}
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -886,12 +901,13 @@ func TestControllerHandleTop(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := service.NewQueueCalc("qCzDFPuY53Y34mdS", &mem)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := service.NewQueueCalc("qCzDFPuY53Y34mdS", &mCache)
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
 		heartbeatCalc := make(chan interface{})
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc))
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctx1, g1)
 		contr := newController(&serv)
@@ -962,11 +978,12 @@ func TestControllerHandleTop(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleTop()
 		w := httptest.NewRecorder()
@@ -994,13 +1011,14 @@ func TestControllerHandleDelete(t *testing.T) {
 	ctx := context.Background()
 	comp := compressor.NewMock()
 	stor := storage.NewMock()
-	mem := database.NewMem()
-	queue1 := (*service.QueueCalc)(nil)
-	queue2 := (*service.QueueComp)(nil)
-	pqueue := service.NewQueueDel("WTgtJN2TemW3vLcT", &mem)
-	pqueue.Monitor(ctx)
+	mDb := database.NewMem()
+	mCache := cache.NewMem()
+	qCalc := &service.QueueCalc{}
+	qComp := &service.QueueComp{}
+	qDel := service.NewQueueDel("WTgtJN2TemW3vLcT", &mCache)
+	qDel.Monitor(ctx)
 	heartbeatDel := make(chan interface{})
-	serv := service.NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandNow(fn2), service.WithHeartbeatDel(heartbeatDel))
+	serv := service.NewService(&comp, &stor, &mDb, &mCache, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandNow(fn2), service.WithHeartbeatDel(heartbeatDel))
 	g1, ctx1 := errgroup.WithContext(ctx)
 	serv.StartWorkingPoolDel(ctx1, g1)
 	contr := newController(&serv)

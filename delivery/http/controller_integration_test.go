@@ -18,6 +18,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/service"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
@@ -66,15 +67,15 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := service.NewQueueComp("S8Lg9yR7JvfEqQgf", &redis)
-		pqueue := (*service.QueueDel)(nil)
+		qCalc := &service.QueueCalc{}
+		qComp := service.NewQueueComp("S8Lg9yR7JvfEqQgf", &redis)
+		qDel := &service.QueueDel{}
 		heartbeatComp := make(chan interface{})
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
@@ -132,14 +133,14 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -184,14 +185,14 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -236,14 +237,14 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -288,14 +289,14 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -340,14 +341,14 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -392,14 +393,14 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -455,15 +456,15 @@ func TestControllerIntegrationHandleAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := service.NewQueueComp("6kD5hhETBcYFbKbq", &redis)
-		pqueue := (*service.QueueDel)(nil)
+		qCalc := &service.QueueCalc{}
+		qComp := service.NewQueueComp("6kD5hhETBcYFbKbq", &redis)
+		qDel := &service.QueueDel{}
 		heartbeatComp := make(chan interface{})
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		contr := newController(&serv)
@@ -659,14 +660,14 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -716,14 +717,14 @@ func TestControllerIntegrationHandlePair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handlePair()
 		w := httptest.NewRecorder()
@@ -757,14 +758,14 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -831,14 +832,14 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -905,14 +906,14 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -979,14 +980,14 @@ func TestControllerIntegrationHandleVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2))
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2))
 		contr := newController(&serv)
 		fn := contr.handleAlbum()
 		w := httptest.NewRecorder()
@@ -1057,15 +1058,15 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := service.NewQueueCalc("qCzDFPuY53Y34mdS", &redis)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
+		qCalc := service.NewQueueCalc("qCzDFPuY53Y34mdS", &redis)
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
 		heartbeatCalc := make(chan interface{})
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc))
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandShuffle(fn2), service.WithHeartbeatCalc(heartbeatCalc))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctx1, g1)
 		contr := newController(&serv)
@@ -1143,14 +1144,14 @@ func TestControllerIntegrationHandleTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*service.QueueCalc)(nil)
-		queue2 := (*service.QueueComp)(nil)
-		pqueue := (*service.QueueDel)(nil)
-		serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
+		qCalc := &service.QueueCalc{}
+		qComp := &service.QueueComp{}
+		qDel := &service.QueueDel{}
+		serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel)
 		contr := newController(&serv)
 		fn := contr.handleTop()
 		w := httptest.NewRecorder()
@@ -1185,16 +1186,16 @@ func TestControllerIntegrationHandleDelete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	redis, err := database.NewRedis()
+	redis, err := cache.NewRedis()
 	if err != nil {
 		t.Fatal(err)
 	}
-	queue1 := (*service.QueueCalc)(nil)
-	queue2 := (*service.QueueComp)(nil)
-	pqueue := service.NewQueueDel("WTgtJN2TemW3vLcT", &redis)
-	pqueue.Monitor(ctx)
+	qCalc := &service.QueueCalc{}
+	qComp := &service.QueueComp{}
+	qDel := service.NewQueueDel("WTgtJN2TemW3vLcT", &redis)
+	qDel.Monitor(ctx)
 	heartbeatDel := make(chan interface{})
-	serv := service.NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, service.WithRandId(fn1), service.WithRandNow(fn2), service.WithHeartbeatDel(heartbeatDel))
+	serv := service.NewService(&comp, &minio, &mongo, &redis, qCalc, qComp, qDel, service.WithRandId(fn1), service.WithRandNow(fn2), service.WithHeartbeatDel(heartbeatDel))
 	g1, ctx1 := errgroup.WithContext(ctx)
 	serv.StartWorkingPoolDel(ctx1, g1)
 	contr := newController(&serv)

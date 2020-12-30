@@ -12,6 +12,7 @@ import (
 	"github.com/zitryss/aye-and-nay/delivery/http"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/domain/service"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
@@ -76,7 +77,7 @@ func main() {
 		stor = &mock
 	}
 
-	pers := model.Persister(nil)
+	pers := model.Databaser(nil)
 	if viper.GetBool("mongo.use") {
 		log.Info("connecting to mongo")
 		mongo, err := database.NewMongo()
@@ -90,34 +91,34 @@ func main() {
 		pers = &mem
 	}
 
-	temp := model.Temper(nil)
+	temp := model.Cacher(nil)
 	if viper.GetBool("redis.use") {
 		log.Info("connecting to redis")
-		redis, err := database.NewRedis()
+		redis, err := cache.NewRedis()
 		if err != nil {
 			log.Critical(err)
 			os.Exit(1)
 		}
 		temp = &redis
 	} else {
-		mem := database.NewMem()
+		mem := cache.NewMem()
 		mem.Monitor()
 		temp = &mem
 	}
 
-	queue1 := service.NewQueueCalc("calculation", temp)
-	queue1.Monitor(ctx)
+	qCalc := service.NewQueueCalc("calculation", temp)
+	qCalc.Monitor(ctx)
 
-	queue2 := (*service.QueueComp)(nil)
+	qComp := &service.QueueComp{}
 	if viper.GetBool("shortpixel.use") {
-		queue2 = service.NewQueueComp("compression", temp)
-		queue2.Monitor(ctx)
+		qComp = service.NewQueueComp("compression", temp)
+		qComp.Monitor(ctx)
 	}
 
-	pqueue := service.NewQueueDel("deletion", temp)
-	pqueue.Monitor(ctx)
+	qDel := service.NewQueueDel("deletion", temp)
+	qDel.Monitor(ctx)
 
-	serv := service.NewService(comp, stor, pers, temp, queue1, queue2, pqueue)
+	serv := service.NewService(comp, stor, pers, temp, qCalc, qComp, qDel)
 
 	g1, ctx1 := errgroup.WithContext(ctx)
 	log.Info("starting calculation worker pool")

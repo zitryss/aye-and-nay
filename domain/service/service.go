@@ -16,8 +16,8 @@ import (
 func NewService(
 	comp model.Compresser,
 	stor model.Storager,
-	pers model.Persister,
-	temp model.Temper,
+	pers model.Databaser,
+	temp model.Cacher,
 	qCalc *QueueCalc,
 	qComp *QueueComp,
 	qDel *QueueDel,
@@ -122,7 +122,7 @@ type service struct {
 	conf  serviceConfig
 	comp  model.Compresser
 	stor  model.Storager
-	pers  model.Persister
+	pers  model.Databaser
 	pair  model.Stacker
 	token model.Tokener
 	queue struct {

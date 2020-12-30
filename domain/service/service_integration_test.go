@@ -67,9 +67,9 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*Queue)(nil)
-		queue2 := NewQueue("TV7ZuMmhz3CDfa7n", &redis)
-		pqueue := (*PQueue)(nil)
+		queue1 := (*QueueCalc)(nil)
+		queue2 := NewQueueComp("TV7ZuMmhz3CDfa7n", &redis)
+		pqueue := (*QueueDel)(nil)
 		heartbeatComp := make(chan interface{})
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
@@ -121,9 +121,9 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*Queue)(nil)
-		queue2 := NewQueue("mhynV9uhnGFEV4uf", &redis)
-		pqueue := (*PQueue)(nil)
+		queue1 := (*QueueCalc)(nil)
+		queue2 := NewQueueComp("mhynV9uhnGFEV4uf", &redis)
+		pqueue := (*QueueDel)(nil)
 		heartbeatComp := make(chan interface{})
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
@@ -227,9 +227,9 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
+		queue1 := (*QueueCalc)(nil)
+		queue2 := (*QueueComp)(nil)
+		pqueue := (*QueueDel)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
@@ -300,9 +300,9 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
+		queue1 := (*QueueCalc)(nil)
+		queue2 := (*QueueComp)(nil)
+		pqueue := (*QueueDel)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		_, _, err = serv.Pair(ctx, "A755jF7tvnTJrPCD")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
@@ -337,9 +337,9 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
+		queue1 := (*QueueCalc)(nil)
+		queue2 := (*QueueComp)(nil)
+		pqueue := (*QueueDel)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
@@ -380,9 +380,9 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
+		queue1 := (*QueueCalc)(nil)
+		queue2 := (*QueueComp)(nil)
+		pqueue := (*QueueDel)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
@@ -423,9 +423,9 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
+		queue1 := (*QueueCalc)(nil)
+		queue2 := (*QueueComp)(nil)
+		pqueue := (*QueueDel)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
@@ -469,9 +469,9 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := NewQueue("RKvUKsDj7whcrpzA", &redis)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
+		queue1 := NewQueueCalc("RKvUKsDj7whcrpzA", &redis)
+		queue2 := (*QueueComp)(nil)
+		pqueue := (*QueueDel)(nil)
 		heartbeatCalc := make(chan interface{})
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc))
 		g1, ctx1 := errgroup.WithContext(ctx)
@@ -525,9 +525,9 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
+		queue1 := (*QueueCalc)(nil)
+		queue2 := (*QueueComp)(nil)
+		pqueue := (*QueueDel)(nil)
 		serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue)
 		_, err = serv.Top(ctx, "XXAzCcc6EHr6mpcH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
@@ -554,9 +554,9 @@ func TestServiceIntegrationDelete(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	queue1 := (*Queue)(nil)
-	queue2 := (*Queue)(nil)
-	pqueue := NewPQueue("en8wWYq2ms5Zgnw7", &redis)
+	queue1 := (*QueueCalc)(nil)
+	queue2 := (*QueueComp)(nil)
+	pqueue := NewQueueDel("en8wWYq2ms5Zgnw7", &redis)
 	pqueue.Monitor(ctx)
 	heartbeatDel := make(chan interface{})
 	serv := NewService(&comp, &minio, &mongo, &redis, queue1, queue2, pqueue, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))

@@ -10,8 +10,8 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewQueue(name string, q model.Queuer) *Queue {
-	return &Queue{
+func newQueue(name string, q model.Queuer) *queue {
+	return &queue{
 		name:   name,
 		queue:  q,
 		cond:   sync.NewCond(&sync.Mutex{}),
@@ -20,7 +20,7 @@ func NewQueue(name string, q model.Queuer) *Queue {
 	}
 }
 
-type Queue struct {
+type queue struct {
 	name   string
 	queue  model.Queuer
 	cond   *sync.Cond
@@ -28,7 +28,7 @@ type Queue struct {
 	valid  bool
 }
 
-func (q *Queue) Monitor(ctx context.Context) {
+func (q *queue) Monitor(ctx context.Context) {
 	if q == nil || !q.valid {
 		return
 	}
@@ -41,7 +41,7 @@ func (q *Queue) Monitor(ctx context.Context) {
 	}()
 }
 
-func (q *Queue) add(ctx context.Context, album string) error {
+func (q *queue) add(ctx context.Context, album string) error {
 	if q == nil || !q.valid {
 		return nil
 	}
@@ -53,7 +53,7 @@ func (q *Queue) add(ctx context.Context, album string) error {
 	return nil
 }
 
-func (q *Queue) poll(ctx context.Context) (string, error) {
+func (q *queue) poll(ctx context.Context) (string, error) {
 	if q == nil || !q.valid {
 		return "", nil
 	}
@@ -80,8 +80,8 @@ func (q *Queue) poll(ctx context.Context) (string, error) {
 	return album, nil
 }
 
-func NewPQueue(name string, pq model.PQueuer) *PQueue {
-	return &PQueue{
+func newPQueue(name string, pq model.PQueuer) *pqueue {
+	return &pqueue{
 		name:    name,
 		pqueue:  pq,
 		addCh:   make(chan struct{}),
@@ -92,7 +92,7 @@ func NewPQueue(name string, pq model.PQueuer) *PQueue {
 	}
 }
 
-type PQueue struct {
+type pqueue struct {
 	name    string
 	pqueue  model.PQueuer
 	addCh   chan struct{}
@@ -102,7 +102,7 @@ type PQueue struct {
 	valid   bool
 }
 
-func (pq *PQueue) Monitor(ctx context.Context) {
+func (pq *pqueue) Monitor(ctx context.Context) {
 	if pq == nil || !pq.valid {
 		return
 	}
@@ -119,7 +119,7 @@ func (pq *PQueue) Monitor(ctx context.Context) {
 	}()
 }
 
-func (pq *PQueue) add(ctx context.Context, album string, expires time.Time) error {
+func (pq *pqueue) add(ctx context.Context, album string, expires time.Time) error {
 	if pq == nil || !pq.valid {
 		return nil
 	}
@@ -133,7 +133,7 @@ func (pq *PQueue) add(ctx context.Context, album string, expires time.Time) erro
 	return nil
 }
 
-func (pq *PQueue) poll(ctx context.Context) (string, error) {
+func (pq *pqueue) poll(ctx context.Context) (string, error) {
 	if pq == nil || !pq.valid {
 		return "", nil
 	}

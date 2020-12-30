@@ -18,9 +18,9 @@ func NewService(
 	stor model.Storager,
 	pers model.Persister,
 	temp model.Temper,
-	queue1 *Queue,
-	queue2 *Queue,
-	pqueue *PQueue,
+	qCalc *QueueCalc,
+	qComp *QueueComp,
+	qDel *QueueDel,
 	opts ...options,
 ) service {
 	conf := newServiceConfig()
@@ -32,13 +32,13 @@ func NewService(
 		pair:  temp,
 		token: temp,
 		queue: struct {
-			calc *Queue
-			comp *Queue
-			del  *PQueue
+			calc *QueueCalc
+			comp *QueueComp
+			del  *QueueDel
 		}{
-			queue1,
-			queue2,
-			pqueue,
+			qCalc,
+			qComp,
+			qDel,
 		},
 		rand: struct {
 			id      func(length int) (string, error)
@@ -54,6 +54,30 @@ func NewService(
 		opt(&s)
 	}
 	return s
+}
+
+func NewQueueCalc(name string, q model.Queuer) *QueueCalc {
+	return &QueueCalc{newQueue(name, q)}
+}
+
+type QueueCalc struct {
+	*queue
+}
+
+func NewQueueComp(name string, q model.Queuer) *QueueComp {
+	return &QueueComp{newQueue(name, q)}
+}
+
+type QueueComp struct {
+	*queue
+}
+
+func NewQueueDel(name string, q model.PQueuer) *QueueDel {
+	return &QueueDel{newPQueue(name, q)}
+}
+
+type QueueDel struct {
+	*pqueue
 }
 
 type options func(*service)
@@ -102,9 +126,9 @@ type service struct {
 	pair  model.Stacker
 	token model.Tokener
 	queue struct {
-		calc *Queue
-		comp *Queue
-		del  *PQueue
+		calc *QueueCalc
+		comp *QueueComp
+		del  *QueueDel
 	}
 	rand struct {
 		id      func(length int) (string, error)

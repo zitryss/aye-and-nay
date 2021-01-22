@@ -8,17 +8,17 @@ import (
 
 func newMinioConfig() minioConfig {
 	return minioConfig{
-		host:      viper.GetString("minio.host"),
-		port:      viper.GetString("minio.port"),
-		accessKey: viper.GetString("minio.accessKey"),
-		secretKey: viper.GetString("minio.secretKey"),
-		token:     viper.GetString("minio.token"),
-		secure:    viper.GetBool("minio.secure"),
-		times:     viper.GetInt("minio.retry.times"),
-		pause:     viper.GetDuration("minio.retry.pause"),
-		timeout:   viper.GetDuration("minio.retry.timeout"),
-		location:  viper.GetString("minio.location"),
-		prefix:    viper.GetString("minio.prefix"),
+		host:      viper.GetString("storage.minio.host"),
+		port:      viper.GetString("storage.minio.port"),
+		accessKey: viper.GetString("storage.minio.accessKey"),
+		secretKey: viper.GetString("storage.minio.secretKey"),
+		token:     viper.GetString("storage.minio.token"),
+		secure:    viper.GetBool("storage.minio.secure"),
+		times:     viper.GetInt("storage.minio.retry.times"),
+		pause:     viper.GetDuration("storage.minio.retry.pause"),
+		timeout:   viper.GetDuration("storage.minio.retry.timeout"),
+		location:  viper.GetString("storage.minio.location"),
+		prefix:    viper.GetString("storage.minio.prefix"),
 	}
 }
 

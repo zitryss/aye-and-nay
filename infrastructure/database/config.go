@@ -8,7 +8,7 @@ import (
 
 func newMemConfig() memConfig {
 	return memConfig{
-		compressed: !viper.GetBool("shortpixel.use"),
+		compressed: viper.GetString("compressor.use") != "shortpixel",
 	}
 }
 
@@ -18,12 +18,12 @@ type memConfig struct {
 
 func newMongoConfig() mongoConfig {
 	return mongoConfig{
-		host:       viper.GetString("mongo.host"),
-		port:       viper.GetString("mongo.port"),
-		times:      viper.GetInt("mongo.retry.times"),
-		pause:      viper.GetDuration("mongo.retry.pause"),
-		timeout:    viper.GetDuration("mongo.retry.timeout"),
-		compressed: !viper.GetBool("shortpixel.use"),
+		host:       viper.GetString("database.mongo.host"),
+		port:       viper.GetString("database.mongo.port"),
+		times:      viper.GetInt("database.mongo.retry.times"),
+		pause:      viper.GetDuration("database.mongo.retry.pause"),
+		timeout:    viper.GetDuration("database.mongo.retry.timeout"),
+		compressed: viper.GetString("compressor.use") != "shortpixel",
 	}
 }
 

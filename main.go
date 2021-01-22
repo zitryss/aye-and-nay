@@ -48,7 +48,7 @@ func main() {
 	defer cancel()
 
 	comp := model.Compresser(nil)
-	if viper.GetBool("shortpixel.use") {
+	if viper.GetString("compressor.use") == "shortpixel" {
 		log.Info("connecting to shortpixel")
 		sp := compressor.NewShortPixel()
 		err = sp.Ping()
@@ -64,7 +64,7 @@ func main() {
 	}
 
 	stor := model.Storager(nil)
-	if viper.GetBool("minio.use") {
+	if viper.GetString("storage.use") == "minio" {
 		log.Info("connecting to minio")
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -78,7 +78,7 @@ func main() {
 	}
 
 	pers := model.Databaser(nil)
-	if viper.GetBool("mongo.use") {
+	if viper.GetString("database.use") == "mongo" {
 		log.Info("connecting to mongo")
 		mongo, err := database.NewMongo()
 		if err != nil {
@@ -92,7 +92,7 @@ func main() {
 	}
 
 	temp := model.Cacher(nil)
-	if viper.GetBool("redis.use") {
+	if viper.GetString("cache.use") == "redis" {
 		log.Info("connecting to redis")
 		redis, err := cache.NewRedis()
 		if err != nil {
@@ -110,7 +110,7 @@ func main() {
 	qCalc.Monitor(ctx)
 
 	qComp := &service.QueueComp{}
-	if viper.GetBool("shortpixel.use") {
+	if viper.GetString("compressor.use") == "shortpixel" {
 		qComp = service.NewQueueComp("compression", temp)
 		qComp.Monitor(ctx)
 	}
@@ -126,7 +126,7 @@ func main() {
 
 	g2 := (*errgroup.Group)(nil)
 	ctx2 := context.Context(nil)
-	if viper.GetBool("shortpixel.use") {
+	if viper.GetString("compressor.use") == "shortpixel" {
 		g2, ctx2 = errgroup.WithContext(ctx)
 		log.Info("starting compression worker pool")
 		serv.StartWorkingPoolComp(ctx2, g2)
@@ -160,7 +160,7 @@ func main() {
 		return
 	}
 
-	if viper.GetBool("shortpixel.use") {
+	if viper.GetString("compressor.use") == "shortpixel" {
 		log.Info("stopping compression worker pool")
 		err = g2.Wait()
 		if err != nil {

@@ -8,17 +8,17 @@ import (
 
 func newShortPixelConfig() shortPixelConfig {
 	return shortPixelConfig{
-		url:             viper.GetString("shortpixel.url"),
-		url2:            viper.GetString("shortpixel.url2"),
-		apiKey:          viper.GetString("shortpixel.apiKey"),
-		times:           viper.GetInt("shortpixel.retry.times"),
-		pause:           viper.GetDuration("shortpixel.retry.pause"),
-		timeout:         viper.GetDuration("shortpixel.retry.timeout"),
-		wait:            viper.GetString("shortpixel.wait"),
-		uploadTimeout:   viper.GetDuration("shortpixel.uploadTimeout"),
-		downloadTimeout: viper.GetDuration("shortpixel.downloadTimeout"),
-		repeatIn:        viper.GetDuration("shortpixel.repeatIn"),
-		restartIn:       viper.GetDuration("shortpixel.restartIn"),
+		url:             viper.GetString("compressor.shortpixel.url"),
+		url2:            viper.GetString("compressor.shortpixel.url2"),
+		apiKey:          viper.GetString("compressor.shortpixel.apiKey"),
+		times:           viper.GetInt("compressor.shortpixel.retry.times"),
+		pause:           viper.GetDuration("compressor.shortpixel.retry.pause"),
+		timeout:         viper.GetDuration("compressor.shortpixel.retry.timeout"),
+		wait:            viper.GetString("compressor.shortpixel.wait"),
+		uploadTimeout:   viper.GetDuration("compressor.shortpixel.uploadTimeout"),
+		downloadTimeout: viper.GetDuration("compressor.shortpixel.downloadTimeout"),
+		repeatIn:        viper.GetDuration("compressor.shortpixel.repeatIn"),
+		restartIn:       viper.GetDuration("compressor.shortpixel.restartIn"),
 	}
 }
 

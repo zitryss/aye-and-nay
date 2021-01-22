@@ -8,8 +8,8 @@ import (
 
 func newMemConfig() memConfig {
 	return memConfig{
-		timeToLive:      viper.GetDuration("redis.timeToLive"),
-		cleanupInterval: viper.GetDuration("redis.cleanupInterval"),
+		timeToLive:      viper.GetDuration("cache.redis.timeToLive"),
+		cleanupInterval: viper.GetDuration("cache.redis.cleanupInterval"),
 	}
 }
 
@@ -20,12 +20,12 @@ type memConfig struct {
 
 func newRedisConfig() redisConfig {
 	return redisConfig{
-		host:       viper.GetString("redis.host"),
-		port:       viper.GetString("redis.port"),
-		times:      viper.GetInt("redis.retry.times"),
-		pause:      viper.GetDuration("redis.retry.pause"),
-		timeout:    viper.GetDuration("redis.retry.timeout"),
-		timeToLive: viper.GetDuration("redis.timeToLive"),
+		host:       viper.GetString("cache.redis.host"),
+		port:       viper.GetString("cache.redis.port"),
+		times:      viper.GetInt("cache.redis.retry.times"),
+		pause:      viper.GetDuration("cache.redis.retry.pause"),
+		timeout:    viper.GetDuration("cache.redis.retry.timeout"),
+		timeToLive: viper.GetDuration("cache.redis.timeToLive"),
 	}
 }
 

@@ -23,7 +23,7 @@ func NewServer(
 	serv model.Servicer,
 	cancel context.CancelFunc,
 	serverWait chan<- error,
-) server {
+) Server {
 	conf := newServerConfig()
 	contr := newController(serv)
 	router := newRouter(contr)
@@ -31,7 +31,7 @@ func NewServer(
 	handler := middle.chain(router)
 	https := newHttps(conf, handler)
 	https.RegisterOnShutdown(cancel)
-	return server{conf, https, serverWait}
+	return Server{conf, https, serverWait}
 }
 
 func newHttps(conf serverConfig, handler http.Handler) http.Server {
@@ -44,13 +44,13 @@ func newHttps(conf serverConfig, handler http.Handler) http.Server {
 	}
 }
 
-type server struct {
+type Server struct {
 	conf       serverConfig
 	https      http.Server
 	serverWait chan<- error
 }
 
-func (s *server) Monitor() {
+func (s *Server) Monitor() {
 	go func() {
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -59,7 +59,7 @@ func (s *server) Monitor() {
 	}()
 }
 
-func (s *server) Start() error {
+func (s *Server) Start() error {
 	err := s.https.ListenAndServe()
 	if err != nil {
 		return errors.Wrap(err)
@@ -67,7 +67,7 @@ func (s *server) Start() error {
 	return nil
 }
 
-func (s *server) shutdown() {
+func (s *Server) shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), s.conf.shutdownTimeout)
 	defer cancel()
 	err := s.https.Shutdown(ctx)

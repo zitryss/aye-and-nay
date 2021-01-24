@@ -12,9 +12,9 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMem(opts ...options) mem {
+func NewMem(opts ...options) Mem {
 	conf := newMemConfig()
-	m := mem{
+	m := Mem{
 		conf:        conf,
 		syncQueues:  syncQueues{queues: map[string]*linkedhashset.Set{}},
 		syncPQueues: syncPQueues{pqueues: map[string]*binaryheap.Heap{}},
@@ -27,21 +27,21 @@ func NewMem(opts ...options) mem {
 	return m
 }
 
-type options func(*mem)
+type options func(*Mem)
 
 func WithHeartbeatPair(ch chan<- interface{}) options {
-	return func(m *mem) {
+	return func(m *Mem) {
 		m.heartbeat.pair = ch
 	}
 }
 
 func WithHeartbeatToken(ch chan<- interface{}) options {
-	return func(m *mem) {
+	return func(m *Mem) {
 		m.heartbeat.token = ch
 	}
 }
 
-type mem struct {
+type Mem struct {
 	conf memConfig
 	syncQueues
 	syncPQueues
@@ -101,7 +101,7 @@ func timeComparator(a, b interface{}) int {
 	}
 }
 
-func (m *mem) Monitor() {
+func (m *Mem) Monitor() {
 	go func() {
 		for {
 			if m.heartbeat.pair != nil {
@@ -142,7 +142,7 @@ func (m *mem) Monitor() {
 	}()
 }
 
-func (m *mem) Add(_ context.Context, queue string, album string) error {
+func (m *Mem) Add(_ context.Context, queue string, album string) error {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
@@ -154,7 +154,7 @@ func (m *mem) Add(_ context.Context, queue string, album string) error {
 	return nil
 }
 
-func (m *mem) Poll(_ context.Context, queue string) (string, error) {
+func (m *Mem) Poll(_ context.Context, queue string) (string, error) {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
@@ -170,7 +170,7 @@ func (m *mem) Poll(_ context.Context, queue string) (string, error) {
 	return album, nil
 }
 
-func (m *mem) Size(_ context.Context, queue string) (int, error) {
+func (m *Mem) Size(_ context.Context, queue string) (int, error) {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
@@ -181,7 +181,7 @@ func (m *mem) Size(_ context.Context, queue string) (int, error) {
 	return n, nil
 }
 
-func (m *mem) PAdd(_ context.Context, pqueue string, album string, expires time.Time) error {
+func (m *Mem) PAdd(_ context.Context, pqueue string, album string, expires time.Time) error {
 	m.syncPQueues.Lock()
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
@@ -193,7 +193,7 @@ func (m *mem) PAdd(_ context.Context, pqueue string, album string, expires time.
 	return nil
 }
 
-func (m *mem) PPoll(_ context.Context, pqueue string) (string, time.Time, error) {
+func (m *Mem) PPoll(_ context.Context, pqueue string) (string, time.Time, error) {
 	m.syncPQueues.Lock()
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
@@ -207,7 +207,7 @@ func (m *mem) PPoll(_ context.Context, pqueue string) (string, time.Time, error)
 	return e.(elem).album, e.(elem).expires, nil
 }
 
-func (m *mem) PSize(_ context.Context, pqueue string) (int, error) {
+func (m *Mem) PSize(_ context.Context, pqueue string) (int, error) {
 	m.syncPQueues.Lock()
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
@@ -218,7 +218,7 @@ func (m *mem) PSize(_ context.Context, pqueue string) (int, error) {
 	return n, nil
 }
 
-func (m *mem) Push(_ context.Context, album string, pairs [][2]string) error {
+func (m *Mem) Push(_ context.Context, album string, pairs [][2]string) error {
 	m.syncPairs.Lock()
 	defer m.syncPairs.Unlock()
 	key := "album:" + album + ":pairs"
@@ -235,7 +235,7 @@ func (m *mem) Push(_ context.Context, album string, pairs [][2]string) error {
 	return nil
 }
 
-func (m *mem) Pop(_ context.Context, album string) (string, string, error) {
+func (m *Mem) Pop(_ context.Context, album string) (string, string, error) {
 	m.syncPairs.Lock()
 	defer m.syncPairs.Unlock()
 	key := "album:" + album + ":pairs"
@@ -252,7 +252,7 @@ func (m *mem) Pop(_ context.Context, album string) (string, string, error) {
 	return images[0], images[1], nil
 }
 
-func (m *mem) Set(_ context.Context, album string, token string, image string) error {
+func (m *Mem) Set(_ context.Context, album string, token string, image string) error {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
 	key := "album:" + album + ":token:" + token + ":image"
@@ -267,7 +267,7 @@ func (m *mem) Set(_ context.Context, album string, token string, image string) e
 	return nil
 }
 
-func (m *mem) Get(_ context.Context, album string, token string) (string, error) {
+func (m *Mem) Get(_ context.Context, album string, token string) (string, error) {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
 	key := "album:" + album + ":token:" + token + ":image"

@@ -19,9 +19,9 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewShortPixel(opts ...options) shortpixel {
+func NewShortPixel(opts ...options) Shortpixel {
 	conf := newShortPixelConfig()
-	sp := shortpixel{
+	sp := Shortpixel{
 		conf: conf,
 		ch:   make(chan struct{}, 1),
 	}
@@ -31,21 +31,21 @@ func NewShortPixel(opts ...options) shortpixel {
 	return sp
 }
 
-type options func(*shortpixel)
+type options func(*Shortpixel)
 
 func WithHeartbeatRestart(ch chan<- interface{}) options {
-	return func(sp *shortpixel) {
+	return func(sp *Shortpixel) {
 		sp.heartbeat.restart = ch
 	}
 }
 
 func WithHeartbeatRepeat(ch chan<- interface{}) options {
-	return func(sp *shortpixel) {
+	return func(sp *Shortpixel) {
 		sp.heartbeat.repeat = ch
 	}
 }
 
-type shortpixel struct {
+type Shortpixel struct {
 	conf      shortPixelConfig
 	done      uint32
 	ch        chan struct{}
@@ -55,7 +55,7 @@ type shortpixel struct {
 	}
 }
 
-func (sp *shortpixel) Ping() error {
+func (sp *Shortpixel) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), sp.conf.timeout)
 	defer cancel()
 	_, err := sp.upload(ctx, Png())
@@ -65,7 +65,7 @@ func (sp *shortpixel) Ping() error {
 	return nil
 }
 
-func (sp *shortpixel) Monitor() {
+func (sp *Shortpixel) Monitor() {
 	go func() {
 		for {
 			<-sp.ch
@@ -81,7 +81,7 @@ func (sp *shortpixel) Monitor() {
 	}()
 }
 
-func (sp *shortpixel) Compress(ctx context.Context, f model.File) (model.File, error) {
+func (sp *Shortpixel) Compress(ctx context.Context, f model.File) (model.File, error) {
 	defer func() {
 		switch v := f.Reader.(type) {
 		case *os.File:
@@ -112,7 +112,7 @@ func (sp *shortpixel) Compress(ctx context.Context, f model.File) (model.File, e
 	return buf, nil
 }
 
-func (sp *shortpixel) compress(ctx context.Context, f model.File) (model.File, error) {
+func (sp *Shortpixel) compress(ctx context.Context, f model.File) (model.File, error) {
 	src, err := sp.upload(ctx, f)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
@@ -124,7 +124,7 @@ func (sp *shortpixel) compress(ctx context.Context, f model.File) (model.File, e
 	return bb, nil
 }
 
-func (sp *shortpixel) upload(ctx context.Context, f model.File) (string, error) {
+func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) {
 	body := pool.GetBuffer()
 	defer pool.PutBuffer(body)
 	multi := multipart.NewWriter(body)
@@ -254,7 +254,7 @@ func (sp *shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	return src, nil
 }
 
-func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
+func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	if sp.heartbeat.repeat != nil {
 		sp.heartbeat.repeat <- struct{}{}
 	}
@@ -346,7 +346,7 @@ func (sp *shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	}
 }
 
-func (sp *shortpixel) download(ctx context.Context, src string) (model.File, error) {
+func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, error) {
 	c := http.Client{Timeout: sp.conf.downloadTimeout}
 	body := io.Reader(nil)
 	req, err := http.NewRequestWithContext(ctx, "GET", src, body)

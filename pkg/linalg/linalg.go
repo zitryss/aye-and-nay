@@ -1,9 +1,5 @@
 package linalg
 
-import (
-	"runtime"
-)
-
 func PageRank(graph map[string]map[string]int) map[string]float64 {
 	// n - amount of vertices
 	n := len(graph)
@@ -89,7 +85,7 @@ func PageRank(graph map[string]map[string]int) map[string]float64 {
 			vv[j] /= sum
 		}
 		v = vv
-		runtime.Gosched()
+		// runtime.Gosched() // runtime implements asynchronous preemption since go 1.14
 	}
 
 	res := make(map[string]float64, n)

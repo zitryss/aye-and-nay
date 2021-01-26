@@ -34,8 +34,8 @@ func NewServer(
 	return Server{conf, https, serverWait}
 }
 
-func newHttps(conf serverConfig, handler http.Handler) http.Server {
-	return http.Server{
+func newHttps(conf serverConfig, handler http.Handler) *http.Server {
+	return &http.Server{
 		Addr:         conf.host + ":" + conf.port,
 		Handler:      h2c.NewHandler(http.TimeoutHandler(handler, conf.writeTimeout, ""), &http2.Server{}),
 		ReadTimeout:  conf.readTimeout,
@@ -46,7 +46,7 @@ func newHttps(conf serverConfig, handler http.Handler) http.Server {
 
 type Server struct {
 	conf       serverConfig
-	https      http.Server
+	https      *http.Server
 	serverWait chan<- error
 }
 

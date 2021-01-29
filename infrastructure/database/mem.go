@@ -9,13 +9,12 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMem() Mem {
+func NewMem() *Mem {
 	conf := newMemConfig()
-	m := Mem{
+	return &Mem{
 		conf:       conf,
 		syncAlbums: syncAlbums{albums: map[string]model.Album{}},
 	}
-	return m
 }
 
 type Mem struct {

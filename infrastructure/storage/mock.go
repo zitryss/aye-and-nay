@@ -12,8 +12,8 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMock() Mock {
-	return Mock{}
+func NewMock() *Mock {
+	return &Mock{}
 }
 
 type Mock struct {

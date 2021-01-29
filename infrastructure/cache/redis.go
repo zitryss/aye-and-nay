@@ -12,7 +12,7 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewRedis() (Redis, error) {
+func NewRedis() (*Redis, error) {
 	conf := newRedisConfig()
 	client := redisdb.NewClient(&redisdb.Options{Addr: conf.host + ":" + conf.port})
 	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
@@ -25,9 +25,9 @@ func NewRedis() (Redis, error) {
 		return nil
 	})
 	if err != nil {
-		return Redis{}, errors.Wrap(err)
+		return &Redis{}, errors.Wrap(err)
 	}
-	return Redis{conf, client}, nil
+	return &Redis{conf, client}, nil
 }
 
 type Redis struct {

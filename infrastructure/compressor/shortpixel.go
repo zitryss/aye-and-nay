@@ -19,14 +19,14 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewShortPixel(opts ...options) Shortpixel {
+func NewShortPixel(opts ...options) *Shortpixel {
 	conf := newShortPixelConfig()
-	sp := Shortpixel{
+	sp := &Shortpixel{
 		conf: conf,
 		ch:   make(chan struct{}, 1),
 	}
 	for _, opt := range opts {
-		opt(&sp)
+		opt(sp)
 	}
 	return sp
 }

@@ -28,14 +28,14 @@ type edgeDao struct {
 	Weight int
 }
 
-func NewMongo() (Mongo, error) {
+func NewMongo() (*Mongo, error) {
 	conf := newMongoConfig()
 	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
 	defer cancel()
 	opts := optionsdb.Client().ApplyURI("mongodb://" + conf.host + ":" + conf.port)
 	client, err := mongodb.Connect(ctx, opts)
 	if err != nil {
-		return Mongo{}, errors.Wrap(err)
+		return &Mongo{}, errors.Wrap(err)
 	}
 	err = retry.Do(conf.times, conf.pause, func() error {
 		err := client.Ping(ctx, readpref.Primary())
@@ -45,12 +45,12 @@ func NewMongo() (Mongo, error) {
 		return nil
 	})
 	if err != nil {
-		return Mongo{}, errors.Wrap(err)
+		return &Mongo{}, errors.Wrap(err)
 	}
 	db := client.Database("aye-and-nay")
 	images := db.Collection("images")
 	edges := db.Collection("edges")
-	return Mongo{conf, images, edges}, nil
+	return &Mongo{conf, images, edges}, nil
 }
 
 type Mongo struct {

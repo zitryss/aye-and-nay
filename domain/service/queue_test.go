@@ -10,7 +10,7 @@ import (
 
 func TestPQueue(t *testing.T) {
 	mem := cache.NewMem()
-	pq := newPQueue("WM5BtzjdncQtExgY", &mem)
+	pq := newPQueue("WM5BtzjdncQtExgY", mem)
 	pq.Monitor(context.Background())
 	go func() {
 		time.Sleep(100 * time.Millisecond)

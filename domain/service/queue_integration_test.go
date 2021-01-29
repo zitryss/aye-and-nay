@@ -15,7 +15,7 @@ func TestPQueueIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	pq := newPQueue("WM5BtzjdncQtExgY", &redis)
+	pq := newPQueue("WM5BtzjdncQtExgY", redis)
 	pq.Monitor(context.Background())
 	go func() {
 		time.Sleep(100 * time.Millisecond)

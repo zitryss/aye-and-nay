@@ -12,9 +12,9 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMem(opts ...options) Mem {
+func NewMem(opts ...options) *Mem {
 	conf := newMemConfig()
-	m := Mem{
+	m := &Mem{
 		conf:        conf,
 		syncQueues:  syncQueues{queues: map[string]*linkedhashset.Set{}},
 		syncPQueues: syncPQueues{pqueues: map[string]*binaryheap.Heap{}},
@@ -22,7 +22,7 @@ func NewMem(opts ...options) Mem {
 		syncTokens:  syncTokens{tokens: map[string]*tokenTime{}},
 	}
 	for _, opt := range opts {
-		opt(&m)
+		opt(m)
 	}
 	return m
 }

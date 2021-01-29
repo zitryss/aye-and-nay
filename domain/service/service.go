@@ -22,9 +22,9 @@ func NewService(
 	qComp *QueueComp,
 	qDel *QueueDel,
 	opts ...options,
-) Service {
+) *Service {
 	conf := newServiceConfig()
-	s := Service{
+	s := &Service{
 		conf:  conf,
 		comp:  comp,
 		stor:  stor,
@@ -51,7 +51,7 @@ func NewService(
 		},
 	}
 	for _, opt := range opts {
-		opt(&s)
+		opt(s)
 	}
 	return s
 }

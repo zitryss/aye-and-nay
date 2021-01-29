@@ -18,14 +18,14 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewMinio() (Minio, error) {
+func NewMinio() (*Minio, error) {
 	conf := newMinioConfig()
 	client, err := minios3.New(conf.host+":"+conf.port, &minios3.Options{
 		Creds:  credentials.NewStaticV4(conf.accessKey, conf.secretKey, conf.token),
 		Secure: conf.secure,
 	})
 	if err != nil {
-		return Minio{}, errors.Wrap(err)
+		return &Minio{}, errors.Wrap(err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
 	defer cancel()
@@ -83,24 +83,24 @@ func NewMinio() (Minio, error) {
 		return nil
 	})
 	if err != nil {
-		return Minio{}, errors.Wrap(err)
+		return &Minio{}, errors.Wrap(err)
 	}
 	found, err := client.BucketExists(ctx, "aye-and-nay")
 	if err != nil {
-		return Minio{}, errors.Wrap(err)
+		return &Minio{}, errors.Wrap(err)
 	}
 	if !found {
 		err = client.MakeBucket(ctx, "aye-and-nay", minios3.MakeBucketOptions{Region: conf.location})
 		if err != nil {
-			return Minio{}, errors.Wrap(err)
+			return &Minio{}, errors.Wrap(err)
 		}
 		policy := `{"Statement":[{"Action":["s3:GetObject"],"Effect":"Allow","Principal":"*","Resource":["arn:aws:s3:::aye-and-nay/albums/*"]}],"Version":"2012-10-17"}`
 		err = client.SetBucketPolicy(ctx, "aye-and-nay", policy)
 		if err != nil {
-			return Minio{}, errors.Wrap(err)
+			return &Minio{}, errors.Wrap(err)
 		}
 	}
-	return Minio{conf, client}, nil
+	return &Minio{conf, client}, nil
 }
 
 type Minio struct {

@@ -8,7 +8,7 @@ import (
 
 func newMemConfig() memConfig {
 	return memConfig{
-		compressed: viper.GetString("compressor.use") != "shortpixel",
+		compressed: viper.GetString("compressor.use") == "mock",
 	}
 }
 
@@ -23,7 +23,7 @@ func newMongoConfig() mongoConfig {
 		times:      viper.GetInt("database.mongo.retry.times"),
 		pause:      viper.GetDuration("database.mongo.retry.pause"),
 		timeout:    viper.GetDuration("database.mongo.retry.timeout"),
-		compressed: viper.GetString("compressor.use") != "shortpixel",
+		compressed: viper.GetString("compressor.use") == "mock",
 	}
 }
 

@@ -184,7 +184,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(&serv)
+			contr := newController(serv)
 			fn := contr.handleAlbum()
 			w := httptest.NewRecorder()
 			body := bytes.Buffer{}
@@ -388,7 +388,7 @@ func TestControllerHandleReady(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(&serv)
+			contr := newController(serv)
 			fn := contr.handleReady()
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest("GET", "/api/albums/N2fxX5zbDh8RJQvx1/ready", nil)
@@ -568,7 +568,7 @@ func TestControllerHandlePair(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(&serv)
+			contr := newController(serv)
 			fn := contr.handlePair()
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest("GET", "/api/albums/DfsXRkDxVeH2xmme1/", nil)
@@ -748,7 +748,7 @@ func TestControllerHandleVote(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(&serv)
+			contr := newController(serv)
 			fn := contr.handleVote()
 			w := httptest.NewRecorder()
 			json := strings.NewReader(`{"album":{"imgFrom":{"token":"MvdZUxVgPD5p6JTa5"},"imgTo":{"token":"MvdZUxVgPD5p6JTa6"}}}`)
@@ -930,7 +930,7 @@ func TestControllerHandleTop(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(&serv)
+			contr := newController(serv)
 			fn := contr.handleTop()
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/top/", nil)

@@ -10,6 +10,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
@@ -31,12 +32,13 @@ func TestServiceAlbum(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*Queue)(nil)
-		queue2 := NewQueue("TV7ZuMmhz3CDfa7n", &mem)
-		pqueue := (*PQueue)(nil)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qComp := &QueueComp{newQueue("TV7ZuMmhz3CDfa7n", mCache)}
+		qDel := &QueueDel{}
 		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
@@ -44,7 +46,7 @@ func TestServiceAlbum(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		v := <-heartbeatComp
+		v := CheckChannel(t, heartbeatComp)
 		p, ok := v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -52,7 +54,7 @@ func TestServiceAlbum(t *testing.T) {
 		if !EqualFloat(p, 0.5) {
 			t.Error("p != 0.5")
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok = v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -75,12 +77,13 @@ func TestServiceAlbum(t *testing.T) {
 		comp := compressor.NewFail(compressor.WithHeartbeatRestart(heartbeatRestart))
 		comp.Monitor()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*Queue)(nil)
-		queue2 := NewQueue("mhynV9uhnGFEV4uf", &mem)
-		pqueue := (*PQueue)(nil)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qComp := &QueueComp{newQueue("mhynV9uhnGFEV4uf", mCache)}
+		qDel := &QueueDel{}
 		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		g, ctx2 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctx2, g)
 		files := []model.File{Png(), Png()}
@@ -88,7 +91,7 @@ func TestServiceAlbum(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		v := <-heartbeatComp
+		v := CheckChannel(t, heartbeatComp)
 		err, ok := v.(error)
 		if !ok {
 			t.Error("v.(type) != error")
@@ -101,7 +104,7 @@ func TestServiceAlbum(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok := v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -109,7 +112,7 @@ func TestServiceAlbum(t *testing.T) {
 		if !EqualFloat(p, 0.5) {
 			t.Error("p != 0.5")
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok = v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -117,14 +120,14 @@ func TestServiceAlbum(t *testing.T) {
 		if !EqualFloat(p, 1) {
 			t.Error("p != 1")
 		}
-		<-heartbeatRestart
-		<-heartbeatRestart
+		CheckChannel(t, heartbeatRestart)
+		CheckChannel(t, heartbeatRestart)
 		files = []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		err, ok = v.(error)
 		if !ok {
 			t.Error("v.(type) != error")
@@ -137,7 +140,7 @@ func TestServiceAlbum(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok = v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -145,7 +148,7 @@ func TestServiceAlbum(t *testing.T) {
 		if !EqualFloat(p, 0.5) {
 			t.Error("p != 0.5")
 		}
-		v = <-heartbeatComp
+		v = CheckChannel(t, heartbeatComp)
 		p, ok = v.(float64)
 		if !ok {
 			t.Error("v.(type) != float64")
@@ -171,11 +174,12 @@ func TestServicePair(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qComp := &QueueComp{}
+		qDel := &QueueDel{}
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -234,11 +238,12 @@ func TestServicePair(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qComp := &QueueComp{}
+		qDel := &QueueDel{}
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel)
 		_, _, err := serv.Pair(ctx, "A755jF7tvnTJrPCD")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
@@ -261,11 +266,12 @@ func TestServiceVote(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qComp := &QueueComp{}
+		qDel := &QueueDel{}
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -294,11 +300,12 @@ func TestServiceVote(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qComp := &QueueComp{}
+		qDel := &QueueDel{}
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -327,11 +334,12 @@ func TestServiceVote(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2))
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qComp := &QueueComp{}
+		qDel := &QueueDel{}
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -363,24 +371,20 @@ func TestServiceTop(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := NewQueue("RKvUKsDj7whcrpzA", &mem)
-		queue2 := NewQueue("2NPRqbKcbSX73vhr", &mem)
-		pqueue := (*PQueue)(nil)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{newQueue("RKvUKsDj7whcrpzA", mCache)}
+		qComp := &QueueComp{}
+		qDel := &QueueDel{}
 		heartbeatCalc := make(chan interface{})
-		heartbeatComp := make(chan interface{})
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc), WithHeartbeatComp(heartbeatComp))
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc))
 		g1, ctx1 := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctx1, g1)
-		g2, ctx2 := errgroup.WithContext(ctx)
-		serv.StartWorkingPoolComp(ctx2, g2)
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
 			t.Error(err)
 		}
-		<-heartbeatComp
-		<-heartbeatComp
 		img1, img2, err := serv.Pair(ctx, album)
 		if err != nil {
 			t.Error(err)
@@ -389,7 +393,7 @@ func TestServiceTop(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		<-heartbeatCalc
+		CheckChannel(t, heartbeatCalc)
 		img3, img4, err := serv.Pair(ctx, album)
 		if err != nil {
 			t.Error(err)
@@ -398,13 +402,13 @@ func TestServiceTop(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		<-heartbeatCalc
+		CheckChannel(t, heartbeatCalc)
 		imgs1, err := serv.Top(ctx, album)
 		if err != nil {
 			t.Error(err)
 		}
-		img5 := model.Image{Id: "L2j8Uc3z2HNLZHvJ2", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ2", Rating: 0.5, Compressed: true}
-		img6 := model.Image{Id: "L2j8Uc3z2HNLZHvJ3", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ3", Rating: 0.5, Compressed: true}
+		img5 := model.Image{Id: "L2j8Uc3z2HNLZHvJ2", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ2", Rating: 0.5, Compressed: false}
+		img6 := model.Image{Id: "L2j8Uc3z2HNLZHvJ3", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ3", Rating: 0.5, Compressed: false}
 		imgs2 := []model.Image{img5, img6}
 		if !reflect.DeepEqual(imgs1, imgs2) {
 			t.Error("imgs1 != imgs2")
@@ -414,11 +418,12 @@ func TestServiceTop(t *testing.T) {
 		ctx := context.Background()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
-		mem := database.NewMem()
-		queue1 := (*Queue)(nil)
-		queue2 := (*Queue)(nil)
-		pqueue := (*PQueue)(nil)
-		serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue)
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qComp := &QueueComp{}
+		qDel := &QueueDel{}
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel)
 		_, err := serv.Top(ctx, "XXAzCcc6EHr6mpcH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
@@ -433,13 +438,14 @@ func TestServiceDelete(t *testing.T) {
 	ctx := context.Background()
 	comp := compressor.NewMock()
 	stor := storage.NewMock()
-	mem := database.NewMem()
-	queue1 := (*Queue)(nil)
-	queue2 := (*Queue)(nil)
-	pqueue := NewPQueue("en8wWYq2ms5Zgnw7", &mem)
-	pqueue.Monitor(ctx)
+	mDb := database.NewMem()
+	mCache := cache.NewMem()
+	qCalc := &QueueCalc{}
+	qComp := &QueueComp{}
+	qDel := &QueueDel{newPQueue("en8wWYq2ms5Zgnw7", mCache)}
+	qDel.Monitor(ctx)
 	heartbeatDel := make(chan interface{})
-	serv := NewService(&comp, &stor, &mem, &mem, queue1, queue2, pqueue, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+	serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
 	g1, ctx1 := errgroup.WithContext(ctx)
 	serv.StartWorkingPoolDel(ctx1, g1)
 	files := []model.File{Png(), Png()}

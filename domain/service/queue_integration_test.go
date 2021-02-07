@@ -7,28 +7,28 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zitryss/aye-and-nay/infrastructure/database"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 )
 
 func TestPQueueIntegration(t *testing.T) {
-	redis, err := database.NewRedis()
+	redis, err := cache.NewRedis()
 	if err != nil {
 		t.Fatal(err)
 	}
-	pq := NewPQueue("WM5BtzjdncQtExgY", &redis)
+	pq := newPQueue("WM5BtzjdncQtExgY", redis)
 	pq.Monitor(context.Background())
 	go func() {
-		<-time.After(100 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		err := pq.add(context.Background(), "ac/dc", time.Now().Add(400*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
-		<-time.After(100 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		err = pq.add(context.Background(), "doors", time.Now().Add(200*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
-		<-time.After(100 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		err = pq.add(context.Background(), "abba", time.Now().Add(400*time.Millisecond))
 		if err != nil {
 			t.Error(err)

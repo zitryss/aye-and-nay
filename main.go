@@ -10,8 +10,8 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/delivery/http"
-	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/domain/service"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
@@ -46,97 +46,62 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	comp := model.Compresser(nil)
-	if viper.GetBool("shortpixel.use") {
-		log.Info("connecting to shortpixel")
-		sp := compressor.NewShortPixel()
-		err = sp.Ping()
-		if err != nil {
-			log.Critical(err)
-			os.Exit(1)
-		}
-		sp.Monitor()
-		comp = &sp
-	} else {
-		mock := compressor.NewMock()
-		comp = &mock
+	comp, err := compressor.New(viper.GetString("compressor.use"))
+	if err != nil {
+		log.Critical(err)
+		os.Exit(1)
 	}
 
-	stor := model.Storager(nil)
-	if viper.GetBool("minio.use") {
-		log.Info("connecting to minio")
-		minio, err := storage.NewMinio()
-		if err != nil {
-			log.Critical(err)
-			os.Exit(1)
-		}
-		stor = &minio
-	} else {
-		mock := storage.NewMock()
-		stor = &mock
+	stor, err := storage.New(viper.GetString("storage.use"))
+	if err != nil {
+		log.Critical(err)
+		os.Exit(1)
 	}
 
-	pers := model.Persister(nil)
-	if viper.GetBool("mongo.use") {
-		log.Info("connecting to mongo")
-		mongo, err := database.NewMongo()
-		if err != nil {
-			log.Critical(err)
-			os.Exit(1)
-		}
-		pers = &mongo
-	} else {
-		mem := database.NewMem()
-		pers = &mem
+	data, err := database.New(viper.GetString("database.use"))
+	if err != nil {
+		log.Critical(err)
+		os.Exit(1)
 	}
 
-	temp := model.Temper(nil)
-	if viper.GetBool("redis.use") {
-		log.Info("connecting to redis")
-		redis, err := database.NewRedis()
-		if err != nil {
-			log.Critical(err)
-			os.Exit(1)
-		}
-		temp = &redis
-	} else {
-		mem := database.NewMem()
-		mem.Monitor()
-		temp = &mem
+	cach, err := cache.New(viper.GetString("cache.use"))
+	if err != nil {
+		log.Critical(err)
+		os.Exit(1)
 	}
 
-	queue1 := service.NewQueue("calculation", temp)
-	queue1.Monitor(ctx)
+	qCalc := service.NewQueueCalc(cach)
+	qCalc.Monitor(ctx)
 
-	queue2 := (*service.Queue)(nil)
-	if viper.GetBool("shortpixel.use") {
-		queue2 = service.NewQueue("compression", temp)
-		queue2.Monitor(ctx)
+	qComp := &service.QueueComp{}
+	if viper.GetString("compressor.use") != "mock" {
+		qComp = service.NewQueueComp(cach)
+		qComp.Monitor(ctx)
 	}
 
-	pqueue := service.NewPQueue("deletion", temp)
-	pqueue.Monitor(ctx)
+	qDel := service.NewQueueDel(cach)
+	qDel.Monitor(ctx)
 
-	serv := service.NewService(comp, stor, pers, temp, queue1, queue2, pqueue)
+	serv := service.New(comp, stor, data, cach, qCalc, qComp, qDel)
 
-	g1, ctx1 := errgroup.WithContext(ctx)
+	gCalc, ctxCalc := errgroup.WithContext(ctx)
 	log.Info("starting calculation worker pool")
-	serv.StartWorkingPoolCalc(ctx1, g1)
+	serv.StartWorkingPoolCalc(ctxCalc, gCalc)
 
-	g2 := (*errgroup.Group)(nil)
-	ctx2 := context.Context(nil)
-	if viper.GetBool("shortpixel.use") {
-		g2, ctx2 = errgroup.WithContext(ctx)
+	gComp := (*errgroup.Group)(nil)
+	ctxComp := context.Context(nil)
+	if viper.GetString("compressor.use") != "mock" {
+		gComp, ctxComp = errgroup.WithContext(ctx)
 		log.Info("starting compression worker pool")
-		serv.StartWorkingPoolComp(ctx2, g2)
+		serv.StartWorkingPoolComp(ctxComp, gComp)
 	}
 
-	g3, ctx3 := errgroup.WithContext(ctx)
+	gDel, ctxDel := errgroup.WithContext(ctx)
 	log.Info("starting deletion worker pool")
-	serv.StartWorkingPoolDel(ctx3, g3)
+	serv.StartWorkingPoolDel(ctxDel, gDel)
 
 	srvWait := make(chan error, 1)
-	srv := http.NewServer(&serv, cancel, srvWait)
+	srv := http.NewServer(serv, cancel, srvWait)
 	srv.Monitor()
 	log.Info("starting web server")
 	err = srv.Start()
@@ -151,9 +116,17 @@ func main() {
 		log.Error(err)
 		return
 	}
-	if viper.GetBool("shortpixel.use") {
+
+	log.Info("stopping deletion worker pool")
+	err = gDel.Wait()
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	if viper.GetString("compressor.use") != "mock" {
 		log.Info("stopping compression worker pool")
-		err = g2.Wait()
+		err = gComp.Wait()
 		if err != nil {
 			log.Error(err)
 			return
@@ -161,7 +134,7 @@ func main() {
 	}
 
 	log.Info("stopping calculation worker pool")
-	err = g1.Wait()
+	err = gCalc.Wait()
 	if err != nil {
 		log.Error(err)
 		return

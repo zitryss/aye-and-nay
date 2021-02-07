@@ -5,25 +5,25 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zitryss/aye-and-nay/infrastructure/database"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 )
 
 func TestPQueue(t *testing.T) {
-	mem := database.NewMem()
-	pq := NewPQueue("WM5BtzjdncQtExgY", &mem)
+	mem := cache.NewMem()
+	pq := newPQueue("WM5BtzjdncQtExgY", mem)
 	pq.Monitor(context.Background())
 	go func() {
-		<-time.After(100 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		err := pq.add(context.Background(), "ac/dc", time.Now().Add(400*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
-		<-time.After(100 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		err = pq.add(context.Background(), "doors", time.Now().Add(200*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
-		<-time.After(100 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 		err = pq.add(context.Background(), "abba", time.Now().Add(400*time.Millisecond))
 		if err != nil {
 			t.Error(err)

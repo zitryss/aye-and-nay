@@ -13,18 +13,18 @@ import (
 	myrand "github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
-func NewService(
+func New(
 	comp model.Compresser,
 	stor model.Storager,
-	pers model.Persister,
-	temp model.Temper,
-	queue1 *Queue,
-	queue2 *Queue,
-	pqueue *PQueue,
+	pers model.Databaser,
+	temp model.Cacher,
+	qCalc *QueueCalc,
+	qComp *QueueComp,
+	qDel *QueueDel,
 	opts ...options,
-) service {
+) *Service {
 	conf := newServiceConfig()
-	s := service{
+	s := &Service{
 		conf:  conf,
 		comp:  comp,
 		stor:  stor,
@@ -32,13 +32,13 @@ func NewService(
 		pair:  temp,
 		token: temp,
 		queue: struct {
-			calc *Queue
-			comp *Queue
-			del  *PQueue
+			calc *QueueCalc
+			comp *QueueComp
+			del  *QueueDel
 		}{
-			queue1,
-			queue2,
-			pqueue,
+			qCalc,
+			qComp,
+			qDel,
 		},
 		rand: struct {
 			id      func(length int) (string, error)
@@ -51,60 +51,84 @@ func NewService(
 		},
 	}
 	for _, opt := range opts {
-		opt(&s)
+		opt(s)
 	}
 	return s
 }
 
-type options func(*service)
+func NewQueueCalc(q model.Queuer) *QueueCalc {
+	return &QueueCalc{newQueue("calculation", q)}
+}
+
+type QueueCalc struct {
+	*queue
+}
+
+func NewQueueComp(q model.Queuer) *QueueComp {
+	return &QueueComp{newQueue("compression", q)}
+}
+
+type QueueComp struct {
+	*queue
+}
+
+func NewQueueDel(q model.PQueuer) *QueueDel {
+	return &QueueDel{newPQueue("deletion", q)}
+}
+
+type QueueDel struct {
+	*pqueue
+}
+
+type options func(*Service)
 
 func WithRandId(fn func(int) (string, error)) options {
-	return func(s *service) {
+	return func(s *Service) {
 		s.rand.id = fn
 	}
 }
 
 func WithRandShuffle(fn func(int, func(int, int))) options {
-	return func(s *service) {
+	return func(s *Service) {
 		s.rand.shuffle = fn
 	}
 }
 
 func WithRandNow(fn func() time.Time) options {
-	return func(s *service) {
+	return func(s *Service) {
 		s.rand.now = fn
 	}
 }
 
 func WithHeartbeatCalc(ch chan<- interface{}) options {
-	return func(s *service) {
+	return func(s *Service) {
 		s.heartbeat.calc = ch
 	}
 }
 
 func WithHeartbeatComp(ch chan<- interface{}) options {
-	return func(s *service) {
+	return func(s *Service) {
 		s.heartbeat.comp = ch
 	}
 }
 
 func WithHeartbeatDel(ch chan<- interface{}) options {
-	return func(s *service) {
+	return func(s *Service) {
 		s.heartbeat.del = ch
 	}
 }
 
-type service struct {
+type Service struct {
 	conf  serviceConfig
 	comp  model.Compresser
 	stor  model.Storager
-	pers  model.Persister
+	pers  model.Databaser
 	pair  model.Stacker
 	token model.Tokener
 	queue struct {
-		calc *Queue
-		comp *Queue
-		del  *PQueue
+		calc *QueueCalc
+		comp *QueueComp
+		del  *QueueDel
 	}
 	rand struct {
 		id      func(length int) (string, error)
@@ -118,7 +142,7 @@ type service struct {
 	}
 }
 
-func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
+func (s *Service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 	go func() {
 		sem := make(chan struct{}, s.conf.numberOfWorkersCalc)
 		for {
@@ -183,7 +207,7 @@ func (s *service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 	}()
 }
 
-func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
+func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 	go func() {
 		sem := make(chan struct{}, s.conf.numberOfWorkersComp)
 		for {
@@ -284,7 +308,7 @@ func (s *service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 	}()
 }
 
-func (s *service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
+func (s *Service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
 	g.Go(func() (e error) {
 		defer func() {
 			v := recover()
@@ -346,7 +370,7 @@ func (s *service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
 	})
 }
 
-func (s *service) Album(ctx context.Context, ff []model.File, dur time.Duration) (string, error) {
+func (s *Service) Album(ctx context.Context, ff []model.File, dur time.Duration) (string, error) {
 	album, err := s.rand.id(s.conf.albumIdLength)
 	if err != nil {
 		return "", errors.Wrap(err)
@@ -383,7 +407,7 @@ func (s *service) Album(ctx context.Context, ff []model.File, dur time.Duration)
 	return alb.Id, nil
 }
 
-func (s *service) Progress(ctx context.Context, album string) (float64, error) {
+func (s *Service) Progress(ctx context.Context, album string) (float64, error) {
 	all, err := s.pers.CountImages(ctx, album)
 	if err != nil {
 		return 0, errors.Wrap(err)
@@ -395,7 +419,7 @@ func (s *service) Progress(ctx context.Context, album string) (float64, error) {
 	return float64(n) / float64(all), nil
 }
 
-func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Image, error) {
+func (s *Service) Pair(ctx context.Context, album string) (model.Image, model.Image, error) {
 	image1, image2, err := s.pair.Pop(ctx, album)
 	if errors.Is(err, model.ErrPairNotFound) {
 		err = s.genPairs(ctx, album)
@@ -436,7 +460,7 @@ func (s *service) Pair(ctx context.Context, album string) (model.Image, model.Im
 	return img1, img2, nil
 }
 
-func (s *service) genPairs(ctx context.Context, album string) error {
+func (s *Service) genPairs(ctx context.Context, album string) error {
 	images, err := s.pers.GetImages(ctx, album)
 	if err != nil {
 		return errors.Wrap(err)
@@ -457,7 +481,7 @@ func (s *service) genPairs(ctx context.Context, album string) error {
 	return nil
 }
 
-func (s *service) Vote(ctx context.Context, album string, tokenFrom string, tokenTo string) error {
+func (s *Service) Vote(ctx context.Context, album string, tokenFrom string, tokenTo string) error {
 	imageFrom, err := s.token.Get(ctx, album, tokenFrom)
 	if err != nil {
 		return errors.Wrap(err)
@@ -477,7 +501,7 @@ func (s *service) Vote(ctx context.Context, album string, tokenFrom string, toke
 	return nil
 }
 
-func (s *service) Top(ctx context.Context, album string) ([]model.Image, error) {
+func (s *Service) Top(ctx context.Context, album string) ([]model.Image, error) {
 	imgs, err := s.pers.GetImagesOrdered(ctx, album)
 	if err != nil {
 		return nil, errors.Wrap(err)

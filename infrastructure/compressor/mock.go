@@ -11,14 +11,14 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMock() mock {
-	return mock{}
+func NewMock() *Mock {
+	return &Mock{}
 }
 
-type mock struct {
+type Mock struct {
 }
 
-func (m *mock) Compress(_ context.Context, f model.File) (model.File, error) {
+func (m *Mock) Compress(_ context.Context, f model.File) (model.File, error) {
 	defer func() {
 		switch v := f.Reader.(type) {
 		case *os.File:
@@ -36,13 +36,13 @@ func (m *mock) Compress(_ context.Context, f model.File) (model.File, error) {
 	return model.File{Reader: buf, Size: n}, nil
 }
 
-func NewFail(opts ...options) fail {
+func NewFail(opts ...options) *fail {
 	sp := NewShortPixel(opts...)
-	return fail{sp}
+	return &fail{sp}
 }
 
 type fail struct {
-	shortpixel
+	*Shortpixel
 }
 
 func (f *fail) compress(_ context.Context, _ model.File) (model.File, error) {

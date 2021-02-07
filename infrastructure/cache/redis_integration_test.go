@@ -1,6 +1,6 @@
 // +build integration
 
-package database
+package cache
 
 import (
 	"context"

@@ -33,8 +33,10 @@ paths:
   /api/albums/{id}/ready/:
     get:
       description: >
-        Second request in a sequence. It informs about compression
-        process of an album. Once it shows 1, next request can be made.
+        Second request in a sequence (optional). It informs about
+        compression process of an album. Once it shows 1, compression is
+        complete. This request is not mandatory and the application can
+        fully function even if compression is not finished.
       parameters:
         - $ref: '#/components/parameters/albumParam'
       responses:

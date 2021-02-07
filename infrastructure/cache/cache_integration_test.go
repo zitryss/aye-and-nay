@@ -1,6 +1,6 @@
 // +build integration
 
-package database
+package cache
 
 import (
 	"io/ioutil"
@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 		log.SetOutput(os.Stderr)
 		log.SetLevel(log.Lcritical)
 		docker := dockertest.New()
-		docker.RunMongo()
+		docker.RunRedis()
 		log.SetOutput(ioutil.Discard)
 		code := m.Run()
 		docker.Purge()

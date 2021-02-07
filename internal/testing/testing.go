@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 )
@@ -39,6 +40,17 @@ func CheckBody(t *testing.T, w *httptest.ResponseRecorder, body string) {
 	if got != want {
 		t.Errorf("Body = %v; want %v", got, want)
 	}
+}
+
+func CheckChannel(t *testing.T, heartbeat <-chan interface{}) interface{} {
+	t.Helper()
+	v := interface{}(nil)
+	select {
+	case v = <-heartbeat:
+	case <-time.After(1 * time.Second):
+		t.Fatal("<-time.After(1 * time.Second)")
+	}
+	return v
 }
 
 func IsIn(image model.Image, imgs []model.Image) bool {

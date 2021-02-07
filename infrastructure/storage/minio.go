@@ -18,14 +18,14 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewMinio() (minio, error) {
+func NewMinio() (*Minio, error) {
 	conf := newMinioConfig()
 	client, err := minios3.New(conf.host+":"+conf.port, &minios3.Options{
 		Creds:  credentials.NewStaticV4(conf.accessKey, conf.secretKey, conf.token),
 		Secure: conf.secure,
 	})
 	if err != nil {
-		return minio{}, errors.Wrap(err)
+		return &Minio{}, errors.Wrap(err)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
 	defer cancel()
@@ -83,32 +83,32 @@ func NewMinio() (minio, error) {
 		return nil
 	})
 	if err != nil {
-		return minio{}, errors.Wrap(err)
+		return &Minio{}, errors.Wrap(err)
 	}
 	found, err := client.BucketExists(ctx, "aye-and-nay")
 	if err != nil {
-		return minio{}, errors.Wrap(err)
+		return &Minio{}, errors.Wrap(err)
 	}
 	if !found {
 		err = client.MakeBucket(ctx, "aye-and-nay", minios3.MakeBucketOptions{Region: conf.location})
 		if err != nil {
-			return minio{}, errors.Wrap(err)
+			return &Minio{}, errors.Wrap(err)
 		}
 		policy := `{"Statement":[{"Action":["s3:GetObject"],"Effect":"Allow","Principal":"*","Resource":["arn:aws:s3:::aye-and-nay/albums/*"]}],"Version":"2012-10-17"}`
 		err = client.SetBucketPolicy(ctx, "aye-and-nay", policy)
 		if err != nil {
-			return minio{}, errors.Wrap(err)
+			return &Minio{}, errors.Wrap(err)
 		}
 	}
-	return minio{conf, client}, nil
+	return &Minio{conf, client}, nil
 }
 
-type minio struct {
+type Minio struct {
 	conf   minioConfig
 	client *minios3.Client
 }
 
-func (m *minio) Put(ctx context.Context, album string, image string, f model.File) (string, error) {
+func (m *Minio) Put(ctx context.Context, album string, image string, f model.File) (string, error) {
 	defer func() {
 		switch v := f.Reader.(type) {
 		case *os.File:
@@ -128,7 +128,7 @@ func (m *minio) Put(ctx context.Context, album string, image string, f model.Fil
 	return src, nil
 }
 
-func (m *minio) Get(ctx context.Context, album string, image string) (model.File, error) {
+func (m *Minio) Get(ctx context.Context, album string, image string) (model.File, error) {
 	filename := "albums/" + album + "/images/" + image
 	obj, err := m.client.GetObject(ctx, "aye-and-nay", filename, minios3.GetObjectOptions{})
 	if err != nil {
@@ -142,7 +142,7 @@ func (m *minio) Get(ctx context.Context, album string, image string) (model.File
 	return model.File{Reader: buf, Size: n}, nil
 }
 
-func (m *minio) Remove(ctx context.Context, album string, image string) error {
+func (m *Minio) Remove(ctx context.Context, album string, image string) error {
 	filename := "albums/" + album + "/images/" + image
 	err := m.client.RemoveObject(ctx, "aye-and-nay", filename, minios3.RemoveObjectOptions{})
 	if err != nil {

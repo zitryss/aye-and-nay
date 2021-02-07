@@ -25,49 +25,53 @@ service:
   albumIdLength: 8
   imageIdLength: 8
   tokenIdLength: 8
-shortpixel:
-  use: false
-  url: https://api.shortpixel.com/v2/post-reducer.php
-  url2: https://api.shortpixel.com/v2/reducer.php
-  apiKey: abcdefghijklmnopqrst
-  retry:
-    times: 2
-    pause: 10s
-    timeout: 30s
-  wait: 30
-  uploadTimeout: 60s
-  downloadTimeout: 60s
-  repeatIn: 10s
-  restartIn: 15m
-minio:
-  use: false
-  host: localhost
-  port: 9000
-  accessKey: 12345678
-  secretKey: qwertyui
-  token:
-  secure: false
-  retry:
-    times: 4
-    pause: 5s
-    timeout: 30s
-  location: eu-central-1
-  prefix:
-mongo:
-  use: false
-  host: localhost
-  port: 27017
-  retry:
-    times: 4
-    pause: 5s
-    timeout: 30s
-redis:
-  use: false
-  host: localhost
-  port: 6379
-  retry:
-    times: 4
-    pause: 5s
-    timeout: 30s
-  timeToLive: 15m
-  cleanupInterval: 15m
+cache:
+  use: mem
+  redis:
+    host: localhost
+    port: 6379
+    retry:
+      times: 4
+      pause: 5s
+      timeout: 30s
+    timeToLive: 15m
+    cleanupInterval: 15m
+compressor:
+  use: mock
+  shortpixel:
+    url: https://api.shortpixel.com/v2/post-reducer.php
+    url2: https://api.shortpixel.com/v2/reducer.php
+    apiKey: abcdefghijklmnopqrst
+    retry:
+      times: 2
+      pause: 10s
+      timeout: 30s
+    wait: 30
+    uploadTimeout: 60s
+    downloadTimeout: 60s
+    repeatIn: 10s
+    restartIn: 15m
+database:
+  use: mem
+  mongo:
+    host: localhost
+    port: 27017
+    retry:
+      times: 4
+      pause: 5s
+      timeout: 30s
+storage:
+  use: mock
+  minio:
+    host: localhost
+    port: 9000
+    accessKey: 12345678
+    secretKey: qwertyui
+    token:
+    secure: false
+    retry:
+      times: 4
+      pause: 5s
+      timeout: 30s
+    location: eu-central-1
+    prefix:

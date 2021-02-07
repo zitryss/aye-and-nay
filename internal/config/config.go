@@ -23,7 +23,7 @@ func init() {
 	viper.Set("cache.redis.retry.pause", "5s")
 	viper.Set("cache.redis.retry.timeout", "30s")
 	viper.Set("cache.redis.timeToLive", "1s")
-	viper.Set("compressor.use", "shortpixel")
+	viper.Set("compressor.use", "notamock")
 	viper.Set("compressor.shortpixel.uploadTimeout", "250ms")
 	viper.Set("compressor.shortpixel.downloadTimeout", "250ms")
 	viper.Set("database.mongo.host", "localhost")

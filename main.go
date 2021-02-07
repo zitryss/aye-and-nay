@@ -70,19 +70,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	qCalc := service.NewQueueCalc("calculation", cach)
+	qCalc := service.NewQueueCalc(cach)
 	qCalc.Monitor(ctx)
 
 	qComp := &service.QueueComp{}
 	if viper.GetString("compressor.use") != "mock" {
-		qComp = service.NewQueueComp("compression", cach)
+		qComp = service.NewQueueComp(cach)
 		qComp.Monitor(ctx)
 	}
 
-	qDel := service.NewQueueDel("deletion", cach)
+	qDel := service.NewQueueDel(cach)
 	qDel.Monitor(ctx)
 
-	serv := service.NewService(comp, stor, data, cach, qCalc, qComp, qDel)
+	serv := service.New(comp, stor, data, cach, qCalc, qComp, qDel)
 
 	gCalc, ctxCalc := errgroup.WithContext(ctx)
 	log.Info("starting calculation worker pool")

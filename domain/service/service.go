@@ -13,7 +13,7 @@ import (
 	myrand "github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
-func NewService(
+func New(
 	comp model.Compresser,
 	stor model.Storager,
 	pers model.Databaser,
@@ -56,24 +56,24 @@ func NewService(
 	return s
 }
 
-func NewQueueCalc(name string, q model.Queuer) *QueueCalc {
-	return &QueueCalc{newQueue(name, q)}
+func NewQueueCalc(q model.Queuer) *QueueCalc {
+	return &QueueCalc{newQueue("calculation", q)}
 }
 
 type QueueCalc struct {
 	*queue
 }
 
-func NewQueueComp(name string, q model.Queuer) *QueueComp {
-	return &QueueComp{newQueue(name, q)}
+func NewQueueComp(q model.Queuer) *QueueComp {
+	return &QueueComp{newQueue("compression", q)}
 }
 
 type QueueComp struct {
 	*queue
 }
 
-func NewQueueDel(name string, q model.PQueuer) *QueueDel {
-	return &QueueDel{newPQueue(name, q)}
+func NewQueueDel(q model.PQueuer) *QueueDel {
+	return &QueueDel{newPQueue("deletion", q)}
 }
 
 type QueueDel struct {

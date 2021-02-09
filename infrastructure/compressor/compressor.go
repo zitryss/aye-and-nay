@@ -16,6 +16,8 @@ func New(s string) (model.Compresser, error) {
 		}
 		sp.Monitor()
 		return sp, nil
+	case "imaginary":
+		return NewImaginary()
 	case "mock":
 		return NewMock(), nil
 	default:

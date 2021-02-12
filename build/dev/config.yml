@@ -37,7 +37,14 @@ cache:
     timeToLive: 15m
     cleanupInterval: 15m
 compressor:
-  use: mock
+  use: imaginary
+  imaginary:
+    host: localhost
+    port: 9001
+    retry:
+      times: 4
+      pause: 5s
+      timeout: 30s
   shortpixel:
     url: https://api.shortpixel.com/v2/post-reducer.php
     url2: https://api.shortpixel.com/v2/reducer.php

@@ -6,6 +6,24 @@ import (
 	"github.com/spf13/viper"
 )
 
+func newImaginaryConfig() imaginaryConfig {
+	return imaginaryConfig{
+		host:    viper.GetString("compressor.imaginary.host"),
+		port:    viper.GetString("compressor.imaginary.port"),
+		times:   viper.GetInt("compressor.imaginary.retry.times"),
+		pause:   viper.GetDuration("compressor.imaginary.retry.pause"),
+		timeout: viper.GetDuration("compressor.imaginary.retry.timeout"),
+	}
+}
+
+type imaginaryConfig struct {
+	host    string
+	port    string
+	times   int
+	pause   time.Duration
+	timeout time.Duration
+}
+
 func newShortPixelConfig() shortPixelConfig {
 	return shortPixelConfig{
 		url:             viper.GetString("compressor.shortpixel.url"),

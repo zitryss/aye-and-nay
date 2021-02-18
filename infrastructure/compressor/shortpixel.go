@@ -195,7 +195,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			_, _ = io.Copy(ioutil.Discard, resp.Body)
 			_ = resp.Body.Close()
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
 		return nil
 	})
@@ -295,7 +295,7 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			_, _ = io.Copy(ioutil.Discard, resp.Body)
 			_ = resp.Body.Close()
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
 		return nil
 	})
@@ -362,7 +362,7 @@ func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, err
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			_, _ = io.Copy(ioutil.Discard, resp.Body)
 			_ = resp.Body.Close()
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
 		return nil
 	})

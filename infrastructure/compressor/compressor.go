@@ -7,6 +7,9 @@ import (
 
 func New(s string) (model.Compresser, error) {
 	switch s {
+	case "imaginary":
+		log.Info("connecting to imaginary")
+		return NewImaginary()
 	case "shortpixel":
 		log.Info("connecting to compressor")
 		sp := NewShortPixel()
@@ -16,8 +19,6 @@ func New(s string) (model.Compresser, error) {
 		}
 		sp.Monitor()
 		return sp, nil
-	case "imaginary":
-		return NewImaginary()
 	case "mock":
 		return NewMock(), nil
 	default:

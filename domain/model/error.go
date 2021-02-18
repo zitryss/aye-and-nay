@@ -20,6 +20,7 @@ var (
 	ErrImageNotFound         = errors.New("image not found")
 	ErrAlbumAlreadyExists    = errors.New("album already exists")
 	ErrTokenAlreadyExists    = errors.New("token already exists")
+	ErrUnsupportedMediaType  = errors.New("unsupported media type")
 	ErrThirdPartyUnavailable = errors.New("third party unavailable")
 	ErrUnknown               = errors.New("unknown")
 )

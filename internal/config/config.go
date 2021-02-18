@@ -25,7 +25,7 @@ func init() {
 	viper.Set("cache.redis.timeToLive", "1s")
 	viper.Set("compressor.use", "notamock")
 	viper.Set("compressor.imaginary.host", "localhost")
-	viper.Set("compressor.imaginary.port", 9000)
+	viper.Set("compressor.imaginary.port", 9001)
 	viper.Set("compressor.imaginary.retry.times", 4)
 	viper.Set("compressor.imaginary.retry.pause", "5s")
 	viper.Set("compressor.imaginary.retry.timeout", "30s")

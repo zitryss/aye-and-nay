@@ -26,7 +26,7 @@ service:
   imageIdLength: 8
   tokenIdLength: 8
 cache:
-  use: mem
+  use: redis
   redis:
     host: localhost
     port: 6379

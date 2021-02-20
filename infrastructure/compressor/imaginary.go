@@ -21,13 +21,13 @@ func NewImaginary() (*Imaginary, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
 	defer cancel()
 	err := retry.Do(conf.times, conf.pause, func() error {
-		c := http.Client{}
 		url := "http://" + conf.host + ":" + conf.port + "/health"
 		body := io.Reader(nil)
 		req, err := http.NewRequestWithContext(ctx, "GET", url, body)
 		if err != nil {
 			return errors.Wrap(err)
 		}
+		c := http.Client{}
 		resp, err := c.Do(req)
 		if err != nil {
 			return errors.Wrap(err)
@@ -66,6 +66,8 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 			pool.PutBuffer(v)
 		}
 	}()
+	buf := pool.GetBuffer()
+	f.Reader = io.TeeReader(f.Reader, buf)
 	body := pool.GetBuffer()
 	defer pool.PutBuffer(body)
 	multi := multipart.NewWriter(body)
@@ -73,7 +75,7 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	_, err = io.CopyN(part, f, f.Size)
+	n, err := io.CopyN(part, f, f.Size)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
@@ -81,18 +83,23 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	c := http.Client{Timeout: im.conf.timeout}
 	url := "http://" + im.conf.host + ":" + im.conf.port + "/convert?type=png&compression=9"
 	req, err := http.NewRequestWithContext(ctx, "POST", url, body)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
 	req.Header.Set("Content-Type", multi.FormDataContentType())
+	c := http.Client{Timeout: im.conf.timeout}
 	resp := (*http.Response)(nil)
 	err = retry.Do(im.conf.times, im.conf.pause, func() error {
 		resp, err = c.Do(req)
 		if err != nil {
 			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+		}
+		if resp.StatusCode == 406 {
+			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_ = resp.Body.Close()
+			return errors.Wrap(model.ErrUnsupportedMediaType)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			_, _ = io.Copy(ioutil.Discard, resp.Body)
@@ -101,11 +108,14 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 		}
 		return nil
 	})
+	if errors.Is(err, model.ErrUnsupportedMediaType) {
+		return model.File{Reader: buf, Size: n}, nil
+	}
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	buf := pool.GetBuffer()
-	n, err := io.Copy(buf, resp.Body)
+	buf.Reset()
+	n, err = io.Copy(buf, resp.Body)
 	if err != nil {
 		_, _ = io.Copy(ioutil.Discard, resp.Body)
 		_ = resp.Body.Close()

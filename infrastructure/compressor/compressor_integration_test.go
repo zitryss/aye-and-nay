@@ -18,7 +18,7 @@ func TestMain(m *testing.M) {
 		log.SetOutput(os.Stderr)
 		log.SetLevel(log.Lcritical)
 		docker := dockertest.New()
-		// docker.RunImaginary()
+		docker.RunImaginary()
 		log.SetOutput(ioutil.Discard)
 		code := m.Run()
 		docker.Purge()

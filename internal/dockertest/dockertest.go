@@ -41,17 +41,28 @@ type docker struct {
 	resources []*dockertest.Resource
 }
 
-func (d *docker) RunMinio() {
-	repository := "minio/minio"
-	tag := "RELEASE.2020-09-02T18-19-50Z"
-	accessKey := viper.GetString("storage.minio.accessKey")
-	secretKey := viper.GetString("storage.minio.secretKey")
-	env := []string{"MINIO_ACCESS_KEY=" + accessKey, "MINIO_SECRET_KEY=" + secretKey}
-	cmd := []string{"server", "/data"}
+func (d *docker) RunRedis() {
+	repository := "redis"
+	tag := "6-alpine"
+	env := []string(nil)
+	cmd := []string(nil)
+	port := "6379/tcp"
+	conf := func(port string) {
+		viper.Set("cache.redis.host", d.host)
+		viper.Set("cache.redis.port", port)
+	}
+	d.run(repository, tag, env, cmd, port, conf)
+}
+
+func (d *docker) RunImaginary() {
+	repository := "h2non/imaginary"
+	tag := "1"
+	env := []string(nil)
+	cmd := []string(nil)
 	port := "9000/tcp"
 	conf := func(port string) {
-		viper.Set("storage.minio.host", d.host)
-		viper.Set("storage.minio.port", port)
+		viper.Set("compressor.imaginary.host", d.host)
+		viper.Set("compressor.imaginary.port", port)
 	}
 	d.run(repository, tag, env, cmd, port, conf)
 }
@@ -69,15 +80,17 @@ func (d *docker) RunMongo() {
 	d.run(repository, tag, env, cmd, port, conf)
 }
 
-func (d *docker) RunRedis() {
-	repository := "redis"
-	tag := "6-alpine"
-	env := []string(nil)
-	cmd := []string(nil)
-	port := "6379/tcp"
+func (d *docker) RunMinio() {
+	repository := "minio/minio"
+	tag := "RELEASE.2020-09-02T18-19-50Z"
+	accessKey := viper.GetString("storage.minio.accessKey")
+	secretKey := viper.GetString("storage.minio.secretKey")
+	env := []string{"MINIO_ACCESS_KEY=" + accessKey, "MINIO_SECRET_KEY=" + secretKey}
+	cmd := []string{"server", "/data"}
+	port := "9000/tcp"
 	conf := func(port string) {
-		viper.Set("cache.redis.host", d.host)
-		viper.Set("cache.redis.port", port)
+		viper.Set("storage.minio.host", d.host)
+		viper.Set("storage.minio.port", port)
 	}
 	d.run(repository, tag, env, cmd, port, conf)
 }

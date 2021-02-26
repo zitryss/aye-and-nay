@@ -1,12 +1,21 @@
 version: "3"
 services:
 
-  minio:
+  redis:
     build:
       context: .
-      dockerfile: Dockerfile-minio
+      dockerfile: Dockerfile-redis
     ports:
-      - "9000:9000"
+      - "6379:6379"
+    volumes:
+      - "./redis.conf:/usr/local/etc/redis/redis.conf"
+
+  imaginary:
+    build:
+      context: .
+      dockerfile: Dockerfile-imaginary
+    ports:
+      - "9001:9001"
 
   mongo:
     build:
@@ -17,11 +26,9 @@ services:
     volumes:
       - "./mongo.js:/docker-entrypoint-initdb.d/mongo.js"
 
-  redis:
+  minio:
     build:
       context: .
-      dockerfile: Dockerfile-redis
+      dockerfile: Dockerfile-minio
     ports:
-      - "6379:6379"
-    volumes:
-      - "./redis.conf:/usr/local/etc/redis/redis.conf"
+      - "9000:9000"

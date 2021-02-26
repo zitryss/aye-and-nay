@@ -7,6 +7,9 @@ import (
 
 func New(s string) (model.Compresser, error) {
 	switch s {
+	case "imaginary":
+		log.Info("connecting to imaginary")
+		return NewImaginary()
 	case "shortpixel":
 		log.Info("connecting to compressor")
 		sp := NewShortPixel()

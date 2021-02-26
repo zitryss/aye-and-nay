@@ -46,13 +46,13 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	comp, err := compressor.New(viper.GetString("compressor.use"))
+	cach, err := cache.New(viper.GetString("cache.use"))
 	if err != nil {
 		log.Critical(err)
 		os.Exit(1)
 	}
 
-	stor, err := storage.New(viper.GetString("storage.use"))
+	comp, err := compressor.New(viper.GetString("compressor.use"))
 	if err != nil {
 		log.Critical(err)
 		os.Exit(1)
@@ -64,7 +64,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cach, err := cache.New(viper.GetString("cache.use"))
+	stor, err := storage.New(viper.GetString("storage.use"))
 	if err != nil {
 		log.Critical(err)
 		os.Exit(1)
@@ -109,19 +109,16 @@ func main() {
 	log.Info("stopping web server")
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Error(err)
-		return
 	}
 	err = <-srvWait
 	if err != nil {
 		log.Error(err)
-		return
 	}
 
 	log.Info("stopping deletion worker pool")
 	err = gDel.Wait()
 	if err != nil {
 		log.Error(err)
-		return
 	}
 
 	if viper.GetString("compressor.use") != "mock" {
@@ -129,7 +126,6 @@ func main() {
 		err = gComp.Wait()
 		if err != nil {
 			log.Error(err)
-			return
 		}
 	}
 
@@ -137,6 +133,5 @@ func main() {
 	err = gCalc.Wait()
 	if err != nil {
 		log.Error(err)
-		return
 	}
 }

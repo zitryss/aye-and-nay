@@ -89,7 +89,7 @@ func readFiles() {
 	body := bytes.Buffer{}
 	multi := multipart.NewWriter(&body)
 	for i := 0; i < 4; i++ {
-		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png", "tim.gif", "linus.jpg"} {
+		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png", "tim.gif", "big.jpg"} {
 			part, err := multi.CreateFormFile("images", filename)
 			debug.Check(err)
 			b, err := ioutil.ReadFile(testdata + "/" + filename)

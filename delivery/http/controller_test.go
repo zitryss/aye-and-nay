@@ -49,7 +49,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 		{
 			give: give{
 				err:        nil,
-				filenames:  []string{"linus.jpg", "linus.jpg", "linus.jpg"},
+				filenames:  []string{"big.jpg", "big.jpg", "big.jpg"},
 				durationOn: true,
 				duration:   "1H",
 			},
@@ -88,7 +88,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 		{
 			give: give{
 				err:        nil,
-				filenames:  []string{"alan.jpg", "john.bmp", "linus.jpg"},
+				filenames:  []string{"alan.jpg", "john.bmp", "big.jpg"},
 				durationOn: true,
 				duration:   "1H",
 			},
@@ -101,7 +101,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 		{
 			give: give{
 				err:        nil,
-				filenames:  []string{"alan.jpg", "john.bmp", "neil.ogg"},
+				filenames:  []string{"alan.jpg", "john.bmp", "audio.ogg"},
 				durationOn: true,
 				duration:   "1H",
 			},

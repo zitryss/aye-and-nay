@@ -11,26 +11,28 @@ import (
 func TestPQueue(t *testing.T) {
 	mem := cache.NewMem()
 	pq := newPQueue("WM5BtzjdncQtExgY", mem)
-	pq.Monitor(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	pq.Monitor(ctx)
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		err := pq.add(context.Background(), "ac/dc", time.Now().Add(400*time.Millisecond))
+		err := pq.add(ctx, "ac/dc", time.Now().Add(400*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
 		time.Sleep(100 * time.Millisecond)
-		err = pq.add(context.Background(), "doors", time.Now().Add(200*time.Millisecond))
+		err = pq.add(ctx, "doors", time.Now().Add(200*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
 		time.Sleep(100 * time.Millisecond)
-		err = pq.add(context.Background(), "abba", time.Now().Add(400*time.Millisecond))
+		err = pq.add(ctx, "abba", time.Now().Add(400*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
 	}()
 	start := time.Now()
-	album, err := pq.poll(context.Background())
+	album, err := pq.poll(ctx)
 	d := time.Since(start)
 	if err != nil {
 		t.Error(err)
@@ -42,7 +44,7 @@ func TestPQueue(t *testing.T) {
 		t.Error("!(390*time.Millisecond < d && d < 410*time.Millisecond)")
 	}
 	start = time.Now()
-	album, err = pq.poll(context.Background())
+	album, err = pq.poll(ctx)
 	d = time.Since(start)
 	if err != nil {
 		t.Error(err)
@@ -54,7 +56,7 @@ func TestPQueue(t *testing.T) {
 		t.Error("!(90*time.Millisecond < d && d < 110*time.Millisecond)")
 	}
 	start = time.Now()
-	album, err = pq.poll(context.Background())
+	album, err = pq.poll(ctx)
 	d = time.Since(start)
 	if err != nil {
 		t.Error(err)

@@ -298,7 +298,7 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 							continue outer
 						}
 						if s.heartbeat.comp != nil {
-							p, _ := s.Progress(context.Background(), album)
+							p, _ := s.Progress(ctx, album)
 							s.heartbeat.comp <- p
 						}
 					}

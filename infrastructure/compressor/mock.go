@@ -35,16 +35,3 @@ func (m *Mock) Compress(_ context.Context, f model.File) (model.File, error) {
 	}
 	return model.File{Reader: buf, Size: n}, nil
 }
-
-func NewFail(opts ...options) *fail {
-	sp := NewShortPixel(opts...)
-	return &fail{sp}
-}
-
-type fail struct {
-	*Shortpixel
-}
-
-func (f *fail) compress(_ context.Context, _ model.File) (model.File, error) {
-	return model.File{}, errors.Wrap(model.ErrThirdPartyUnavailable)
-}

@@ -26,6 +26,14 @@ func TestCause(t *testing.T) {
 			want: errors.New("1"),
 		},
 		{
+			give: errors.Wrap(nil),
+			want: nil,
+		},
+		{
+			give: errors.Wrapf(nil, ""),
+			want: nil,
+		},
+		{
 			give: errors.Wrap(errors.New("1")),
 			want: errors.New("1"),
 		},

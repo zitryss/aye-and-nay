@@ -16,39 +16,41 @@ func TestPQueueIntegration(t *testing.T) {
 		t.Fatal(err)
 	}
 	pq := newPQueue("WM5BtzjdncQtExgY", redis)
-	pq.Monitor(context.Background())
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	pq.Monitor(ctx)
 	go func() {
 		time.Sleep(100 * time.Millisecond)
-		err := pq.add(context.Background(), "ac/dc", time.Now().Add(400*time.Millisecond))
+		err := pq.add(ctx, "ac/dc", time.Now().Add(400*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
 		time.Sleep(100 * time.Millisecond)
-		err = pq.add(context.Background(), "doors", time.Now().Add(200*time.Millisecond))
+		err = pq.add(ctx, "doors", time.Now().Add(200*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
 		time.Sleep(100 * time.Millisecond)
-		err = pq.add(context.Background(), "abba", time.Now().Add(400*time.Millisecond))
+		err = pq.add(ctx, "abba", time.Now().Add(400*time.Millisecond))
 		if err != nil {
 			t.Error(err)
 		}
 	}()
-	album, err := pq.poll(context.Background())
+	album, err := pq.poll(ctx)
 	if err != nil {
 		t.Error(err)
 	}
 	if album != "doors" {
 		t.Error("album != \"doors\"")
 	}
-	album, err = pq.poll(context.Background())
+	album, err = pq.poll(ctx)
 	if err != nil {
 		t.Error(err)
 	}
 	if album != "ac/dc" {
 		t.Error("album != \"ac/dc\"")
 	}
-	album, err = pq.poll(context.Background())
+	album, err = pq.poll(ctx)
 	if err != nil {
 		t.Error(err)
 	}

@@ -24,7 +24,7 @@ func TestImaginaryPositive(t *testing.T) {
 			filename: "dennis.png",
 		},
 		{
-			filename: "linus.jpg",
+			filename: "big.jpg",
 		},
 		{
 			filename: "tim.gif",
@@ -40,10 +40,10 @@ func TestImaginaryPositive(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			buf := bytes.NewReader(b)
+			buf := bytes.NewBuffer(b)
 			f := model.File{
 				Reader: buf,
-				Size:   buf.Size(),
+				Size:   int64(buf.Len()),
 			}
 			_, err = im.Compress(context.Background(), f)
 			if err != nil {
@@ -65,10 +65,10 @@ func TestImaginaryNegative(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	buf := bytes.NewReader(b)
+	buf := bytes.NewBuffer(b)
 	f1 := model.File{
 		Reader: buf,
-		Size:   buf.Size(),
+		Size:   int64(buf.Len()),
 	}
 	f2, err := im.Compress(context.Background(), f1)
 	if err != nil {

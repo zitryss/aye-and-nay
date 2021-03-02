@@ -67,7 +67,10 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 		}
 	}()
 	buf := pool.GetBuffer()
-	f.Reader = io.TeeReader(f.Reader, buf)
+	tee := model.File{
+		Reader: io.TeeReader(f.Reader, buf),
+		Size:   f.Size,
+	}
 	body := pool.GetBuffer()
 	defer pool.PutBuffer(body)
 	multi := multipart.NewWriter(body)
@@ -75,7 +78,7 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	n, err := io.CopyN(part, f, f.Size)
+	n, err := io.CopyN(part, tee, tee.Size)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}

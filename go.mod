@@ -1,6 +1,6 @@
 module github.com/zitryss/aye-and-nay
 
-go 1.15
+go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.34.30 // indirect

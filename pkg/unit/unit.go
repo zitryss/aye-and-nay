@@ -1,8 +1,8 @@
 package unit
 
 const (
-	_        = iota
-	KB int64 = 1 << (10 * iota)
+	_ int64 = 1 << (10 * iota)
+	KB
 	MB
 	GB
 )

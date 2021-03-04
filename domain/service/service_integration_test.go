@@ -32,8 +32,9 @@ func TestMain(m *testing.M) {
 		log.SetOutput(os.Stderr)
 		log.SetLevel(log.Lcritical)
 		docker := dockertest.New()
-		docker.RunMongo()
 		docker.RunRedis()
+		docker.RunImaginary()
+		docker.RunMongo()
 		docker.RunMinio()
 		log.SetOutput(ioutil.Discard)
 		code := m.Run()
@@ -54,8 +55,12 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		ctx := context.Background()
-		comp := compressor.NewMock()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -69,12 +74,15 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			t.Fatal(err)
 		}
 		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
 		qComp := &QueueComp{newQueue("TV7ZuMmhz3CDfa7n", redis)}
+		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
+		qDel.Monitor(ctx)
 		heartbeatComp := make(chan interface{})
-		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
-		g, ctx2 := errgroup.WithContext(ctx)
-		serv.StartWorkingPoolComp(ctx2, g)
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		gComp, ctxComp := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctxComp, gComp)
 		files := []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -106,9 +114,10 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 				return id + strconv.Itoa(i), nil
 			}
 		}()
-		ctx := context.Background()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 		heartbeatRestart := make(chan interface{})
-		comp := compressor.NewFail(compressor.WithHeartbeatRestart(heartbeatRestart))
+		comp := compressor.NewShortPixel(compressor.WithHeartbeatRestart(heartbeatRestart))
 		comp.Monitor()
 		minio, err := storage.NewMinio()
 		if err != nil {
@@ -123,12 +132,15 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			t.Fatal(err)
 		}
 		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
 		qComp := &QueueComp{newQueue("mhynV9uhnGFEV4uf", redis)}
+		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
+		qDel.Monitor(ctx)
 		heartbeatComp := make(chan interface{})
 		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
-		g, ctx2 := errgroup.WithContext(ctx)
-		serv.StartWorkingPoolComp(ctx2, g)
+		gComp, ctxComp := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolComp(ctxComp, gComp)
 		files := []model.File{Png(), Png()}
 		_, err = serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -214,8 +226,12 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
 		}
-		ctx := context.Background()
-		comp := compressor.NewMock()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -229,9 +245,12 @@ func TestServiceIntegrationPair(t *testing.T) {
 			t.Fatal(err)
 		}
 		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
-		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		qDel.Monitor(ctx)
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -287,8 +306,12 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		ctx := context.Background()
-		comp := compressor.NewMock()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -302,9 +325,12 @@ func TestServiceIntegrationPair(t *testing.T) {
 			t.Fatal(err)
 		}
 		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
-		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel)
+		qDel.Monitor(ctx)
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
 		_, _, err = serv.Pair(ctx, "A755jF7tvnTJrPCD")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
@@ -324,8 +350,12 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
 		}
-		ctx := context.Background()
-		comp := compressor.NewMock()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -339,9 +369,12 @@ func TestServiceIntegrationVote(t *testing.T) {
 			t.Fatal(err)
 		}
 		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
-		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		qDel.Monitor(ctx)
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -367,8 +400,12 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
 		}
-		ctx := context.Background()
-		comp := compressor.NewMock()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -382,9 +419,12 @@ func TestServiceIntegrationVote(t *testing.T) {
 			t.Fatal(err)
 		}
 		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
-		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		qDel.Monitor(ctx)
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -410,8 +450,12 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
 		}
-		ctx := context.Background()
-		comp := compressor.NewMock()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -425,9 +469,12 @@ func TestServiceIntegrationVote(t *testing.T) {
 			t.Fatal(err)
 		}
 		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
-		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		qDel.Monitor(ctx)
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -456,8 +503,12 @@ func TestServiceIntegrationTop(t *testing.T) {
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
 		}
-		ctx := context.Background()
-		comp := compressor.NewMock()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -471,12 +522,15 @@ func TestServiceIntegrationTop(t *testing.T) {
 			t.Fatal(err)
 		}
 		qCalc := &QueueCalc{newQueue("RKvUKsDj7whcrpzA", redis)}
+		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
+		qDel.Monitor(ctx)
 		heartbeatCalc := make(chan interface{})
-		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc))
-		g1, ctx1 := errgroup.WithContext(ctx)
-		serv.StartWorkingPoolCalc(ctx1, g1)
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc))
+		gCalc, ctxCalc := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolCalc(ctxCalc, gCalc)
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -512,8 +566,12 @@ func TestServiceIntegrationTop(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		ctx := context.Background()
-		comp := compressor.NewMock()
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
 		minio, err := storage.NewMinio()
 		if err != nil {
 			t.Fatal(err)
@@ -527,9 +585,12 @@ func TestServiceIntegrationTop(t *testing.T) {
 			t.Fatal(err)
 		}
 		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
-		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel)
+		qDel.Monitor(ctx)
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
 		_, err = serv.Top(ctx, "XXAzCcc6EHr6mpcH")
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
@@ -541,8 +602,12 @@ func TestServiceIntegrationDelete(t *testing.T) {
 	fn := func() time.Time {
 		return time.Now()
 	}
-	ctx := context.Background()
-	comp := compressor.NewMock()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	imaginary, err := compressor.NewImaginary()
+	if err != nil {
+		t.Fatal(err)
+	}
 	minio, err := storage.NewMinio()
 	if err != nil {
 		t.Fatal(err)
@@ -556,13 +621,15 @@ func TestServiceIntegrationDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 	qCalc := &QueueCalc{}
+	qCalc.Monitor(ctx)
 	qComp := &QueueComp{}
+	qComp.Monitor(ctx)
 	qDel := &QueueDel{newPQueue("en8wWYq2ms5Zgnw7", redis)}
 	qDel.Monitor(ctx)
 	heartbeatDel := make(chan interface{})
-	serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
-	g1, ctx1 := errgroup.WithContext(ctx)
-	serv.StartWorkingPoolDel(ctx1, g1)
+	serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+	gDel, ctxDel := errgroup.WithContext(ctx)
+	serv.StartWorkingPoolDel(ctxDel, gDel)
 	files := []model.File{Png(), Png()}
 	dur := 100 * time.Millisecond
 	album, err := serv.Album(ctx, files, dur)

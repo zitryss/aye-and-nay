@@ -5,6 +5,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
@@ -43,8 +45,8 @@ func main() {
 	log.SetLevel(lvl)
 	log.Info("logging initialized")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	cach, err := cache.New(viper.GetString("cache.use"))
 	if err != nil {
@@ -101,7 +103,7 @@ func main() {
 	serv.StartWorkingPoolDel(ctxDel, gDel)
 
 	srvWait := make(chan error, 1)
-	srv := http.NewServer(serv, cancel, srvWait)
+	srv := http.NewServer(serv, srvWait)
 	srv.Monitor()
 	log.Info("starting web server")
 	err = srv.Start()

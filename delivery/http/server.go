@@ -21,7 +21,6 @@ var (
 
 func NewServer(
 	serv model.Servicer,
-	cancel context.CancelFunc,
 	serverWait chan<- error,
 ) *Server {
 	conf := newServerConfig()
@@ -30,7 +29,6 @@ func NewServer(
 	middle := newMiddleware()
 	handler := middle.chain(router)
 	https := newHttps(conf, handler)
-	https.RegisterOnShutdown(cancel)
 	return &Server{conf, https, serverWait}
 }
 

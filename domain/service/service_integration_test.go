@@ -4,7 +4,7 @@ package service
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"os"
 	"reflect"
 	"strconv"
@@ -36,7 +36,7 @@ func TestMain(m *testing.M) {
 		docker.RunImaginary()
 		docker.RunMongo()
 		docker.RunMinio()
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 		code := m.Run()
 		docker.Purge()
 		os.Exit(code)

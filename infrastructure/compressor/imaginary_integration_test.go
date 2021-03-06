@@ -5,7 +5,7 @@ package compressor
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -36,7 +36,7 @@ func TestImaginaryPositive(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			b, err := ioutil.ReadFile("../../testdata/" + tt.filename)
+			b, err := os.ReadFile("../../testdata/" + tt.filename)
 			if err != nil {
 				t.Error(err)
 			}
@@ -61,7 +61,7 @@ func TestImaginaryNegative(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b, err := ioutil.ReadFile("../../testdata/john.bmp")
+	b, err := os.ReadFile("../../testdata/john.bmp")
 	if err != nil {
 		t.Error(err)
 	}

@@ -3,7 +3,7 @@
 package storage
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -19,7 +19,7 @@ func TestMain(m *testing.M) {
 		log.SetLevel(log.Lcritical)
 		docker := dockertest.New()
 		docker.RunMinio()
-		log.SetOutput(ioutil.Discard)
+		log.SetOutput(io.Discard)
 		code := m.Run()
 		docker.Purge()
 		os.Exit(code)

@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -41,7 +40,7 @@ func NewMinio() (*Minio, error) {
 		if err != nil {
 			return errors.Wrap(err)
 		}
-		_, err = io.Copy(ioutil.Discard, resp.Body)
+		_, err = io.Copy(io.Discard, resp.Body)
 		if err != nil {
 			_ = resp.Body.Close()
 			return errors.Wrap(err)
@@ -64,7 +63,7 @@ func NewMinio() (*Minio, error) {
 		if err != nil {
 			return errors.Wrap(err)
 		}
-		_, err = io.Copy(ioutil.Discard, resp.Body)
+		_, err = io.Copy(io.Discard, resp.Body)
 		if err != nil {
 			_ = resp.Body.Close()
 			return errors.Wrap(err)

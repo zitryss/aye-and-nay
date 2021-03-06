@@ -3,9 +3,9 @@ package http
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -332,7 +332,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				if err != nil {
 					t.Error(err)
 				}
-				b, err := ioutil.ReadFile("../../testdata/" + filename)
+				b, err := os.ReadFile("../../testdata/" + filename)
 				if err != nil {
 					t.Error(err)
 				}

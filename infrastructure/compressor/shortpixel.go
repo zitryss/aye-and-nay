@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -193,7 +192,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
-			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
@@ -206,7 +205,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	defer pool.PutBuffer(buf)
 	_, err = io.Copy(buf, resp.Body)
 	if err != nil {
-		_, _ = io.Copy(ioutil.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 		return "", errors.Wrap(err)
 	}
@@ -229,7 +228,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	}{}
 	err = json.NewDecoder(buf).Decode(&response)
 	if err != nil {
-		_, _ = io.Copy(ioutil.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
 	}
@@ -293,7 +292,7 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
-			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
@@ -306,7 +305,7 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	defer pool.PutBuffer(buf)
 	_, err = io.Copy(buf, resp.Body)
 	if err != nil {
-		_, _ = io.Copy(ioutil.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 		return "", errors.Wrap(err)
 	}
@@ -328,7 +327,7 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	}{}
 	err = json.NewDecoder(buf).Decode(&response)
 	if err != nil {
-		_, _ = io.Copy(ioutil.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
 	}
@@ -360,7 +359,7 @@ func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, err
 			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
-			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
@@ -372,7 +371,7 @@ func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, err
 	buf := pool.GetBuffer()
 	n, err := io.Copy(buf, resp.Body)
 	if err != nil {
-		_, _ = io.Copy(ioutil.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 		return model.File{}, errors.Wrap(err)
 	}

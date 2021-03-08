@@ -2,7 +2,6 @@ package log
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"strings"
 )
@@ -18,7 +17,7 @@ const (
 )
 
 var (
-	l = logger{Logger: log.New(ioutil.Discard, "", log.LstdFlags)}
+	l = logger{Logger: log.New(io.Discard, "", log.LstdFlags)}
 )
 
 type logger struct {

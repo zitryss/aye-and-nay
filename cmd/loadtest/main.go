@@ -10,9 +10,9 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -45,7 +45,7 @@ func main() {
 
 	bar := pb.StartNew(n * 94)
 	if !verbose {
-		bar.SetWriter(ioutil.Discard)
+		bar.SetWriter(io.Discard)
 	}
 
 	readFiles()
@@ -92,7 +92,7 @@ func readFiles() {
 		for _, filename := range []string{"alan.jpg", "john.bmp", "dennis.png", "tim.gif", "big.jpg"} {
 			part, err := multi.CreateFormFile("images", filename)
 			debug.Check(err)
-			b, err := ioutil.ReadFile(testdata + "/" + filename)
+			b, err := os.ReadFile(testdata + "/" + filename)
 			debug.Check(err)
 			_, err = part.Write(b)
 			debug.Check(err)
@@ -205,7 +205,7 @@ func voteApi(album string, token1 string, token2 string) {
 	resp, err := http.DefaultClient.Do(req)
 	debug.Check(err)
 	debug.Assert(resp.StatusCode == 200)
-	_, err = io.Copy(ioutil.Discard, resp.Body)
+	_, err = io.Copy(io.Discard, resp.Body)
 	debug.Check(err)
 	err = resp.Body.Close()
 	debug.Check(err)
@@ -264,7 +264,7 @@ func html(page string) {
 	if err != nil {
 		return
 	}
-	_, _ = io.Copy(ioutil.Discard, resp.Body)
+	_, _ = io.Copy(io.Discard, resp.Body)
 	_ = resp.Body.Close()
 }
 
@@ -280,6 +280,6 @@ func minio(src string) {
 	if err != nil {
 		return
 	}
-	_, _ = io.Copy(ioutil.Discard, resp.Body)
+	_, _ = io.Copy(io.Discard, resp.Body)
 	_ = resp.Body.Close()
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -32,7 +31,7 @@ func NewImaginary() (*Imaginary, error) {
 		if err != nil {
 			return errors.Wrap(err)
 		}
-		_, err = io.Copy(ioutil.Discard, resp.Body)
+		_, err = io.Copy(io.Discard, resp.Body)
 		if err != nil {
 			_ = resp.Body.Close()
 			return errors.Wrap(err)
@@ -100,12 +99,12 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
 		}
 		if resp.StatusCode == 406 {
-			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			return errors.Wrap(model.ErrUnsupportedMediaType)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
-			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
@@ -120,7 +119,7 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 	buf.Reset()
 	n, err = io.Copy(buf, resp.Body)
 	if err != nil {
-		_, _ = io.Copy(ioutil.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
 		return model.File{}, errors.Wrap(err)
 	}

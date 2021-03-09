@@ -38,7 +38,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 201,
@@ -51,7 +51,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"big.jpg", "big.jpg", "big.jpg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -64,7 +64,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 400,
@@ -77,7 +77,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png", "alan.jpg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -90,7 +90,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg", "john.bmp", "big.jpg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -103,7 +103,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg", "john.bmp", "audio.ogg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 415,
@@ -141,7 +141,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrTooManyRequests,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 429,
@@ -154,7 +154,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrBodyTooLarge,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "2H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -167,7 +167,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrWrongContentType,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "3H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 415,
@@ -180,7 +180,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrNotEnoughImages,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "6H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 400,
@@ -193,7 +193,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrTooManyImages,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "12H",
+				duration:   "11h",
 			},
 			want: want{
 				code: 413,
@@ -206,7 +206,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrImageTooLarge,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1D",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -219,7 +219,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrNotImage,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "2D",
+				duration:   "1h",
 			},
 			want: want{
 				code: 415,
@@ -232,7 +232,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrDurationNotSet,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "3D",
+				duration:   "1h",
 			},
 			want: want{
 				code: 400,
@@ -245,7 +245,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrDurationInvalid,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1W",
+				duration:   "1h",
 			},
 			want: want{
 				code: 400,
@@ -258,7 +258,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrAlbumNotFound,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 404,
@@ -271,7 +271,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrTokenNotFound,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 404,
@@ -284,7 +284,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrThirdPartyUnavailable,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 500,
@@ -297,7 +297,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        context.Canceled,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 500,
@@ -310,7 +310,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        context.DeadlineExceeded,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 500,

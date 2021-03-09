@@ -85,28 +85,11 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		if len(vals) == 0 {
 			return nil, albumRequest{}, errors.Wrap(model.ErrDurationNotSet)
 		}
-		switch vals[0] {
-		case "1H":
-			req.dur = 1 * time.Hour
-		case "2H":
-			req.dur = 2 * time.Hour
-		case "3H":
-			req.dur = 3 * time.Hour
-		case "6H":
-			req.dur = 6 * time.Hour
-		case "12H":
-			req.dur = 12 * time.Hour
-		case "1D":
-			req.dur = 24 * time.Hour
-		case "2D":
-			req.dur = 48 * time.Hour
-		case "3D":
-			req.dur = 72 * time.Hour
-		case "1W":
-			req.dur = 168 * time.Hour
-		default:
+		dur, err := time.ParseDuration(vals[0])
+		if err != nil {
 			return nil, albumRequest{}, errors.Wrap(model.ErrDurationInvalid)
 		}
+		req.dur = dur
 		return ctx, req, nil
 	}
 	process := func(ctx context.Context, req albumRequest) (albumResponse, error) {

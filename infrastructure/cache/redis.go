@@ -35,7 +35,7 @@ type Redis struct {
 	client *redisdb.Client
 }
 
-func (r *Redis) Add(ctx context.Context, queue string, album string) error {
+func (r *Redis) Add(ctx context.Context, queue uint64, album uint64) error {
 	key1 := "queue:" + queue + ":set"
 	ok, err := r.client.SIsMember(ctx, key1, album).Result()
 	if err != nil {
@@ -56,7 +56,7 @@ func (r *Redis) Add(ctx context.Context, queue string, album string) error {
 	return nil
 }
 
-func (r *Redis) Poll(ctx context.Context, queue string) (string, error) {
+func (r *Redis) Poll(ctx context.Context, queue uint64) (uint64, error) {
 	key1 := "queue:" + queue + ":list"
 	album, err := r.client.LPop(ctx, key1).Result()
 	if errors.Is(err, redisdb.Nil) {
@@ -70,7 +70,7 @@ func (r *Redis) Poll(ctx context.Context, queue string) (string, error) {
 	return album, nil
 }
 
-func (r *Redis) Size(ctx context.Context, queue string) (int, error) {
+func (r *Redis) Size(ctx context.Context, queue uint64) (int, error) {
 	key := "queue:" + queue + ":set"
 	n, err := r.client.SCard(ctx, key).Result()
 	if err != nil {
@@ -79,7 +79,7 @@ func (r *Redis) Size(ctx context.Context, queue string) (int, error) {
 	return int(n), nil
 }
 
-func (r *Redis) PAdd(ctx context.Context, pqueue string, album string, expires time.Time) error {
+func (r *Redis) PAdd(ctx context.Context, pqueue uint64, album uint64, expires time.Time) error {
 	key := "pqueue:" + pqueue + ":sortedset"
 	err := r.client.ZAdd(ctx, key, &redisdb.Z{Score: float64(expires.UnixNano()), Member: album}).Err()
 	if err != nil {
@@ -88,7 +88,7 @@ func (r *Redis) PAdd(ctx context.Context, pqueue string, album string, expires t
 	return nil
 }
 
-func (r *Redis) PPoll(ctx context.Context, pqueue string) (string, time.Time, error) {
+func (r *Redis) PPoll(ctx context.Context, pqueue uint64) (uint64, time.Time, error) {
 	key := "pqueue:" + pqueue + ":sortedset"
 	val, err := r.client.ZPopMin(ctx, key).Result()
 	if err != nil {
@@ -102,7 +102,7 @@ func (r *Redis) PPoll(ctx context.Context, pqueue string) (string, time.Time, er
 	return album, expires, nil
 }
 
-func (r *Redis) PSize(ctx context.Context, pqueue string) (int, error) {
+func (r *Redis) PSize(ctx context.Context, pqueue uint64) (int, error) {
 	key := "pqueue:" + pqueue + ":sortedset"
 	n, err := r.client.ZCard(ctx, key).Result()
 	if err != nil {
@@ -111,7 +111,7 @@ func (r *Redis) PSize(ctx context.Context, pqueue string) (int, error) {
 	return int(n), nil
 }
 
-func (r *Redis) Push(ctx context.Context, album string, pairs [][2]string) error {
+func (r *Redis) Push(ctx context.Context, album uint64, pairs [][2]uint64) error {
 	key := "album:" + album + ":pairs"
 	pipe := r.client.Pipeline()
 	for _, images := range pairs {
@@ -125,7 +125,7 @@ func (r *Redis) Push(ctx context.Context, album string, pairs [][2]string) error
 	return nil
 }
 
-func (r *Redis) Pop(ctx context.Context, album string) (string, string, error) {
+func (r *Redis) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 	key := "album:" + album + ":pairs"
 	n, err := r.client.LLen(ctx, key).Result()
 	if err != nil {
@@ -145,7 +145,7 @@ func (r *Redis) Pop(ctx context.Context, album string) (string, string, error) {
 	return images[0], images[1], nil
 }
 
-func (r *Redis) Set(ctx context.Context, album string, token string, image string) error {
+func (r *Redis) Set(ctx context.Context, album uint64, token uint64, image uint64) error {
 	key := "album:" + album + ":token:" + token + ":image"
 	n, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
@@ -161,7 +161,7 @@ func (r *Redis) Set(ctx context.Context, album string, token string, image strin
 	return nil
 }
 
-func (r *Redis) Get(ctx context.Context, album string, token string) (string, error) {
+func (r *Redis) Get(ctx context.Context, album uint64, token uint64) (uint64, error) {
 	key := "album:" + album + ":token:" + token + ":image"
 	image, err := r.client.Get(ctx, key).Result()
 	if errors.Is(err, redisdb.Nil) {

@@ -5,15 +5,15 @@ import (
 )
 
 type Album struct {
-	Id     string
+	Id     uint64
 	Images []Image
-	Edges  map[string]map[string]int
+	Edges  map[uint64]map[uint64]int
 }
 
 type Image struct {
-	Id         string
+	Id         uint64
 	Src        string
-	Token      string
+	Token      uint64
 	Rating     float64
 	Compressed bool
 }

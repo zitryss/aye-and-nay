@@ -15,21 +15,21 @@ type Mock struct {
 	err error
 }
 
-func (m *Mock) Album(_ context.Context, _ []model.File, _ time.Duration) (string, error) {
+func (m *Mock) Album(ctx context.Context, ff []model.File, dur time.Duration) (uint64, error) {
 	if m.err != nil {
 		return "", m.err
 	}
 	return "N2fxX5zbDh8RJQvx1", nil
 }
 
-func (m *Mock) Progress(_ context.Context, _ string) (float64, error) {
+func (m *Mock) Progress(ctx context.Context, album uint64) (float64, error) {
 	if m.err != nil {
 		return 0, m.err
 	}
 	return 1, nil
 }
 
-func (m *Mock) Pair(_ context.Context, _ string) (model.Image, model.Image, error) {
+func (m *Mock) Pair(ctx context.Context, album uint64) (model.Image, model.Image, error) {
 	if m.err != nil {
 		return model.Image{}, model.Image{}, m.err
 	}
@@ -38,14 +38,14 @@ func (m *Mock) Pair(_ context.Context, _ string) (model.Image, model.Image, erro
 	return img1, img2, nil
 }
 
-func (m *Mock) Vote(_ context.Context, _ string, _ string, _ string) error {
+func (m *Mock) Vote(ctx context.Context, album uint64, tokenFrom uint64, tokenTo uint64) error {
 	if m.err != nil {
 		return m.err
 	}
 	return nil
 }
 
-func (m *Mock) Top(_ context.Context, _ string) ([]model.Image, error) {
+func (m *Mock) Top(ctx context.Context, album uint64) ([]model.Image, error) {
 	if m.err != nil {
 		return nil, m.err
 	}

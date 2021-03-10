@@ -2,20 +2,14 @@ package rand
 
 import (
 	"crypto/rand"
-	"encoding/base64"
-	"math"
+	"encoding/binary"
 )
 
-func Id(length int) (string, error) {
-	n := int(math.Ceil(float64(length) * 3 / 4))
-	b := make([]byte, n)
+func Id() (uint64, error) {
+	b := make([]byte, 8)
 	_, err := rand.Read(b)
 	if err != nil {
-		return "", err
+		return 0x0, err
 	}
-	str := base64.RawURLEncoding.EncodeToString(b)
-	if len(str) > length {
-		str = str[:len(str)-1]
-	}
-	return str, nil
+	return binary.LittleEndian.Uint64(b), nil
 }

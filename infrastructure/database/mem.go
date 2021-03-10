@@ -45,7 +45,7 @@ func (m *Mem) SaveAlbum(_ context.Context, alb model.Album) error {
 	return nil
 }
 
-func (m *Mem) CountImages(_ context.Context, album string) (int, error) {
+func (m *Mem) CountImages(ctx context.Context, album uint64) (int, error) {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
@@ -56,7 +56,7 @@ func (m *Mem) CountImages(_ context.Context, album string) (int, error) {
 	return n, nil
 }
 
-func (m *Mem) CountImagesCompressed(_ context.Context, album string) (int, error) {
+func (m *Mem) CountImagesCompressed(ctx context.Context, album uint64) (int, error) {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
@@ -72,7 +72,7 @@ func (m *Mem) CountImagesCompressed(_ context.Context, album string) (int, error
 	return n, nil
 }
 
-func (m *Mem) UpdateCompressionStatus(_ context.Context, album string, image string) error {
+func (m *Mem) UpdateCompressionStatus(ctx context.Context, album uint64, image uint64) error {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
@@ -94,7 +94,7 @@ func (m *Mem) UpdateCompressionStatus(_ context.Context, album string, image str
 	return nil
 }
 
-func (m *Mem) GetImage(_ context.Context, album string, image string) (model.Image, error) {
+func (m *Mem) GetImage(ctx context.Context, album uint64, image uint64) (model.Image, error) {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
@@ -116,7 +116,7 @@ func (m *Mem) GetImage(_ context.Context, album string, image string) (model.Ima
 	return alb.Images[index], nil
 }
 
-func (m *Mem) GetImages(_ context.Context, album string) ([]string, error) {
+func (m *Mem) GetImages(ctx context.Context, album uint64) ([]uint64, error) {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
@@ -130,7 +130,7 @@ func (m *Mem) GetImages(_ context.Context, album string) ([]string, error) {
 	return images, nil
 }
 
-func (m *Mem) SaveVote(_ context.Context, album string, imageFrom string, imageTo string) error {
+func (m *Mem) SaveVote(ctx context.Context, album uint64, imageFrom uint64, imageTo uint64) error {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
@@ -141,7 +141,7 @@ func (m *Mem) SaveVote(_ context.Context, album string, imageFrom string, imageT
 	return nil
 }
 
-func (m *Mem) GetEdges(_ context.Context, album string) (map[string]map[string]int, error) {
+func (m *Mem) GetEdges(ctx context.Context, album uint64) (map[uint64]map[uint64]int, error) {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
@@ -160,7 +160,7 @@ func (m *Mem) GetEdges(_ context.Context, album string) (map[string]map[string]i
 	return edgs, nil
 }
 
-func (m *Mem) UpdateRatings(_ context.Context, album string, vector map[string]float64) error {
+func (m *Mem) UpdateRatings(ctx context.Context, album uint64, vector map[uint64]float64) error {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
@@ -179,7 +179,7 @@ func (m *Mem) UpdateRatings(_ context.Context, album string, vector map[string]f
 	return nil
 }
 
-func (m *Mem) GetImagesOrdered(_ context.Context, album string) ([]model.Image, error) {
+func (m *Mem) GetImagesOrdered(ctx context.Context, album uint64) ([]model.Image, error) {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
@@ -192,7 +192,7 @@ func (m *Mem) GetImagesOrdered(_ context.Context, album string) ([]model.Image, 
 	return imgs, nil
 }
 
-func (m *Mem) DeleteAlbum(_ context.Context, album string) error {
+func (m *Mem) DeleteAlbum(ctx context.Context, album uint64) error {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	_, ok := m.albums[album]

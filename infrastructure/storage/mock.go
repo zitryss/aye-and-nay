@@ -19,7 +19,7 @@ func NewMock() *Mock {
 type Mock struct {
 }
 
-func (m *Mock) Put(_ context.Context, album string, image string, f model.File) (string, error) {
+func (m *Mock) Put(ctx context.Context, album uint64, image uint64, f model.File) (string, error) {
 	defer func() {
 		switch v := f.Reader.(type) {
 		case *os.File:
@@ -34,7 +34,7 @@ func (m *Mock) Put(_ context.Context, album string, image string, f model.File) 
 	return src, nil
 }
 
-func (m *Mock) Get(_ context.Context, _ string, _ string) (model.File, error) {
+func (m *Mock) Get(ctx context.Context, album uint64, image uint64) (model.File, error) {
 	buf := pool.GetBuffer()
 	f := Png()
 	n, err := io.CopyN(buf, f, f.Size)
@@ -44,6 +44,6 @@ func (m *Mock) Get(_ context.Context, _ string, _ string) (model.File, error) {
 	return model.File{Reader: buf, Size: n}, nil
 }
 
-func (m *Mock) Remove(_ context.Context, _ string, _ string) error {
+func (m *Mock) Remove(ctx context.Context, album uint64, image uint64) error {
 	return nil
 }

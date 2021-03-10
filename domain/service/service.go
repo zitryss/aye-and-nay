@@ -370,7 +370,7 @@ func (s *Service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
 	})
 }
 
-func (s *Service) Album(ctx context.Context, ff []model.File, dur time.Duration) (string, error) {
+func (s *Service) Album(ctx context.Context, ff []model.File, dur time.Duration) (uint64, error) {
 	album, err := s.rand.id(s.conf.albumIdLength)
 	if err != nil {
 		return "", errors.Wrap(err)
@@ -407,7 +407,7 @@ func (s *Service) Album(ctx context.Context, ff []model.File, dur time.Duration)
 	return alb.Id, nil
 }
 
-func (s *Service) Progress(ctx context.Context, album string) (float64, error) {
+func (s *Service) Progress(ctx context.Context, album uint64) (float64, error) {
 	all, err := s.pers.CountImages(ctx, album)
 	if err != nil {
 		return 0, errors.Wrap(err)
@@ -419,7 +419,7 @@ func (s *Service) Progress(ctx context.Context, album string) (float64, error) {
 	return float64(n) / float64(all), nil
 }
 
-func (s *Service) Pair(ctx context.Context, album string) (model.Image, model.Image, error) {
+func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Image, error) {
 	image1, image2, err := s.pair.Pop(ctx, album)
 	if errors.Is(err, model.ErrPairNotFound) {
 		err = s.genPairs(ctx, album)
@@ -481,7 +481,7 @@ func (s *Service) genPairs(ctx context.Context, album string) error {
 	return nil
 }
 
-func (s *Service) Vote(ctx context.Context, album string, tokenFrom string, tokenTo string) error {
+func (s *Service) Vote(ctx context.Context, album uint64, tokenFrom uint64, tokenTo uint64) error {
 	imageFrom, err := s.token.Get(ctx, album, tokenFrom)
 	if err != nil {
 		return errors.Wrap(err)
@@ -501,7 +501,7 @@ func (s *Service) Vote(ctx context.Context, album string, tokenFrom string, toke
 	return nil
 }
 
-func (s *Service) Top(ctx context.Context, album string) ([]model.Image, error) {
+func (s *Service) Top(ctx context.Context, album uint64) ([]model.Image, error) {
 	imgs, err := s.pers.GetImagesOrdered(ctx, album)
 	if err != nil {
 		return nil, errors.Wrap(err)

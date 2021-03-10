@@ -142,7 +142,7 @@ func (m *Mem) Monitor() {
 	}()
 }
 
-func (m *Mem) Add(_ context.Context, queue string, album string) error {
+func (m *Mem) Add(ctx context.Context, queue uint64, album uint64) error {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
@@ -154,7 +154,7 @@ func (m *Mem) Add(_ context.Context, queue string, album string) error {
 	return nil
 }
 
-func (m *Mem) Poll(_ context.Context, queue string) (string, error) {
+func (m *Mem) Poll(ctx context.Context, queue uint64) (uint64, error) {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
@@ -170,7 +170,7 @@ func (m *Mem) Poll(_ context.Context, queue string) (string, error) {
 	return album, nil
 }
 
-func (m *Mem) Size(_ context.Context, queue string) (int, error) {
+func (m *Mem) Size(ctx context.Context, queue uint64) (int, error) {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
@@ -181,7 +181,7 @@ func (m *Mem) Size(_ context.Context, queue string) (int, error) {
 	return n, nil
 }
 
-func (m *Mem) PAdd(_ context.Context, pqueue string, album string, expires time.Time) error {
+func (m *Mem) PAdd(ctx context.Context, pqueue uint64, album uint64, expires time.Time) error {
 	m.syncPQueues.Lock()
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
@@ -193,7 +193,7 @@ func (m *Mem) PAdd(_ context.Context, pqueue string, album string, expires time.
 	return nil
 }
 
-func (m *Mem) PPoll(_ context.Context, pqueue string) (string, time.Time, error) {
+func (m *Mem) PPoll(ctx context.Context, pqueue uint64) (uint64, time.Time, error) {
 	m.syncPQueues.Lock()
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
@@ -207,7 +207,7 @@ func (m *Mem) PPoll(_ context.Context, pqueue string) (string, time.Time, error)
 	return e.(elem).album, e.(elem).expires, nil
 }
 
-func (m *Mem) PSize(_ context.Context, pqueue string) (int, error) {
+func (m *Mem) PSize(ctx context.Context, pqueue uint64) (int, error) {
 	m.syncPQueues.Lock()
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
@@ -218,7 +218,7 @@ func (m *Mem) PSize(_ context.Context, pqueue string) (int, error) {
 	return n, nil
 }
 
-func (m *Mem) Push(_ context.Context, album string, pairs [][2]string) error {
+func (m *Mem) Push(ctx context.Context, album uint64, pairs [][2]uint64) error {
 	m.syncPairs.Lock()
 	defer m.syncPairs.Unlock()
 	key := "album:" + album + ":pairs"
@@ -235,7 +235,7 @@ func (m *Mem) Push(_ context.Context, album string, pairs [][2]string) error {
 	return nil
 }
 
-func (m *Mem) Pop(_ context.Context, album string) (string, string, error) {
+func (m *Mem) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 	m.syncPairs.Lock()
 	defer m.syncPairs.Unlock()
 	key := "album:" + album + ":pairs"
@@ -252,7 +252,7 @@ func (m *Mem) Pop(_ context.Context, album string) (string, string, error) {
 	return images[0], images[1], nil
 }
 
-func (m *Mem) Set(_ context.Context, album string, token string, image string) error {
+func (m *Mem) Set(ctx context.Context, album uint64, token uint64, image uint64) error {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
 	key := "album:" + album + ":token:" + token + ":image"
@@ -267,7 +267,7 @@ func (m *Mem) Set(_ context.Context, album string, token string, image string) e
 	return nil
 }
 
-func (m *Mem) Get(_ context.Context, album string, token string) (string, error) {
+func (m *Mem) Get(ctx context.Context, album uint64, token uint64) (uint64, error) {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
 	key := "album:" + album + ":token:" + token + ":image"

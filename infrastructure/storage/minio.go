@@ -107,7 +107,7 @@ type Minio struct {
 	client *minios3.Client
 }
 
-func (m *Minio) Put(ctx context.Context, album string, image string, f model.File) (string, error) {
+func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.File) (string, error) {
 	defer func() {
 		switch v := f.Reader.(type) {
 		case *os.File:
@@ -127,7 +127,7 @@ func (m *Minio) Put(ctx context.Context, album string, image string, f model.Fil
 	return src, nil
 }
 
-func (m *Minio) Get(ctx context.Context, album string, image string) (model.File, error) {
+func (m *Minio) Get(ctx context.Context, album uint64, image uint64) (model.File, error) {
 	filename := "albums/" + album + "/images/" + image
 	obj, err := m.client.GetObject(ctx, "aye-and-nay", filename, minios3.GetObjectOptions{})
 	if err != nil {
@@ -141,7 +141,7 @@ func (m *Minio) Get(ctx context.Context, album string, image string) (model.File
 	return model.File{Reader: buf, Size: n}, nil
 }
 
-func (m *Minio) Remove(ctx context.Context, album string, image string) error {
+func (m *Minio) Remove(ctx context.Context, album uint64, image uint64) error {
 	filename := "albums/" + album + "/images/" + image
 	err := m.client.RemoveObject(ctx, "aye-and-nay", filename, minios3.RemoveObjectOptions{})
 	if err != nil {

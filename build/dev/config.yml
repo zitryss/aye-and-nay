@@ -22,9 +22,6 @@ controller:
 service:
   numberOfWorkersCalc: 8
   numberOfWorkersComp: 8
-  albumIdLength: 8
-  imageIdLength: 8
-  tokenIdLength: 8
 cache:
   use: redis
   redis:

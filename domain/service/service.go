@@ -41,7 +41,7 @@ func New(
 			qDel,
 		},
 		rand: struct {
-			id      func(length int) (string, error)
+			id      func() (uint64, error)
 			shuffle func(n int, swap func(i int, j int))
 			now     func() time.Time
 		}{
@@ -57,7 +57,7 @@ func New(
 }
 
 func NewQueueCalc(q model.Queuer) *QueueCalc {
-	return &QueueCalc{newQueue("calculation", q)}
+	return &QueueCalc{newQueue(0x6CF9, q)}
 }
 
 type QueueCalc struct {
@@ -65,7 +65,7 @@ type QueueCalc struct {
 }
 
 func NewQueueComp(q model.Queuer) *QueueComp {
-	return &QueueComp{newQueue("compression", q)}
+	return &QueueComp{newQueue(0xDD66, q)}
 }
 
 type QueueComp struct {
@@ -73,7 +73,7 @@ type QueueComp struct {
 }
 
 func NewQueueDel(q model.PQueuer) *QueueDel {
-	return &QueueDel{newPQueue("deletion", q)}
+	return &QueueDel{newPQueue(0xCDF9, q)}
 }
 
 type QueueDel struct {
@@ -82,7 +82,7 @@ type QueueDel struct {
 
 type options func(*Service)
 
-func WithRandId(fn func(int) (string, error)) options {
+func WithRandId(fn func() (uint64, error)) options {
 	return func(s *Service) {
 		s.rand.id = fn
 	}
@@ -131,7 +131,7 @@ type Service struct {
 		del  *QueueDel
 	}
 	rand struct {
-		id      func(length int) (string, error)
+		id      func() (uint64, error)
 		shuffle func(n int, swap func(i, j int))
 		now     func() time.Time
 	}
@@ -371,38 +371,38 @@ func (s *Service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
 }
 
 func (s *Service) Album(ctx context.Context, ff []model.File, dur time.Duration) (uint64, error) {
-	album, err := s.rand.id(s.conf.albumIdLength)
+	album, err := s.rand.id()
 	if err != nil {
-		return "", errors.Wrap(err)
+		return 0x0, errors.Wrap(err)
 	}
 	imgs := make([]model.Image, 0, len(ff))
 	for _, f := range ff {
-		image, err := s.rand.id(s.conf.imageIdLength)
+		image, err := s.rand.id()
 		if err != nil {
-			return "", errors.Wrap(err)
+			return 0x0, errors.Wrap(err)
 		}
 		src, err := s.stor.Put(ctx, album, image, f)
 		if err != nil {
-			return "", errors.Wrap(err)
+			return 0x0, errors.Wrap(err)
 		}
 		img := model.Image{}
 		img.Id = image
 		img.Src = src
 		imgs = append(imgs, img)
 	}
-	edgs := map[string]map[string]int(nil)
+	edgs := map[uint64]map[uint64]int(nil)
 	alb := model.Album{album, imgs, edgs}
 	err = s.pers.SaveAlbum(ctx, alb)
 	if err != nil {
-		return "", errors.Wrap(err)
+		return 0x0, errors.Wrap(err)
 	}
 	err = s.queue.comp.add(ctx, album)
 	if err != nil {
-		return "", errors.Wrap(err)
+		return 0x0, errors.Wrap(err)
 	}
 	err = s.queue.del.add(ctx, album, s.rand.now().Add(dur))
 	if err != nil {
-		return "", errors.Wrap(err)
+		return 0x0, errors.Wrap(err)
 	}
 	return alb.Id, nil
 }
@@ -439,7 +439,7 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	token1, err := s.rand.id(s.conf.tokenIdLength)
+	token1, err := s.rand.id()
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
@@ -448,7 +448,7 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
 	img1.Token = token1
-	token2, err := s.rand.id(s.conf.tokenIdLength)
+	token2, err := s.rand.id()
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
@@ -460,18 +460,18 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 	return img1, img2, nil
 }
 
-func (s *Service) genPairs(ctx context.Context, album string) error {
+func (s *Service) genPairs(ctx context.Context, album uint64) error {
 	images, err := s.pers.GetImages(ctx, album)
 	if err != nil {
 		return errors.Wrap(err)
 	}
 	s.rand.shuffle(len(images), func(i, j int) { images[i], images[j] = images[j], images[i] })
 	images = append(images, images[0])
-	pairs := make([][2]string, 0, len(images)-1)
+	pairs := make([][2]uint64, 0, len(images)-1)
 	for i := 0; i < len(images)-1; i++ {
 		image1 := images[i]
 		image2 := images[i+1]
-		pairs = append(pairs, [2]string{image1, image2})
+		pairs = append(pairs, [2]uint64{image1, image2})
 	}
 	s.rand.shuffle(len(pairs), func(i, j int) { pairs[i], pairs[j] = pairs[j], pairs[i] })
 	err = s.pair.Push(ctx, album, pairs)

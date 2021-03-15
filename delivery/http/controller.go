@@ -11,6 +11,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
@@ -104,7 +105,8 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			return albumResponse{}, errors.Wrap(err)
 		}
 		resp := albumResponse{}
-		resp.Album.Id = album
+		albumB64 := base64.FromUint64(album)
+		resp.Album.Id = albumB64
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp albumResponse) error {
@@ -143,7 +145,11 @@ func (c *controller) handleReady() httprouter.Handle {
 		return ctx, req, nil
 	}
 	process := func(ctx context.Context, req readyRequest) (readyResponse, error) {
-		p, err := c.serv.Progress(ctx, req.album.id)
+		album, err := base64.ToUint64(req.album.id)
+		if err != nil {
+			return readyResponse{}, errors.Wrap(err)
+		}
+		p, err := c.serv.Progress(ctx, album)
 		if err != nil {
 			return readyResponse{}, errors.Wrap(err)
 		}
@@ -186,15 +192,21 @@ func (c *controller) handlePair() httprouter.Handle {
 		return ctx, req, nil
 	}
 	process := func(ctx context.Context, req pairRequest) (pairResponse, error) {
-		img1, img2, err := c.serv.Pair(ctx, req.album.id)
+		album, err := base64.ToUint64(req.album.id)
+		if err != nil {
+			return pairResponse{}, errors.Wrap(err)
+		}
+		img1, img2, err := c.serv.Pair(ctx, album)
 		if err != nil {
 			return pairResponse{}, errors.Wrap(err)
 		}
 		resp := pairResponse{}
 		resp.Album.Img1.Src = img1.Src
-		resp.Album.Img1.Token = img1.Token
+		img1TokenB64 := base64.FromUint64(img1.Token)
+		resp.Album.Img1.Token = img1TokenB64
 		resp.Album.Img2.Src = img2.Src
-		resp.Album.Img2.Token = img2.Token
+		img2TokenB64 := base64.FromUint64(img2.Token)
+		resp.Album.Img2.Token = img2TokenB64
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp pairResponse) error {
@@ -240,7 +252,19 @@ func (c *controller) handleVote() httprouter.Handle {
 		return ctx, req, nil
 	}
 	process := func(ctx context.Context, req voteRequest) (voteResponse, error) {
-		err := c.serv.Vote(ctx, req.Album.id, req.Album.ImgFrom.Token, req.Album.ImgTo.Token)
+		album, err := base64.ToUint64(req.Album.id)
+		if err != nil {
+			return voteResponse{}, errors.Wrap(err)
+		}
+		imgFromToken, err := base64.ToUint64(req.Album.ImgFrom.Token)
+		if err != nil {
+			return voteResponse{}, errors.Wrap(err)
+		}
+		imgToToken, err := base64.ToUint64(req.Album.ImgTo.Token)
+		if err != nil {
+			return voteResponse{}, errors.Wrap(err)
+		}
+		err = c.serv.Vote(ctx, album, imgFromToken, imgToToken)
 		if err != nil {
 			return voteResponse{}, errors.Wrap(err)
 		}
@@ -277,7 +301,11 @@ func (c *controller) handleTop() httprouter.Handle {
 		return ctx, req, nil
 	}
 	process := func(ctx context.Context, req topRequest) (topResponse, error) {
-		imgs, err := c.serv.Top(ctx, req.album.id)
+		album, err := base64.ToUint64(req.album.id)
+		if err != nil {
+			return topResponse{}, errors.Wrap(err)
+		}
+		imgs, err := c.serv.Top(ctx, album)
 		if err != nil {
 			return topResponse{}, errors.Wrap(err)
 		}

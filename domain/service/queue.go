@@ -10,9 +10,9 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func newQueue(name string, q model.Queuer) *queue {
+func newQueue(id uint64, q model.Queuer) *queue {
 	return &queue{
-		name:   name,
+		id:     id,
 		queue:  q,
 		cond:   sync.NewCond(&sync.Mutex{}),
 		closed: false,
@@ -21,7 +21,7 @@ func newQueue(name string, q model.Queuer) *queue {
 }
 
 type queue struct {
-	name   string
+	id     uint64
 	queue  model.Queuer
 	cond   *sync.Cond
 	closed bool
@@ -41,11 +41,11 @@ func (q *queue) Monitor(ctx context.Context) {
 	}()
 }
 
-func (q *queue) add(ctx context.Context, album string) error {
+func (q *queue) add(ctx context.Context, album uint64) error {
 	if q == nil || !q.valid {
 		return nil
 	}
-	err := q.queue.Add(ctx, q.name, album)
+	err := q.queue.Add(ctx, q.id, album)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -53,36 +53,36 @@ func (q *queue) add(ctx context.Context, album string) error {
 	return nil
 }
 
-func (q *queue) poll(ctx context.Context) (string, error) {
+func (q *queue) poll(ctx context.Context) (uint64, error) {
 	if q == nil || !q.valid {
-		return "", nil
+		return 0x0, nil
 	}
 	q.cond.L.Lock()
 	defer q.cond.L.Unlock()
-	n, err := q.queue.Size(ctx, q.name)
+	n, err := q.queue.Size(ctx, q.id)
 	if err != nil {
-		return "", errors.Wrap(err)
+		return 0x0, errors.Wrap(err)
 	}
 	for n == 0 {
 		q.cond.Wait()
 		if q.closed {
-			return "", nil
+			return 0x0, nil
 		}
-		n, err = q.queue.Size(ctx, q.name)
+		n, err = q.queue.Size(ctx, q.id)
 		if err != nil {
-			return "", errors.Wrap(err)
+			return 0x0, errors.Wrap(err)
 		}
 	}
-	album, err := q.queue.Poll(ctx, q.name)
+	album, err := q.queue.Poll(ctx, q.id)
 	if err != nil {
-		return "", errors.Wrap(err)
+		return 0x0, errors.Wrap(err)
 	}
 	return album, nil
 }
 
-func newPQueue(name string, pq model.PQueuer) *pqueue {
+func newPQueue(id uint64, pq model.PQueuer) *pqueue {
 	return &pqueue{
-		name:    name,
+		id:      id,
 		pqueue:  pq,
 		addCh:   make(chan struct{}),
 		addBuff: make(chan struct{}, 1),
@@ -93,7 +93,7 @@ func newPQueue(name string, pq model.PQueuer) *pqueue {
 }
 
 type pqueue struct {
-	name    string
+	id      uint64
 	pqueue  model.PQueuer
 	addCh   chan struct{}
 	addBuff chan struct{}
@@ -119,11 +119,11 @@ func (pq *pqueue) Monitor(ctx context.Context) {
 	}()
 }
 
-func (pq *pqueue) add(ctx context.Context, album string, expires time.Time) error {
+func (pq *pqueue) add(ctx context.Context, album uint64, expires time.Time) error {
 	if pq == nil || !pq.valid {
 		return nil
 	}
-	err := pq.pqueue.PAdd(ctx, pq.name, album, expires)
+	err := pq.pqueue.PAdd(ctx, pq.id, album, expires)
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -133,18 +133,18 @@ func (pq *pqueue) add(ctx context.Context, album string, expires time.Time) erro
 	return nil
 }
 
-func (pq *pqueue) poll(ctx context.Context) (string, error) {
+func (pq *pqueue) poll(ctx context.Context) (uint64, error) {
 	if pq == nil || !pq.valid {
-		return "", nil
+		return 0x0, nil
 	}
-	n, err := pq.pqueue.PSize(ctx, pq.name)
+	n, err := pq.pqueue.PSize(ctx, pq.id)
 	if err != nil {
-		return "", errors.Wrap(err)
+		return 0x0, errors.Wrap(err)
 	}
 	if n == 0 {
 		select {
 		case <-pq.closed:
-			return "", nil
+			return 0x0, nil
 		case <-pq.addCh:
 		}
 	}
@@ -152,36 +152,36 @@ func (pq *pqueue) poll(ctx context.Context) (string, error) {
 	case <-pq.addCh:
 	default:
 	}
-	album, expires, err := pq.pqueue.PPoll(ctx, pq.name)
+	album, expires, err := pq.pqueue.PPoll(ctx, pq.id)
 	if err != nil {
-		return "", errors.Wrap(err)
+		return 0x0, errors.Wrap(err)
 	}
 	t := time.NewTimer(time.Until(expires))
 	defer t.Stop()
 	for {
 		select {
 		case <-pq.closed:
-			return "", nil
+			return 0x0, nil
 		case <-pq.addCh:
-			newAlbum, newExpires, err := pq.pqueue.PPoll(ctx, pq.name)
+			newAlbum, newExpires, err := pq.pqueue.PPoll(ctx, pq.id)
 			if errors.Is(err, model.ErrUnknown) {
 				err = errors.Wrap(err)
 				handleError(err)
 				continue
 			}
 			if err != nil {
-				return "", errors.Wrap(err)
+				return 0x0, errors.Wrap(err)
 			}
 			if newExpires.After(expires) {
-				err := pq.pqueue.PAdd(ctx, pq.name, newAlbum, newExpires)
+				err := pq.pqueue.PAdd(ctx, pq.id, newAlbum, newExpires)
 				if err != nil {
-					return "", errors.Wrap(err)
+					return 0x0, errors.Wrap(err)
 				}
 				continue
 			}
-			err = pq.pqueue.PAdd(ctx, pq.name, album, expires)
+			err = pq.pqueue.PAdd(ctx, pq.id, album, expires)
 			if err != nil {
-				return "", errors.Wrap(err)
+				return 0x0, errors.Wrap(err)
 			}
 			if !t.Stop() {
 				<-t.C

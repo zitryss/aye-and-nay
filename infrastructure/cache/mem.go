@@ -16,10 +16,10 @@ func NewMem(opts ...options) *Mem {
 	conf := newMemConfig()
 	m := &Mem{
 		conf:        conf,
-		syncQueues:  syncQueues{queues: map[string]*linkedhashset.Set{}},
-		syncPQueues: syncPQueues{pqueues: map[string]*binaryheap.Heap{}},
-		syncPairs:   syncPairs{pairs: map[string]*pairsTime{}},
-		syncTokens:  syncTokens{tokens: map[string]*tokenTime{}},
+		syncQueues:  syncQueues{queues: map[uint64]*linkedhashset.Set{}},
+		syncPQueues: syncPQueues{pqueues: map[uint64]*binaryheap.Heap{}},
+		syncPairs:   syncPairs{pairs: map[uint64]*pairsTime{}},
+		syncTokens:  syncTokens{tokens: map[uint64]*tokenTime{}},
 	}
 	for _, opt := range opts {
 		opt(m)
@@ -55,36 +55,36 @@ type Mem struct {
 
 type syncQueues struct {
 	sync.Mutex
-	queues map[string]*linkedhashset.Set
+	queues map[uint64]*linkedhashset.Set
 }
 
 type syncPQueues struct {
 	sync.Mutex
-	pqueues map[string]*binaryheap.Heap
+	pqueues map[uint64]*binaryheap.Heap
 }
 
 type syncPairs struct {
 	sync.Mutex
-	pairs map[string]*pairsTime
+	pairs map[uint64]*pairsTime
 }
 
 type pairsTime struct {
-	pairs [][2]string
+	pairs [][2]uint64
 	seen  time.Time
 }
 
 type syncTokens struct {
 	sync.Mutex
-	tokens map[string]*tokenTime
+	tokens map[uint64]*tokenTime
 }
 
 type tokenTime struct {
-	token string
+	token uint64
 	seen  time.Time
 }
 
 type elem struct {
-	album   string
+	album   uint64
 	expires time.Time
 }
 
@@ -142,7 +142,7 @@ func (m *Mem) Monitor() {
 	}()
 }
 
-func (m *Mem) Add(ctx context.Context, queue uint64, album uint64) error {
+func (m *Mem) Add(_ context.Context, queue uint64, album uint64) error {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
@@ -154,23 +154,23 @@ func (m *Mem) Add(ctx context.Context, queue uint64, album uint64) error {
 	return nil
 }
 
-func (m *Mem) Poll(ctx context.Context, queue uint64) (uint64, error) {
+func (m *Mem) Poll(_ context.Context, queue uint64) (uint64, error) {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
 	if !ok {
-		return "", errors.Wrap(model.ErrUnknown)
+		return 0x0, errors.Wrap(model.ErrUnknown)
 	}
 	it := q.Iterator()
 	if !it.Next() {
-		return "", errors.Wrap(model.ErrUnknown)
+		return 0x0, errors.Wrap(model.ErrUnknown)
 	}
-	album := it.Value().(string)
+	album := it.Value().(uint64)
 	q.Remove(album)
 	return album, nil
 }
 
-func (m *Mem) Size(ctx context.Context, queue uint64) (int, error) {
+func (m *Mem) Size(_ context.Context, queue uint64) (int, error) {
 	m.syncQueues.Lock()
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
@@ -181,7 +181,7 @@ func (m *Mem) Size(ctx context.Context, queue uint64) (int, error) {
 	return n, nil
 }
 
-func (m *Mem) PAdd(ctx context.Context, pqueue uint64, album uint64, expires time.Time) error {
+func (m *Mem) PAdd(_ context.Context, pqueue uint64, album uint64, expires time.Time) error {
 	m.syncPQueues.Lock()
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
@@ -193,21 +193,21 @@ func (m *Mem) PAdd(ctx context.Context, pqueue uint64, album uint64, expires tim
 	return nil
 }
 
-func (m *Mem) PPoll(ctx context.Context, pqueue uint64) (uint64, time.Time, error) {
+func (m *Mem) PPoll(_ context.Context, pqueue uint64) (uint64, time.Time, error) {
 	m.syncPQueues.Lock()
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
 	if !ok {
-		return "", time.Time{}, errors.Wrap(model.ErrUnknown)
+		return 0x0, time.Time{}, errors.Wrap(model.ErrUnknown)
 	}
 	e, ok := pq.Pop()
 	if !ok {
-		return "", time.Time{}, errors.Wrap(model.ErrUnknown)
+		return 0x0, time.Time{}, errors.Wrap(model.ErrUnknown)
 	}
 	return e.(elem).album, e.(elem).expires, nil
 }
 
-func (m *Mem) PSize(ctx context.Context, pqueue uint64) (int, error) {
+func (m *Mem) PSize(_ context.Context, pqueue uint64) (int, error) {
 	m.syncPQueues.Lock()
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
@@ -218,33 +218,31 @@ func (m *Mem) PSize(ctx context.Context, pqueue uint64) (int, error) {
 	return n, nil
 }
 
-func (m *Mem) Push(ctx context.Context, album uint64, pairs [][2]uint64) error {
+func (m *Mem) Push(_ context.Context, album uint64, pairs [][2]uint64) error {
 	m.syncPairs.Lock()
 	defer m.syncPairs.Unlock()
-	key := "album:" + album + ":pairs"
-	p, ok := m.pairs[key]
+	p, ok := m.pairs[album]
 	if !ok {
 		p = &pairsTime{}
-		p.pairs = [][2]string{}
-		m.pairs[key] = p
+		p.pairs = [][2]uint64{}
+		m.pairs[album] = p
 	}
 	for _, images := range pairs {
-		p.pairs = append(p.pairs, [2]string{images[0], images[1]})
+		p.pairs = append(p.pairs, [2]uint64{images[0], images[1]})
 	}
 	p.seen = time.Now()
 	return nil
 }
 
-func (m *Mem) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
+func (m *Mem) Pop(_ context.Context, album uint64) (uint64, uint64, error) {
 	m.syncPairs.Lock()
 	defer m.syncPairs.Unlock()
-	key := "album:" + album + ":pairs"
-	p, ok := m.pairs[key]
+	p, ok := m.pairs[album]
 	if !ok {
-		return "", "", errors.Wrap(model.ErrPairNotFound)
+		return 0x0, 0x0, errors.Wrap(model.ErrPairNotFound)
 	}
 	if len(p.pairs) == 0 {
-		return "", "", errors.Wrap(model.ErrPairNotFound)
+		return 0x0, 0x0, errors.Wrap(model.ErrPairNotFound)
 	}
 	images := (p.pairs)[0]
 	p.pairs = (p.pairs)[1:]
@@ -252,29 +250,27 @@ func (m *Mem) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 	return images[0], images[1], nil
 }
 
-func (m *Mem) Set(ctx context.Context, album uint64, token uint64, image uint64) error {
+func (m *Mem) Set(_ context.Context, _ uint64, token uint64, image uint64) error {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
-	key := "album:" + album + ":token:" + token + ":image"
-	_, ok := m.tokens[key]
+	_, ok := m.tokens[token]
 	if ok {
 		return errors.Wrap(model.ErrTokenAlreadyExists)
 	}
 	t := &tokenTime{}
 	t.token = image
 	t.seen = time.Now()
-	m.tokens[key] = t
+	m.tokens[token] = t
 	return nil
 }
 
-func (m *Mem) Get(ctx context.Context, album uint64, token uint64) (uint64, error) {
+func (m *Mem) Get(_ context.Context, _ uint64, token uint64) (uint64, error) {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
-	key := "album:" + album + ":token:" + token + ":image"
-	image, ok := m.tokens[key]
+	image, ok := m.tokens[token]
 	if !ok {
-		return "", errors.Wrap(model.ErrTokenNotFound)
+		return 0x0, errors.Wrap(model.ErrTokenNotFound)
 	}
-	delete(m.tokens, key)
+	delete(m.tokens, token)
 	return image.token, nil
 }

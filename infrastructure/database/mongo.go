@@ -14,17 +14,17 @@ import (
 )
 
 type imageDao struct {
-	Album      string
-	Id         string
+	Album      int64
+	Id         int64
 	Src        string
 	Rating     float64
 	Compressed bool
 }
 
 type edgeDao struct {
-	Album  string
-	From   string
-	To     string
+	Album  int64
+	From   int64
+	To     int64
 	Weight int
 }
 
@@ -60,7 +60,7 @@ type Mongo struct {
 }
 
 func (m *Mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
-	filter := bson.D{{"album", alb.Id}}
+	filter := bson.D{{"album", int64(alb.Id)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return errors.Wrap(err)
@@ -70,7 +70,7 @@ func (m *Mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 	}
 	imgsDao := make([]interface{}, 0, len(alb.Images))
 	for _, img := range alb.Images {
-		imgDao := imageDao{alb.Id, img.Id, img.Src, img.Rating, m.conf.compressed}
+		imgDao := imageDao{int64(alb.Id), int64(img.Id), img.Src, img.Rating, m.conf.compressed}
 		imgsDao = append(imgsDao, imgDao)
 	}
 	_, err = m.images.InsertMany(ctx, imgsDao)
@@ -79,7 +79,7 @@ func (m *Mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 	}
 	for from, v := range alb.Edges {
 		for to, rating := range v {
-			edgDao := edgeDao{alb.Id, from, to, rating}
+			edgDao := edgeDao{int64(alb.Id), int64(from), int64(to), rating}
 			_, err = m.edges.InsertOne(ctx, edgDao)
 			if err != nil {
 				return errors.Wrap(err)
@@ -90,7 +90,7 @@ func (m *Mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 }
 
 func (m *Mongo) CountImages(ctx context.Context, album uint64) (int, error) {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return 0, errors.Wrap(err)
@@ -102,7 +102,7 @@ func (m *Mongo) CountImages(ctx context.Context, album uint64) (int, error) {
 }
 
 func (m *Mongo) CountImagesCompressed(ctx context.Context, album uint64) (int, error) {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return 0, errors.Wrap(err)
@@ -110,7 +110,7 @@ func (m *Mongo) CountImagesCompressed(ctx context.Context, album uint64) (int, e
 	if n == 0 {
 		return 0, errors.Wrap(model.ErrAlbumNotFound)
 	}
-	filter = bson.D{{"album", album}, {"compressed", true}}
+	filter = bson.D{{"album", int64(album)}, {"compressed", true}}
 	n, err = m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return 0, errors.Wrap(err)
@@ -119,7 +119,7 @@ func (m *Mongo) CountImagesCompressed(ctx context.Context, album uint64) (int, e
 }
 
 func (m *Mongo) UpdateCompressionStatus(ctx context.Context, album uint64, image uint64) error {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return errors.Wrap(err)
@@ -127,7 +127,7 @@ func (m *Mongo) UpdateCompressionStatus(ctx context.Context, album uint64, image
 	if n == 0 {
 		return errors.Wrap(model.ErrAlbumNotFound)
 	}
-	filter = bson.D{{"album", album}, {"id", image}}
+	filter = bson.D{{"album", int64(album)}, {"id", int64(image)}}
 	n, err = m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return errors.Wrap(err)
@@ -135,7 +135,7 @@ func (m *Mongo) UpdateCompressionStatus(ctx context.Context, album uint64, image
 	if n == 0 {
 		return errors.Wrap(model.ErrImageNotFound)
 	}
-	filter = bson.D{{"album", album}, {"id", image}}
+	filter = bson.D{{"album", int64(album)}, {"id", int64(image)}}
 	update := bson.D{{"$set", bson.D{{"compressed", true}}}}
 	_, err = m.images.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -145,7 +145,7 @@ func (m *Mongo) UpdateCompressionStatus(ctx context.Context, album uint64, image
 }
 
 func (m *Mongo) GetImage(ctx context.Context, album uint64, image uint64) (model.Image, error) {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return model.Image{}, errors.Wrap(err)
@@ -153,7 +153,7 @@ func (m *Mongo) GetImage(ctx context.Context, album uint64, image uint64) (model
 	if n == 0 {
 		return model.Image{}, errors.Wrap(model.ErrAlbumNotFound)
 	}
-	filter = bson.D{{"album", album}, {"id", image}}
+	filter = bson.D{{"album", int64(album)}, {"id", int64(image)}}
 	n, err = m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return model.Image{}, errors.Wrap(err)
@@ -161,17 +161,18 @@ func (m *Mongo) GetImage(ctx context.Context, album uint64, image uint64) (model
 	if n == 0 {
 		return model.Image{}, errors.Wrap(model.ErrImageNotFound)
 	}
-	filter = bson.D{{"album", album}, {"id", image}}
-	img := model.Image{}
-	err = m.images.FindOne(ctx, filter).Decode(&img)
+	filter = bson.D{{"album", int64(album)}, {"id", int64(image)}}
+	imgDao := imageDao{}
+	err = m.images.FindOne(ctx, filter).Decode(&imgDao)
 	if err != nil {
 		return model.Image{}, errors.Wrap(err)
 	}
+	img := model.Image{Id: uint64(imgDao.Id), Src: imgDao.Src, Rating: imgDao.Rating, Compressed: imgDao.Compressed}
 	return img, nil
 }
 
 func (m *Mongo) GetImages(ctx context.Context, album uint64) ([]uint64, error) {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, errors.Wrap(err)
@@ -179,8 +180,8 @@ func (m *Mongo) GetImages(ctx context.Context, album uint64) ([]uint64, error) {
 	if n == 0 {
 		return nil, errors.Wrap(model.ErrAlbumNotFound)
 	}
-	images := make([]string, 0, n)
-	filter = bson.D{{"album", album}}
+	images := make([]uint64, 0, n)
+	filter = bson.D{{"album", int64(album)}}
 	cursor, err := m.images.Find(ctx, filter)
 	if err != nil {
 		return nil, errors.Wrap(err)
@@ -192,7 +193,7 @@ func (m *Mongo) GetImages(ctx context.Context, album uint64) ([]uint64, error) {
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
-		images = append(images, imgDao.Id)
+		images = append(images, uint64(imgDao.Id))
 	}
 	err = cursor.Err()
 	if err != nil {
@@ -206,7 +207,7 @@ func (m *Mongo) GetImages(ctx context.Context, album uint64) ([]uint64, error) {
 }
 
 func (m *Mongo) SaveVote(ctx context.Context, album uint64, imageFrom uint64, imageTo uint64) error {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return errors.Wrap(err)
@@ -214,7 +215,7 @@ func (m *Mongo) SaveVote(ctx context.Context, album uint64, imageFrom uint64, im
 	if n == 0 {
 		return errors.Wrap(model.ErrAlbumNotFound)
 	}
-	filter = bson.D{{"album", album}, {"from", imageFrom}, {"to", imageTo}}
+	filter = bson.D{{"album", int64(album)}, {"from", int64(imageFrom)}, {"to", int64(imageTo)}}
 	update := bson.D{{"$inc", bson.D{{"weight", 1}}}}
 	opts := optionsdb.Update().SetUpsert(true)
 	_, err = m.edges.UpdateOne(ctx, filter, update, opts)
@@ -225,7 +226,7 @@ func (m *Mongo) SaveVote(ctx context.Context, album uint64, imageFrom uint64, im
 }
 
 func (m *Mongo) GetEdges(ctx context.Context, album uint64) (map[uint64]map[uint64]int, error) {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, errors.Wrap(err)
@@ -233,8 +234,8 @@ func (m *Mongo) GetEdges(ctx context.Context, album uint64) (map[uint64]map[uint
 	if n == 0 {
 		return nil, errors.Wrap(model.ErrAlbumNotFound)
 	}
-	edgs := make(map[string]map[string]int, n)
-	filter = bson.D{{"album", album}}
+	edgs := make(map[uint64]map[uint64]int, n)
+	filter = bson.D{{"album", int64(album)}}
 	cursor, err := m.images.Find(ctx, filter)
 	if err != nil {
 		return nil, errors.Wrap(err)
@@ -246,8 +247,8 @@ func (m *Mongo) GetEdges(ctx context.Context, album uint64) (map[uint64]map[uint
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
-		edgs[imgDao.Id] = make(map[string]int, n)
-		filter := bson.D{{"album", album}, {"from", imgDao.Id}}
+		edgs[uint64(imgDao.Id)] = make(map[uint64]int, n)
+		filter := bson.D{{"album", int64(album)}, {"from", imgDao.Id}}
 		cursor, err := m.edges.Find(ctx, filter)
 		if err != nil {
 			return nil, errors.Wrap(err)
@@ -259,7 +260,7 @@ func (m *Mongo) GetEdges(ctx context.Context, album uint64) (map[uint64]map[uint
 				_ = cursor.Close(ctx)
 				return nil, errors.Wrap(err)
 			}
-			edgs[edgDao.From][edgDao.To] = edgDao.Weight
+			edgs[uint64(edgDao.From)][uint64(edgDao.To)] = edgDao.Weight
 		}
 		err = cursor.Err()
 		if err != nil {
@@ -283,7 +284,7 @@ func (m *Mongo) GetEdges(ctx context.Context, album uint64) (map[uint64]map[uint
 }
 
 func (m *Mongo) UpdateRatings(ctx context.Context, album uint64, vector map[uint64]float64) error {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return errors.Wrap(err)
@@ -292,7 +293,7 @@ func (m *Mongo) UpdateRatings(ctx context.Context, album uint64, vector map[uint
 		return errors.Wrap(model.ErrAlbumNotFound)
 	}
 	for id, rating := range vector {
-		filter := bson.D{{"album", album}, {"id", id}}
+		filter := bson.D{{"album", int64(album)}, {"id", int64(id)}}
 		update := bson.D{{"$set", bson.D{{"rating", rating}}}}
 		_, err := m.images.UpdateOne(ctx, filter, update)
 		if err != nil {
@@ -303,7 +304,7 @@ func (m *Mongo) UpdateRatings(ctx context.Context, album uint64, vector map[uint
 }
 
 func (m *Mongo) GetImagesOrdered(ctx context.Context, album uint64) ([]model.Image, error) {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return nil, errors.Wrap(err)
@@ -312,7 +313,7 @@ func (m *Mongo) GetImagesOrdered(ctx context.Context, album uint64) ([]model.Ima
 		return nil, errors.Wrap(model.ErrAlbumNotFound)
 	}
 	imgs := make([]model.Image, 0, n)
-	filter = bson.D{{"album", album}}
+	filter = bson.D{{"album", int64(album)}}
 	opts := optionsdb.Find().SetSort(bson.D{{"rating", -1}})
 	cursor, err := m.images.Find(ctx, filter, opts)
 	if err != nil {
@@ -325,7 +326,7 @@ func (m *Mongo) GetImagesOrdered(ctx context.Context, album uint64) ([]model.Ima
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
-		img := model.Image{Id: imgDao.Id, Src: imgDao.Src, Rating: imgDao.Rating}
+		img := model.Image{Id: uint64(imgDao.Id), Src: imgDao.Src, Rating: imgDao.Rating}
 		imgs = append(imgs, img)
 	}
 	err = cursor.Err()
@@ -340,7 +341,7 @@ func (m *Mongo) GetImagesOrdered(ctx context.Context, album uint64) ([]model.Ima
 }
 
 func (m *Mongo) DeleteAlbum(ctx context.Context, album uint64) error {
-	filter := bson.D{{"album", album}}
+	filter := bson.D{{"album", int64(album)}}
 	n, err := m.images.CountDocuments(ctx, filter)
 	if err != nil {
 		return errors.Wrap(err)

@@ -1,11 +1,11 @@
 package linalg
 
-func PageRank(graph map[string]map[string]int) map[string]float64 {
+func PageRank(graph map[uint64]map[uint64]int) map[uint64]float64 {
 	// n - amount of vertices
 	n := len(graph)
 
-	idToIndex := make(map[string]int, n)
-	indexToId := make(map[int]string, n)
+	idToIndex := make(map[uint64]int, n)
+	indexToId := make(map[int]uint64, n)
 	index := 0
 	for id := range graph {
 		idToIndex[id] = index
@@ -88,7 +88,7 @@ func PageRank(graph map[string]map[string]int) map[string]float64 {
 		// runtime.Gosched() // runtime implements asynchronous preemption since go 1.14
 	}
 
-	res := make(map[string]float64, n)
+	res := make(map[uint64]float64, n)
 	for index, rating := range v {
 		id := indexToId[index]
 		res[id] = rating

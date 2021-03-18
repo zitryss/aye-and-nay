@@ -13,6 +13,7 @@ import (
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/internal/pool"
+	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
@@ -117,7 +118,9 @@ func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.Fil
 			pool.PutBuffer(v)
 		}
 	}()
-	filename := "albums/" + album + "/images/" + image
+	albumB64 := base64.FromUint64(album)
+	imageB64 := base64.FromUint64(image)
+	filename := "albums/" + albumB64 + "/images/" + imageB64
 	buf := bufio.NewReader(f)
 	_, err := m.client.PutObject(ctx, "aye-and-nay", filename, buf, f.Size, minios3.PutObjectOptions{})
 	if err != nil {
@@ -128,7 +131,9 @@ func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.Fil
 }
 
 func (m *Minio) Get(ctx context.Context, album uint64, image uint64) (model.File, error) {
-	filename := "albums/" + album + "/images/" + image
+	albumB64 := base64.FromUint64(album)
+	imageB64 := base64.FromUint64(image)
+	filename := "albums/" + albumB64 + "/images/" + imageB64
 	obj, err := m.client.GetObject(ctx, "aye-and-nay", filename, minios3.GetObjectOptions{})
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
@@ -142,7 +147,9 @@ func (m *Minio) Get(ctx context.Context, album uint64, image uint64) (model.File
 }
 
 func (m *Minio) Remove(ctx context.Context, album uint64, image uint64) error {
-	filename := "albums/" + album + "/images/" + image
+	albumB64 := base64.FromUint64(album)
+	imageB64 := base64.FromUint64(image)
+	filename := "albums/" + albumB64 + "/images/" + imageB64
 	err := m.client.RemoveObject(ctx, "aye-and-nay", filename, minios3.RemoveObjectOptions{})
 	if err != nil {
 		return errors.Wrap(err)

@@ -10,29 +10,29 @@ import (
 )
 
 func TestPageRank(t *testing.T) {
-	edgs := map[string]map[string]int{}
-	edgs["Design Patterns"] = map[string]int{}
-	edgs["Refactoring"] = map[string]int{}
-	edgs["Clean Code"] = map[string]int{}
-	edgs["Code Complete"] = map[string]int{}
-	edgs["The Progmatic Programmer"] = map[string]int{}
-	edgs["Refactoring"]["Design Patterns"]++
-	edgs["Clean Code"]["Design Patterns"]++
-	edgs["Clean Code"]["Refactoring"]++
-	edgs["Code Complete"]["Design Patterns"]++
-	edgs["Code Complete"]["Refactoring"]++
-	edgs["Code Complete"]["Clean Code"]++
-	edgs["The Progmatic Programmer"]["Design Patterns"]++
-	edgs["The Progmatic Programmer"]["Refactoring"]++
-	edgs["The Progmatic Programmer"]["Clean Code"]++
-	edgs["The Progmatic Programmer"]["Code Complete"]++
+	edgs := map[uint64]map[uint64]int{}
+	edgs[0x5B92] = map[uint64]int{}
+	edgs[0x804F] = map[uint64]int{}
+	edgs[0xFB26] = map[uint64]int{}
+	edgs[0xF523] = map[uint64]int{}
+	edgs[0xFC63] = map[uint64]int{}
+	edgs[0x804F][0x5B92]++
+	edgs[0xFB26][0x5B92]++
+	edgs[0xFB26][0x804F]++
+	edgs[0xF523][0x5B92]++
+	edgs[0xF523][0x804F]++
+	edgs[0xF523][0xFB26]++
+	edgs[0xFC63][0x5B92]++
+	edgs[0xFC63][0x804F]++
+	edgs[0xFC63][0xFB26]++
+	edgs[0xFC63][0xF523]++
 	got := linalg.PageRank(edgs)
-	want := map[string]float64{}
-	want["Design Patterns"] = 0.539773357682638
-	want["Refactoring"] = 0.20997909420705596
-	want["Clean Code"] = 0.11761540730647063
-	want["Code Complete"] = 0.07719901505201851
-	want["The Progmatic Programmer"] = 0.055433125751816706
+	want := map[uint64]float64{}
+	want[0x5B92] = 0.539773357682638
+	want[0x804F] = 0.20997909420705596
+	want[0xFB26] = 0.11761540730647063
+	want[0xF523] = 0.07719901505201851
+	want[0xFC63] = 0.055433125751816706
 	if !EqualMap(got, want) {
 		t.Error("!equalMap(got, want)")
 	}
@@ -41,14 +41,14 @@ func TestPageRank(t *testing.T) {
 func BenchmarkPageRank(b *testing.B) {
 	for i := 995; i <= 1005; i++ {
 		b.Run(strconv.Itoa(i), func(b *testing.B) {
-			edgs := map[string]map[string]int{}
+			edgs := map[uint64]map[uint64]int{}
 			for j := 0; j < i; j++ {
-				node := strconv.Itoa(j)
-				edgs[node] = map[string]int{}
+				node := uint64(j)
+				edgs[node] = map[uint64]int{}
 			}
 			for j := 0; j < i; j++ {
-				from := strconv.Itoa(rand.Intn(i))
-				to := strconv.Itoa(rand.Intn(i))
+				from := uint64(rand.Intn(i))
+				to := uint64(rand.Intn(i))
 				edgs[from][to]++
 			}
 			b.ResetTimer()

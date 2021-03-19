@@ -15,12 +15,12 @@ import (
 func TestMemAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumEmptyFactory("EMqPQEyhp5cPTnaV")
+		alb := AlbumEmptyFactory(0x6CC4)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		edgs, err := mem.GetEdges(context.Background(), "EMqPQEyhp5cPTnaV")
+		edgs, err := mem.GetEdges(context.Background(), 0x6CC4)
 		if err != nil {
 			t.Error(err)
 		}
@@ -30,12 +30,12 @@ func TestMemAlbum(t *testing.T) {
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumFullFactory("6FsUPNGm8XT89Vjg")
+		alb := AlbumFullFactory(0xA566)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		alb = AlbumFullFactory("6FsUPNGm8XT89Vjg")
+		alb = AlbumFullFactory(0xA566)
 		err = mem.SaveAlbum(context.Background(), alb)
 		if !errors.Is(err, model.ErrAlbumAlreadyExists) {
 			t.Error(err)
@@ -43,14 +43,14 @@ func TestMemAlbum(t *testing.T) {
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
-		_, err := mem.GetImages(context.Background(), "bZBnH7G6zFDZ9WHm")
+		_, err := mem.GetImages(context.Background(), 0xA9B4)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		mem := NewMem()
-		_, err := mem.GetEdges(context.Background(), "qbkzA2HqgELCxB5P")
+		_, err := mem.GetEdges(context.Background(), 0x3F1E)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -60,48 +60,48 @@ func TestMemAlbum(t *testing.T) {
 func TestMemCount(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumEmptyFactory("c86jMVAX5Qgs2MZy")
+		alb := AlbumEmptyFactory(0x746C)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		n, err := mem.CountImages(context.Background(), "c86jMVAX5Qgs2MZy")
+		n, err := mem.CountImages(context.Background(), 0x746C)
 		if err != nil {
 			t.Error(err)
 		}
 		if n != 5 {
 			t.Error("n != 5")
 		}
-		n, err = mem.CountImagesCompressed(context.Background(), "c86jMVAX5Qgs2MZy")
+		n, err = mem.CountImagesCompressed(context.Background(), 0x746C)
 		if err != nil {
 			t.Error(err)
 		}
 		if n != 0 {
 			t.Error("n != 0")
 		}
-		err = mem.UpdateCompressionStatus(context.Background(), "c86jMVAX5Qgs2MZy", "RcBj3m9vuYPbntAE")
+		err = mem.UpdateCompressionStatus(context.Background(), 0x746C, 0x3E3D)
 		if err != nil {
 			t.Error(err)
 		}
-		n, err = mem.CountImages(context.Background(), "c86jMVAX5Qgs2MZy")
+		n, err = mem.CountImages(context.Background(), 0x746C)
 		if err != nil {
 			t.Error(err)
 		}
 		if n != 5 {
 			t.Error("n != 5")
 		}
-		n, err = mem.CountImagesCompressed(context.Background(), "c86jMVAX5Qgs2MZy")
+		n, err = mem.CountImagesCompressed(context.Background(), 0x746C)
 		if err != nil {
 			t.Error(err)
 		}
 		if n != 1 {
 			t.Error("n != 1")
 		}
-		err = mem.UpdateCompressionStatus(context.Background(), "c86jMVAX5Qgs2MZy", "Q3NafBGuDH9PAtS4")
+		err = mem.UpdateCompressionStatus(context.Background(), 0x746C, 0xB399)
 		if err != nil {
 			t.Error(err)
 		}
-		n, err = mem.CountImagesCompressed(context.Background(), "c86jMVAX5Qgs2MZy")
+		n, err = mem.CountImagesCompressed(context.Background(), 0x746C)
 		if err != nil {
 			t.Error(err)
 		}
@@ -111,20 +111,20 @@ func TestMemCount(t *testing.T) {
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumEmptyFactory("x8nqgfCUVsFL985w")
+		alb := AlbumEmptyFactory(0x99DF)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		err = mem.UpdateCompressionStatus(context.Background(), "x8nqgfCUVsFL985w", "RcBj3m9vuYPbntAE")
+		err = mem.UpdateCompressionStatus(context.Background(), 0x99DF, 0x3E3D)
 		if err != nil {
 			t.Error(err)
 		}
-		err = mem.UpdateCompressionStatus(context.Background(), "x8nqgfCUVsFL985w", "RcBj3m9vuYPbntAE")
+		err = mem.UpdateCompressionStatus(context.Background(), 0x99DF, 0x3E3D)
 		if err != nil {
 			t.Error(err)
 		}
-		n, err := mem.CountImagesCompressed(context.Background(), "x8nqgfCUVsFL985w")
+		n, err := mem.CountImagesCompressed(context.Background(), 0x99DF)
 		if err != nil {
 			t.Error(err)
 		}
@@ -134,33 +134,33 @@ func TestMemCount(t *testing.T) {
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
-		_, err := mem.CountImages(context.Background(), "WPbkn8VTVTPd5WYJ")
+		_, err := mem.CountImages(context.Background(), 0xF256)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		mem := NewMem()
-		_, err := mem.CountImagesCompressed(context.Background(), "nLYW4zNnH3tt639m")
+		_, err := mem.CountImagesCompressed(context.Background(), 0xC52A)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative4", func(t *testing.T) {
 		mem := NewMem()
-		err := mem.UpdateCompressionStatus(context.Background(), "FLwXJhs4D2kkpehK", "RcBj3m9vuYPbntAE")
+		err := mem.UpdateCompressionStatus(context.Background(), 0xF73E, 0x3E3D)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative5", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumEmptyFactory("2drK8rREqpFS2WYp")
+		alb := AlbumEmptyFactory(0xDF75)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		err = mem.UpdateCompressionStatus(context.Background(), "2drK8rREqpFS2WYp", "EC5md2qhemwAZmGf")
+		err = mem.UpdateCompressionStatus(context.Background(), 0xDF75, 0xE7A4)
 		if !errors.Is(err, model.ErrImageNotFound) {
 			t.Error(err)
 		}
@@ -170,35 +170,35 @@ func TestMemCount(t *testing.T) {
 func TestMemImage(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumEmptyFactory("k9YA7PJmcMcdqEcR")
+		alb := AlbumEmptyFactory(0xB0C4)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		img1, err := mem.GetImage(context.Background(), "k9YA7PJmcMcdqEcR", "VYFczQcF45x7gLYH")
+		img1, err := mem.GetImage(context.Background(), 0xB0C4, 0x51DE)
 		if err != nil {
 			t.Error(err)
 		}
-		img2 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/k9YA7PJmcMcdqEcR/images/428PcLG7e7VZHyAJ"}
+		img2 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/xLAAAAAAAAA/images/3lEAAAAAAAA"}
 		if !reflect.DeepEqual(img1, img2) {
 			t.Error("img1 != img2")
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem()
-		_, err := mem.GetImage(context.Background(), "8856LWPRnuSckPCa", "VYFczQcF45x7gLYH")
+		_, err := mem.GetImage(context.Background(), 0x12EE, 0x51DE)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumEmptyFactory("g3VSAWnwX5fDkjcr")
+		alb := AlbumEmptyFactory(0xD585)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = mem.GetImage(context.Background(), "g3VSAWnwX5fDkjcr", "W3rdTdrbRN3jedHB")
+		_, err = mem.GetImage(context.Background(), 0xD585, 0xDA30)
 		if !errors.Is(err, model.ErrImageNotFound) {
 			t.Error(err)
 		}
@@ -208,34 +208,30 @@ func TestMemImage(t *testing.T) {
 func TestMemVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumFullFactory("nAUeQgkR82njjGjB")
+		alb := AlbumFullFactory(0x4D76)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		imageFrom := "442BbctbQhcQHrgH"
-		imageTo := "qBmu5KGTqCdvfgTU"
-		err = mem.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
+		err = mem.SaveVote(context.Background(), 0x4D76, 0xDA2A, 0xDA52)
 		if err != nil {
 			t.Error(err)
 		}
-		err = mem.SaveVote(context.Background(), "nAUeQgkR82njjGjB", imageFrom, imageTo)
+		err = mem.SaveVote(context.Background(), 0x4D76, 0xDA2A, 0xDA52)
 		if err != nil {
 			t.Error(err)
 		}
-		edgs, err := mem.GetEdges(context.Background(), "nAUeQgkR82njjGjB")
+		edgs, err := mem.GetEdges(context.Background(), 0x4D76)
 		if err != nil {
 			t.Error(err)
 		}
-		if edgs["442BbctbQhcQHrgH"]["qBmu5KGTqCdvfgTU"] != 2 {
+		if edgs[0xDA2A][0xDA52] != 2 {
 			t.Error("edgs[imageFrom][imageTo] != 2")
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
 		mem := NewMem()
-		imageFrom := "hQXK3DTRrQ8AHCcd"
-		imageTo := "gukYVmHFmnB6fg7Q"
-		err := mem.SaveVote(context.Background(), "Xuz8ZqVt8k3mAC6d", imageFrom, imageTo)
+		err := mem.SaveVote(context.Background(), 0x1FAD, 0x84E6, 0x308E)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -245,20 +241,20 @@ func TestMemVote(t *testing.T) {
 func TestMemSort(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumFullFactory("Xr5qXyfQAgnSNTzM")
+		alb := AlbumFullFactory(0x5A96)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		imgs1, err := mem.GetImagesOrdered(context.Background(), "Xr5qXyfQAgnSNTzM")
+		imgs1, err := mem.GetImagesOrdered(context.Background(), 0x5A96)
 		if err != nil {
 			t.Error(err)
 		}
-		img1 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/428PcLG7e7VZHyAJ", Rating: 0.77920413}
-		img2 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/6sgsr8WwqudTDzhR", Rating: 0.48954984}
-		img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/kUrtHH5hTLbcSJdu", Rating: 0.41218211}
-		img4 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/2H7NpJkPwBWUk6gL", Rating: 0.19186324}
-		img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/Xr5qXyfQAgnSNTzM/images/gXR6VrL9h7E3pFVY", Rating: 0.13278389}
+		img1 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/3lEAAAAAAAA", Rating: 0.77920413}
+		img2 := model.Image{Id: 0x3E3D, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/PT4AAAAAAAA", Rating: 0.48954984}
+		img3 := model.Image{Id: 0xDA2A, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/KtoAAAAAAAA", Rating: 0.41218211}
+		img4 := model.Image{Id: 0xB399, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/mbMAAAAAAAA", Rating: 0.19186324}
+		img5 := model.Image{Id: 0xDA52, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/UtoAAAAAAAA", Rating: 0.13278389}
 		imgs2 := []model.Image{img1, img2, img3, img4, img5}
 		if !reflect.DeepEqual(imgs1, imgs2) {
 			t.Error("imgs1 != imgs2")
@@ -266,7 +262,7 @@ func TestMemSort(t *testing.T) {
 	})
 	t.Run("Negative", func(t *testing.T) {
 		mem := NewMem()
-		_, err := mem.GetImagesOrdered(context.Background(), "M6cMTehk3LfV5CBy")
+		_, err := mem.GetImagesOrdered(context.Background(), 0x66BE)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -276,28 +272,28 @@ func TestMemSort(t *testing.T) {
 func TestMemRatings(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumFullFactory("Tz6NXWHXFzvWpumP")
+		alb := AlbumFullFactory(0x4E54)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		img1 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/6sgsr8WwqudTDzhR", Rating: 0.54412788}
-		img2 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/2H7NpJkPwBWUk6gL", Rating: 0.32537162}
-		img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/kUrtHH5hTLbcSJdu", Rating: 0.43185491}
-		img4 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/428PcLG7e7VZHyAJ", Rating: 0.57356209}
-		img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/Tz6NXWHXFzvWpumP/images/gXR6VrL9h7E3pFVY", Rating: 0.61438023}
+		img1 := model.Image{Id: 0x3E3D, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/PT4AAAAAAAA", Rating: 0.54412788}
+		img2 := model.Image{Id: 0xB399, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/mbMAAAAAAAA", Rating: 0.32537162}
+		img3 := model.Image{Id: 0xDA2A, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/KtoAAAAAAAA", Rating: 0.43185491}
+		img4 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/3lEAAAAAAAA", Rating: 0.57356209}
+		img5 := model.Image{Id: 0xDA52, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/UtoAAAAAAAA", Rating: 0.61438023}
 		imgs1 := []model.Image{img1, img2, img3, img4, img5}
-		vector := map[string]float64{}
+		vector := map[uint64]float64{}
 		vector[img1.Id] = img1.Rating
 		vector[img2.Id] = img2.Rating
 		vector[img3.Id] = img3.Rating
 		vector[img4.Id] = img4.Rating
 		vector[img5.Id] = img5.Rating
-		err = mem.UpdateRatings(context.Background(), "Tz6NXWHXFzvWpumP", vector)
+		err = mem.UpdateRatings(context.Background(), 0x4E54, vector)
 		if err != nil {
 			t.Error(err)
 		}
-		imgs2, err := mem.GetImagesOrdered(context.Background(), "Tz6NXWHXFzvWpumP")
+		imgs2, err := mem.GetImagesOrdered(context.Background(), 0x4E54)
 		if err != nil {
 			t.Error(err)
 		}
@@ -308,18 +304,18 @@ func TestMemRatings(t *testing.T) {
 	})
 	t.Run("Negative", func(t *testing.T) {
 		mem := NewMem()
-		img1 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/6sgsr8WwqudTDzhR", Rating: 0.54412788}
-		img2 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/2H7NpJkPwBWUk6gL", Rating: 0.32537162}
-		img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/kUrtHH5hTLbcSJdu", Rating: 0.43185491}
-		img4 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/428PcLG7e7VZHyAJ", Rating: 0.57356209}
-		img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/PB6wujzcRKjGKVzd/images/gXR6VrL9h7E3pFVY", Rating: 0.61438023}
-		vector := map[string]float64{}
+		img1 := model.Image{Id: 0x3E3D, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/PT4AAAAAAAA", Rating: 0.54412788}
+		img2 := model.Image{Id: 0xB399, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/mbMAAAAAAAA", Rating: 0.32537162}
+		img3 := model.Image{Id: 0xDA2A, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/KtoAAAAAAAA", Rating: 0.43185491}
+		img4 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/3lEAAAAAAAA", Rating: 0.57356209}
+		img5 := model.Image{Id: 0xDA52, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/UtoAAAAAAAA", Rating: 0.61438023}
+		vector := map[uint64]float64{}
 		vector[img1.Id] = img1.Rating
 		vector[img2.Id] = img2.Rating
 		vector[img3.Id] = img3.Rating
 		vector[img4.Id] = img4.Rating
 		vector[img5.Id] = img5.Rating
-		err := mem.UpdateRatings(context.Background(), "PB6wujzcRKjGKVzd", vector)
+		err := mem.UpdateRatings(context.Background(), 0xA293, vector)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -329,8 +325,8 @@ func TestMemRatings(t *testing.T) {
 func TestMemDelete(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumEmptyFactory("CsRxWcm7bjhjCjPH")
-		_, err := mem.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		alb := AlbumEmptyFactory(0x748C)
+		_, err := mem.CountImages(context.Background(), 0x748C)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -338,30 +334,30 @@ func TestMemDelete(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		n, err := mem.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		n, err := mem.CountImages(context.Background(), 0x748C)
 		if err != nil {
 			t.Error(err)
 		}
 		if n != 5 {
 			t.Error("n != 5")
 		}
-		err = mem.DeleteAlbum(context.Background(), "CsRxWcm7bjhjCjPH")
+		err = mem.DeleteAlbum(context.Background(), 0x748C)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = mem.CountImages(context.Background(), "CsRxWcm7bjhjCjPH")
+		_, err = mem.CountImages(context.Background(), 0x748C)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
 		mem := NewMem()
-		alb := AlbumEmptyFactory("pXHbPK8WuWC9x8cp")
+		alb := AlbumEmptyFactory(0x608C)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
 			t.Error(err)
 		}
-		err = mem.DeleteAlbum(context.Background(), "9JFs2DWEDmZWXSyy")
+		err = mem.DeleteAlbum(context.Background(), 0xB7FF)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}

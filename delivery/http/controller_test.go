@@ -43,7 +43,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 201,
 				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"id":"N2fxX5zbDh8RJQvx1"}}` + "\n",
+				body: `{"album":{"id":"rRsAAAAAAAA"}}` + "\n",
 			},
 		},
 		{
@@ -531,8 +531,8 @@ func TestControllerHandleReady(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleReady()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/api/albums/N2fxX5zbDh8RJQvx1/ready", nil)
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "N2fxX5zbDh8RJQvx1"}}
+			r := httptest.NewRequest("GET", "/api/albums/rRsAAAAAAAA/ready", nil)
+			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "rRsAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
 			CheckContentType(t, w, tt.want.typ)
@@ -561,7 +561,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 200,
 				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"img1":{"token":"DfsXRkDxVeH2xmme5","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme2"},"img2":{"token":"DfsXRkDxVeH2xmme6","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme3"}}}` + "\n",
+				body: `{"album":{"img1":{"token":"f8cAAAAAAAA","src":"/aye-and-nay/albums/nkUAAAAAAAA/images/21EAAAAAAAA"},"img2":{"token":"iakAAAAAAAA","src":"/aye-and-nay/albums/nkUAAAAAAAA/images/K2IAAAAAAAA"}}}` + "\n",
 			},
 		},
 		{
@@ -711,8 +711,8 @@ func TestControllerHandlePair(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handlePair()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/api/albums/DfsXRkDxVeH2xmme1/", nil)
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "DfsXRkDxVeH2xmme1"}}
+			r := httptest.NewRequest("GET", "/api/albums/nkUAAAAAAAA/", nil)
+			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "nkUAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
 			CheckContentType(t, w, tt.want.typ)
@@ -891,10 +891,10 @@ func TestControllerHandleVote(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleVote()
 			w := httptest.NewRecorder()
-			json := strings.NewReader(`{"album":{"imgFrom":{"token":"MvdZUxVgPD5p6JTa5"},"imgTo":{"token":"MvdZUxVgPD5p6JTa6"}}}`)
-			r := httptest.NewRequest("PATCH", "/api/albums/MvdZUxVgPD5p6JTa1/", json)
+			json := strings.NewReader(`{"album":{"imgFrom":{"token":"fYIAAAAAAAA"},"imgTo":{"token":"foIAAAAAAAA"}}}`)
+			r := httptest.NewRequest("PATCH", "/api/albums/fIIAAAAAAAA/", json)
 			r.Header.Set("Content-Type", "application/json; charset=utf-8")
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "MvdZUxVgPD5p6JTa1"}}
+			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "fIIAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
 			CheckContentType(t, w, tt.want.typ)
@@ -923,7 +923,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 200,
 				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"images":[{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ2","rating":0.5},{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ3","rating":0.5}]}}` + "\n",
+				body: `{"album":{"images":[{"src":"/aye-and-nay/albums/byYAAAAAAAA/images/yFwAAAAAAAA","rating":0.5},{"src":"/aye-and-nay/albums/byYAAAAAAAA/images/jVgAAAAAAAA","rating":0.5}]}}` + "\n",
 			},
 		},
 		{
@@ -1073,8 +1073,8 @@ func TestControllerHandleTop(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleTop()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/top/", nil)
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "bYCppY8q6qjvXjMZ1"}}
+			r := httptest.NewRequest("GET", "/api/albums/byYAAAAAAAA/top/", nil)
+			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "byYAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
 			CheckContentType(t, w, tt.want.typ)

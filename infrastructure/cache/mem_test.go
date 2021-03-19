@@ -14,43 +14,39 @@ import (
 func TestMemPair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		image1 := "RcBj3m9vuYPbntAE"
-		image2 := "Q3NafBGuDH9PAtS4"
-		err := mem.Push(context.Background(), "Pa6YTumLBRMFa7cX", [][2]string{{image1, image2}})
+		err := mem.Push(context.Background(), 0x23D2, [][2]uint64{{0x3E3D, 0xB399}})
 		if err != nil {
 			t.Error(err)
 		}
-		image3, image4, err := mem.Pop(context.Background(), "Pa6YTumLBRMFa7cX")
+		image1, image2, err := mem.Pop(context.Background(), 0x23D2)
 		if err != nil {
 			t.Error(err)
 		}
-		if image1 != image3 {
-			t.Error("image1 != image3")
+		if image1 != 0x3E3D {
+			t.Error("image1 != 0x3E3D")
 		}
-		if image2 != image4 {
-			t.Error("image2 != image4")
+		if image2 != 0xB399 {
+			t.Error("image2 != 0xB399")
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem()
-		_, _, err := mem.Pop(context.Background(), "hP4tQHZr55JXMdnG")
+		_, _, err := mem.Pop(context.Background(), 0x73BF)
 		if !errors.Is(err, model.ErrPairNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
-		image1 := "5t2AMJ7NWAxBDDe4"
-		image2 := "cPp7xeV4EMka5SpM"
-		err := mem.Push(context.Background(), "5dVZ5tVm7QKtRjVA", [][2]string{{image1, image2}})
+		err := mem.Push(context.Background(), 0x1AE9, [][2]uint64{{0x44DC, 0x721B}})
 		if err != nil {
 			t.Error(err)
 		}
-		_, _, err = mem.Pop(context.Background(), "5dVZ5tVm7QKtRjVA")
+		_, _, err = mem.Pop(context.Background(), 0x1AE9)
 		if err != nil {
 			t.Error(err)
 		}
-		_, _, err = mem.Pop(context.Background(), "5dVZ5tVm7QKtRjVA")
+		_, _, err = mem.Pop(context.Background(), 0x1AE9)
 		if !errors.Is(err, model.ErrPairNotFound) {
 			t.Error(err)
 		}
@@ -59,16 +55,14 @@ func TestMemPair(t *testing.T) {
 		heartbeatPair := make(chan interface{})
 		mem := NewMem(WithHeartbeatPair(heartbeatPair))
 		mem.Monitor()
-		image1 := "RYvhkVCK3WAhULBa"
-		image2 := "2EWKZXVVuh27sRkL"
-		err := mem.Push(context.Background(), "rtxyfrCFm6LYcVwF", [][2]string{{image1, image2}})
+		err := mem.Push(context.Background(), 0xF51A, [][2]uint64{{0x4BB0, 0x3A87}})
 		if err != nil {
 			t.Error(err)
 		}
 		time.Sleep(mem.conf.timeToLive)
 		CheckChannel(t, heartbeatPair)
 		CheckChannel(t, heartbeatPair)
-		_, _, err = mem.Pop(context.Background(), "rtxyfrCFm6LYcVwF")
+		_, _, err = mem.Pop(context.Background(), 0xF51A)
 		if !errors.Is(err, model.ErrPairNotFound) {
 			t.Error(err)
 		}
@@ -78,54 +72,47 @@ func TestMemPair(t *testing.T) {
 func TestMemToken(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem()
-		image := "gTwdSTUDmz9LBerC"
-		token := "kqsEDug6rK6BcHHy"
-		err := mem.Set(context.Background(), "A55vmoMMLWX0g1KW", token, image)
+		err := mem.Set(context.Background(), 0xC2E7, 0xB41C, 0x52BD)
 		if err != nil {
 			t.Error(err)
 		}
-		image2, err := mem.Get(context.Background(), "A55vmoMMLWX0g1KW", token)
+		image, err := mem.Get(context.Background(), 0xC2E7, 0xB41C)
 		if err != nil {
 			t.Error(err)
 		}
-		if image != image2 {
-			t.Error("image != image2")
+		if image != 0x52BD {
+			t.Error("image != 0x52BD")
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem()
-		image := "FvEfGeXG7xEuLREm"
-		token := "a3MmBWHGMDC7LeN9"
-		err := mem.Set(context.Background(), "b919qD42qhC4201o", token, image)
+		err := mem.Set(context.Background(), 0x1C4A, 0xF0EE, 0x583C)
 		if err != nil {
 			t.Error(err)
 		}
-		err = mem.Set(context.Background(), "b919qD42qhC4201o", token, image)
+		err = mem.Set(context.Background(), 0x1C4A, 0xF0EE, 0x583C)
 		if !errors.Is(err, model.ErrTokenAlreadyExists) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
-		token := "wmnAznYhVg6e8jHk"
-		_, err := mem.Get(context.Background(), "b919qD42qhC4201o", token)
+		_, err := mem.Get(context.Background(), 0x1C4A, 0xC4F8)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		mem := NewMem()
-		image := "QWfqTS8S4Hp2BzKn"
-		token := "PK4dWeYgnY9vunmp"
-		err := mem.Set(context.Background(), "0nq95EBOTH8I79LR", token, image)
+		err := mem.Set(context.Background(), 0xEB96, 0xC67F, 0x7C45)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = mem.Get(context.Background(), "0nq95EBOTH8I79LR", token)
+		_, err = mem.Get(context.Background(), 0xEB96, 0xC67F)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = mem.Get(context.Background(), "0nq95EBOTH8I79LR", token)
+		_, err = mem.Get(context.Background(), 0xEB96, 0xC67F)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}
@@ -134,16 +121,14 @@ func TestMemToken(t *testing.T) {
 		heartbeatToken := make(chan interface{})
 		mem := NewMem(WithHeartbeatToken(heartbeatToken))
 		mem.Monitor()
-		image := "mHz9nH5nwCfZHn5C"
-		token := "ebqwp4yEHuH2eB2U"
-		err := mem.Set(context.Background(), "xZALPEN7kt7RS5rz", token, image)
+		err := mem.Set(context.Background(), 0xE0AF, 0xCF1E, 0xDD0A)
 		if err != nil {
 			t.Error(err)
 		}
 		time.Sleep(mem.conf.timeToLive)
 		CheckChannel(t, heartbeatToken)
 		CheckChannel(t, heartbeatToken)
-		_, err = mem.Get(context.Background(), "xZALPEN7kt7RS5rz", token)
+		_, err = mem.Get(context.Background(), 0xE0AF, 0xCF1E)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}

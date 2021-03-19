@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/pkg/base64"
 )
 
 const (
@@ -68,44 +69,45 @@ func IsIn(image model.Image, imgs []model.Image) bool {
 	return false
 }
 
-func AlbumEmptyFactory(id string) model.Album {
-	img1 := model.Image{Id: "RcBj3m9vuYPbntAE", Src: "/aye-and-nay/albums/" + id + "/images/6sgsr8WwqudTDzhR"}
-	img2 := model.Image{Id: "Q3NafBGuDH9PAtS4", Src: "/aye-and-nay/albums/" + id + "/images/2H7NpJkPwBWUk6gL"}
-	img3 := model.Image{Id: "442BbctbQhcQHrgH", Src: "/aye-and-nay/albums/" + id + "/images/kUrtHH5hTLbcSJdu"}
-	img4 := model.Image{Id: "VYFczQcF45x7gLYH", Src: "/aye-and-nay/albums/" + id + "/images/428PcLG7e7VZHyAJ"}
-	img5 := model.Image{Id: "qBmu5KGTqCdvfgTU", Src: "/aye-and-nay/albums/" + id + "/images/gXR6VrL9h7E3pFVY"}
+func AlbumEmptyFactory(id uint64) model.Album {
+	idB64 := base64.FromUint64(id)
+	img1 := model.Image{Id: 0x3E3D, Src: "/aye-and-nay/albums/" + idB64 + "/images/PT4AAAAAAAA"}
+	img2 := model.Image{Id: 0xB399, Src: "/aye-and-nay/albums/" + idB64 + "/images/mbMAAAAAAAA"}
+	img3 := model.Image{Id: 0xDA2A, Src: "/aye-and-nay/albums/" + idB64 + "/images/KtoAAAAAAAA"}
+	img4 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/" + idB64 + "/images/3lEAAAAAAAA"}
+	img5 := model.Image{Id: 0xDA52, Src: "/aye-and-nay/albums/" + idB64 + "/images/UtoAAAAAAAA"}
 	imgs := []model.Image{img1, img2, img3, img4, img5}
-	edgs := map[string]map[string]int{}
-	edgs["RcBj3m9vuYPbntAE"] = map[string]int{}
-	edgs["Q3NafBGuDH9PAtS4"] = map[string]int{}
-	edgs["442BbctbQhcQHrgH"] = map[string]int{}
-	edgs["VYFczQcF45x7gLYH"] = map[string]int{}
-	edgs["qBmu5KGTqCdvfgTU"] = map[string]int{}
+	edgs := map[uint64]map[uint64]int{}
+	edgs[0x3E3D] = map[uint64]int{}
+	edgs[0xB399] = map[uint64]int{}
+	edgs[0xDA2A] = map[uint64]int{}
+	edgs[0x51DE] = map[uint64]int{}
+	edgs[0xDA52] = map[uint64]int{}
 	alb := model.Album{id, imgs, edgs}
 	return alb
 }
 
-func AlbumFullFactory(id string) model.Album {
+func AlbumFullFactory(id uint64) model.Album {
 	alb := AlbumEmptyFactory(id)
 	alb.Images[0].Rating = 0.48954984
 	alb.Images[1].Rating = 0.19186324
 	alb.Images[2].Rating = 0.41218211
 	alb.Images[3].Rating = 0.77920413
 	alb.Images[4].Rating = 0.13278389
-	alb.Edges["VYFczQcF45x7gLYH"]["442BbctbQhcQHrgH"]++
-	alb.Edges["RcBj3m9vuYPbntAE"]["442BbctbQhcQHrgH"]++
-	alb.Edges["RcBj3m9vuYPbntAE"]["VYFczQcF45x7gLYH"]++
-	alb.Edges["Q3NafBGuDH9PAtS4"]["442BbctbQhcQHrgH"]++
-	alb.Edges["Q3NafBGuDH9PAtS4"]["VYFczQcF45x7gLYH"]++
-	alb.Edges["Q3NafBGuDH9PAtS4"]["RcBj3m9vuYPbntAE"]++
-	alb.Edges["qBmu5KGTqCdvfgTU"]["442BbctbQhcQHrgH"]++
-	alb.Edges["qBmu5KGTqCdvfgTU"]["VYFczQcF45x7gLYH"]++
-	alb.Edges["qBmu5KGTqCdvfgTU"]["RcBj3m9vuYPbntAE"]++
-	alb.Edges["qBmu5KGTqCdvfgTU"]["Q3NafBGuDH9PAtS4"]++
+	alb.Edges[0x51DE][0xDA2A]++
+	alb.Edges[0x3E3D][0xDA2A]++
+	alb.Edges[0x3E3D][0x51DE]++
+	alb.Edges[0xB399][0xDA2A]++
+	alb.Edges[0xB399][0x51DE]++
+	alb.Edges[0xB399][0x3E3D]++
+	alb.Edges[0xDA52][0xDA2A]++
+	alb.Edges[0xDA52][0x51DE]++
+	alb.Edges[0xDA52][0x3E3D]++
+	alb.Edges[0xDA52][0xB399]++
 	return alb
 }
 
-func EqualMap(x, y map[string]float64) bool {
+func EqualMap(x, y map[uint64]float64) bool {
 	if len(x) != len(y) {
 		return false
 	}

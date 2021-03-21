@@ -14,6 +14,7 @@ require (
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
+	github.com/hashicorp/golang-lru v0.5.1
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/klauspost/compress v1.11.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
@@ -44,7 +45,6 @@ require (
 	golang.org/x/sys v0.0.0-20200923182605-d9f96fdee20d // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
-	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/ini.v1 v1.61.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect

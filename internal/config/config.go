@@ -33,6 +33,7 @@ func init() {
 	viper.Set("database.mongo.retry.times", 4)
 	viper.Set("database.mongo.retry.pause", "5s")
 	viper.Set("database.mongo.retry.timeout", "30s")
+	viper.Set("database.mongo.lru", 1)
 	viper.Set("storage.minio.host", "localhost")
 	viper.Set("storage.minio.port", 9000)
 	viper.Set("storage.minio.accessKey", "12345678")

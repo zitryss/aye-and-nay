@@ -24,6 +24,7 @@ func newMongoConfig() mongoConfig {
 		pause:      viper.GetDuration("database.mongo.retry.pause"),
 		timeout:    viper.GetDuration("database.mongo.retry.timeout"),
 		compressed: viper.GetString("compressor.use") == "mock",
+		lru:        viper.GetInt("database.mongo.lru"),
 	}
 }
 
@@ -34,4 +35,5 @@ type mongoConfig struct {
 	pause      time.Duration
 	timeout    time.Duration
 	compressed bool
+	lru        int
 }

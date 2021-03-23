@@ -53,7 +53,7 @@ func NewMongo() (*Mongo, error) {
 	db := client.Database("aye-and-nay")
 	images := db.Collection("images")
 	edges := db.Collection("edges")
-	cache, err := lru.New(128)
+	cache, err := lru.New(conf.lru)
 	if err != nil {
 		return &Mongo{}, errors.Wrap(err)
 	}

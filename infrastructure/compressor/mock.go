@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
-	"github.com/zitryss/aye-and-nay/internal/pool"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
+	"github.com/zitryss/aye-and-nay/pkg/pool"
 )
 
 func NewMock() *Mock {

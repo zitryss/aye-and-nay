@@ -8,11 +8,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/zitryss/aye-and-nay/internal/pool"
-	"github.com/zitryss/aye-and-nay/pkg/retry"
-
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
+	"github.com/zitryss/aye-and-nay/pkg/pool"
+	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
 func NewImaginary() (*Imaginary, error) {

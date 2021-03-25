@@ -12,9 +12,9 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
-	"github.com/zitryss/aye-and-nay/internal/pool"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
+	"github.com/zitryss/aye-and-nay/pkg/pool"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 

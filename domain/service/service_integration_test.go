@@ -144,6 +144,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			t.Error(err)
 		}
 		v := CheckChannel(t, heartbeatComp)
+		_ = CheckChannel(t, heartbeatComp)
 		err, ok := v.(error)
 		if !ok {
 			t.Error("v.(type) != error")
@@ -180,6 +181,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			t.Error(err)
 		}
 		v = CheckChannel(t, heartbeatComp)
+		_ = CheckChannel(t, heartbeatComp)
 		err, ok = v.(error)
 		if !ok {
 			t.Error("v.(type) != error")

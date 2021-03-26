@@ -230,7 +230,6 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 						e = errors.Wrapf(model.ErrUnknown, "%v", v)
 					}
 				}()
-			outer:
 				for {
 					select {
 					case <-ctx.Done():
@@ -262,7 +261,7 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 							err = errors.Wrap(err)
 							handleError(err)
 							e = err
-							continue outer
+							continue
 						}
 						f, err = s.comp.Compress(ctx, f)
 						if errors.Is(err, model.ErrThirdPartyUnavailable) {
@@ -274,28 +273,28 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 							err = errors.Wrap(err)
 							handleError(err)
 							e = err
-							continue outer
+							continue
 						}
 						err = s.stor.Remove(ctx, album, image)
 						if err != nil {
 							err = errors.Wrap(err)
 							handleError(err)
 							e = err
-							continue outer
+							continue
 						}
 						_, err = s.stor.Put(ctx, album, image, f)
 						if err != nil {
 							err = errors.Wrap(err)
 							handleError(err)
 							e = err
-							continue outer
+							continue
 						}
 						err = s.pers.UpdateCompressionStatus(ctx, album, image)
 						if err != nil {
 							err = errors.Wrap(err)
 							handleError(err)
 							e = err
-							continue outer
+							continue
 						}
 						if s.heartbeat.comp != nil {
 							p, _ := s.Progress(ctx, album)

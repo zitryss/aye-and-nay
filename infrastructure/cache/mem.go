@@ -224,7 +224,7 @@ func (m *Mem) Push(_ context.Context, album uint64, pairs [][2]uint64) error {
 	p, ok := m.pairs[album]
 	if !ok {
 		p = &pairsTime{}
-		p.pairs = [][2]uint64{}
+		p.pairs = make([][2]uint64, 0, len(pairs))
 		m.pairs[album] = p
 	}
 	for _, images := range pairs {

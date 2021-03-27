@@ -54,7 +54,7 @@ func TestMongoAlbum(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = mongo.GetImages(context.Background(), 0xA9B4)
+		_, err = mongo.GetImagesIds(context.Background(), 0xA9B4)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}

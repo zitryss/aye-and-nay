@@ -152,7 +152,7 @@ func (m *Mongo) GetImage(ctx context.Context, album uint64, image uint64) (model
 	return img, nil
 }
 
-func (m *Mongo) GetImages(ctx context.Context, album uint64) ([]uint64, error) {
+func (m *Mongo) GetImagesIds(ctx context.Context, album uint64) ([]uint64, error) {
 	albLru, err := m.lruGetOrAddAndGet(ctx, album)
 	if err != nil {
 		return nil, errors.Wrap(err)

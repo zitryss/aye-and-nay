@@ -29,7 +29,7 @@ type Databaser interface {
 	CountImagesCompressed(ctx context.Context, album uint64) (int, error)
 	UpdateCompressionStatus(ctx context.Context, album uint64, image uint64) error
 	GetImage(ctx context.Context, album uint64, image uint64) (Image, error)
-	GetImages(ctx context.Context, album uint64) ([]uint64, error)
+	GetImagesIds(ctx context.Context, album uint64) ([]uint64, error)
 	SaveVote(ctx context.Context, album uint64, imageFrom uint64, imageTo uint64) error
 	GetEdges(ctx context.Context, album uint64) (map[uint64]map[uint64]int, error)
 	UpdateRatings(ctx context.Context, album uint64, vector map[uint64]float64) error

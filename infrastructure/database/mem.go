@@ -116,7 +116,7 @@ func (m *Mem) GetImage(_ context.Context, album uint64, image uint64) (model.Ima
 	return alb.Images[index], nil
 }
 
-func (m *Mem) GetImages(_ context.Context, album uint64) ([]uint64, error) {
+func (m *Mem) GetImagesIds(_ context.Context, album uint64) ([]uint64, error) {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]

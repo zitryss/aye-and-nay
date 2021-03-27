@@ -43,7 +43,7 @@ func TestMemAlbum(t *testing.T) {
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
-		_, err := mem.GetImages(context.Background(), 0xA9B4)
+		_, err := mem.GetImagesIds(context.Background(), 0xA9B4)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}

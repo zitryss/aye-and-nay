@@ -248,7 +248,7 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 						return
 					default:
 					}
-					images, err := s.pers.GetImages(ctx, album)
+					images, err := s.pers.GetImagesIds(ctx, album)
 					if err != nil {
 						err = errors.Wrap(err)
 						handleError(err)
@@ -339,7 +339,7 @@ func (s *Service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
 				return
 			default:
 			}
-			images, err := s.pers.GetImages(ctx, album)
+			images, err := s.pers.GetImagesIds(ctx, album)
 			if err != nil {
 				err = errors.Wrap(err)
 				handleError(err)
@@ -460,7 +460,7 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 }
 
 func (s *Service) genPairs(ctx context.Context, album uint64) error {
-	images, err := s.pers.GetImages(ctx, album)
+	images, err := s.pers.GetImagesIds(ctx, album)
 	if err != nil {
 		return errors.Wrap(err)
 	}

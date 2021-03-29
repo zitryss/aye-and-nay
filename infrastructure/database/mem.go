@@ -94,12 +94,12 @@ func (m *Mem) UpdateCompressionStatus(_ context.Context, album uint64, image uin
 	return nil
 }
 
-func (m *Mem) GetImage(_ context.Context, album uint64, image uint64) (model.Image, error) {
+func (m *Mem) GetImageSrc(_ context.Context, album uint64, image uint64) (string, error) {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return model.Image{}, errors.Wrap(model.ErrAlbumNotFound)
+		return "", errors.Wrap(model.ErrAlbumNotFound)
 	}
 	found := false
 	index := -1
@@ -111,9 +111,9 @@ func (m *Mem) GetImage(_ context.Context, album uint64, image uint64) (model.Ima
 		}
 	}
 	if !found {
-		return model.Image{}, errors.Wrap(model.ErrImageNotFound)
+		return "", errors.Wrap(model.ErrImageNotFound)
 	}
-	return alb.Images[index], nil
+	return alb.Images[index].Src, nil
 }
 
 func (m *Mem) GetImagesIds(_ context.Context, album uint64) ([]uint64, error) {

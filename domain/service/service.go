@@ -430,11 +430,11 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	img1, err := s.pers.GetImage(ctx, album, image1)
+	src1, err := s.pers.GetImageSrc(ctx, album, image1)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	img2, err := s.pers.GetImage(ctx, album, image2)
+	src2, err := s.pers.GetImageSrc(ctx, album, image2)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
@@ -442,20 +442,20 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	err = s.token.Set(ctx, album, token1, img1.Id)
+	err = s.token.Set(ctx, album, token1, image1)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	img1.Token = token1
 	token2, err := s.rand.id()
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	err = s.token.Set(ctx, album, token2, img2.Id)
+	err = s.token.Set(ctx, album, token2, image2)
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	img2.Token = token2
+	img1 := model.Image{Id: image1, Src: src1, Token: token1}
+	img2 := model.Image{Id: image2, Src: src2, Token: token2}
 	return img1, img2, nil
 }
 

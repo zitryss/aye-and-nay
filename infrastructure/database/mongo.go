@@ -139,17 +139,16 @@ func (m *Mongo) UpdateCompressionStatus(ctx context.Context, album uint64, image
 	return nil
 }
 
-func (m *Mongo) GetImage(ctx context.Context, album uint64, image uint64) (model.Image, error) {
+func (m *Mongo) GetImageSrc(ctx context.Context, album uint64, image uint64) (string, error) {
 	albLru, err := m.lruGetOrAddAndGet(ctx, album)
 	if err != nil {
-		return model.Image{}, errors.Wrap(err)
+		return "", errors.Wrap(err)
 	}
 	src, ok := albLru[image]
 	if !ok {
-		return model.Image{}, errors.Wrap(model.ErrImageNotFound)
+		return "", errors.Wrap(model.ErrImageNotFound)
 	}
-	img := model.Image{Id: image, Src: src}
-	return img, nil
+	return src, nil
 }
 
 func (m *Mongo) GetImagesIds(ctx context.Context, album uint64) ([]uint64, error) {

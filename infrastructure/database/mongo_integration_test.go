@@ -210,13 +210,12 @@ func TestMongoImage(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img1, err := mongo.GetImage(context.Background(), 0xB0C4, 0x51DE)
+		src, err := mongo.GetImageSrc(context.Background(), 0xB0C4, 0x51DE)
 		if err != nil {
 			t.Error(err)
 		}
-		img2 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/xLAAAAAAAAA/images/3lEAAAAAAAA"}
-		if !reflect.DeepEqual(img1, img2) {
-			t.Error("img1 != img2")
+		if src != "/aye-and-nay/albums/xLAAAAAAAAA/images/3lEAAAAAAAA" {
+			t.Error("src != \"/aye-and-nay/albums/xLAAAAAAAAA/images/3lEAAAAAAAA\"")
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
@@ -224,7 +223,7 @@ func TestMongoImage(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = mongo.GetImage(context.Background(), 0x12EE, 0x51DE)
+		_, err = mongo.GetImageSrc(context.Background(), 0x12EE, 0x51DE)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -239,7 +238,7 @@ func TestMongoImage(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = mongo.GetImage(context.Background(), 0xD585, 0xDA30)
+		_, err = mongo.GetImageSrc(context.Background(), 0xD585, 0xDA30)
 		if !errors.Is(err, model.ErrImageNotFound) {
 			t.Error(err)
 		}

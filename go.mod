@@ -9,9 +9,8 @@ require (
 	github.com/containerd/continuity v0.0.0-20200710164510-efbc4488d8fe // indirect
 	github.com/emirpasic/gods v1.12.0
 	github.com/fatih/color v1.9.0 // indirect
-	github.com/go-redis/redis/v8 v8.2.0
+	github.com/go-redis/redis/v8 v8.8.0
 	github.com/golang/snappy v0.0.2 // indirect
-	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/google/uuid v1.1.2 // indirect
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00 // indirect
 	github.com/hashicorp/golang-lru v0.5.1
@@ -26,6 +25,8 @@ require (
 	github.com/minio/minio-go/v7 v7.0.5
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
+	github.com/onsi/ginkgo v1.15.2 // indirect
+	github.com/onsi/gomega v1.11.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/ory/dockertest/v3 v3.6.0
 	github.com/pelletier/go-toml v1.8.1 // indirect
@@ -40,9 +41,9 @@ require (
 	github.com/tidwall/pretty v1.0.2 // indirect
 	go.mongodb.org/mongo-driver v1.4.1
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
-	golang.org/x/net v0.0.0-20200923182212-328152dc79b1
-	golang.org/x/sync v0.0.0-20200625203802-6e8e738ad208
-	golang.org/x/sys v0.0.0-20200923182605-d9f96fdee20d // indirect
+	golang.org/x/net v0.0.0-20210326060303-6b1517762897
+	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9
+	golang.org/x/text v0.3.5 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect

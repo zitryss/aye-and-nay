@@ -427,3 +427,27 @@ func TestMongoDelete(t *testing.T) {
 		}
 	})
 }
+
+func TestMongoLru(t *testing.T) {
+	mongo, err := NewMongo()
+	if err != nil {
+		t.Fatal(err)
+	}
+	alb1 := AlbumEmptyFactory(0X36FC)
+	err = mongo.SaveAlbum(context.Background(), alb1)
+	if err != nil {
+		t.Error(err)
+	}
+	alb2 := AlbumEmptyFactory(0XB020)
+	err = mongo.SaveAlbum(context.Background(), alb2)
+	if err != nil {
+		t.Error(err)
+	}
+	edgs, err := mongo.GetEdges(context.Background(), 0X36FC)
+	if err != nil {
+		t.Error(err)
+	}
+	if !reflect.DeepEqual(edgs, alb1.Edges) {
+		t.Error("edgs != alb1.GetEdges")
+	}
+}

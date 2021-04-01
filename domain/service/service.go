@@ -275,13 +275,6 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 							e = err
 							continue
 						}
-						err = s.stor.Remove(ctx, album, image)
-						if err != nil {
-							err = errors.Wrap(err)
-							handleError(err)
-							e = err
-							continue
-						}
 						_, err = s.stor.Put(ctx, album, image, f)
 						if err != nil {
 							err = errors.Wrap(err)

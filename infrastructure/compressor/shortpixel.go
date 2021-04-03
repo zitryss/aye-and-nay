@@ -88,6 +88,8 @@ func (sp *Shortpixel) Compress(ctx context.Context, f model.File) (model.File, e
 			_ = os.Remove(v.Name())
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
+		default:
+			panic(errors.Wrap(model.ErrUnknown))
 		}
 	}()
 	if atomic.LoadUint32(&sp.done) != 0 {

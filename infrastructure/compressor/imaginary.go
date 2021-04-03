@@ -62,6 +62,8 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 			_ = os.Remove(v.Name())
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
+		default:
+			panic(errors.Wrap(model.ErrUnknown))
 		}
 	}()
 	buf := pool.GetBuffer()

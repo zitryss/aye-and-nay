@@ -28,6 +28,8 @@ func (m *Mock) Put(_ context.Context, album uint64, image uint64, f model.File) 
 			_ = os.Remove(v.Name())
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
+		default:
+			panic(errors.Wrap(model.ErrUnknown))
 		}
 	}()
 	albumB64 := base64.FromUint64(album)

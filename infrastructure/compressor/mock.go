@@ -26,6 +26,8 @@ func (m *Mock) Compress(_ context.Context, f model.File) (model.File, error) {
 			_ = os.Remove(v.Name())
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
+		default:
+			panic(errors.Wrap(model.ErrUnknown))
 		}
 	}()
 	buf := pool.GetBuffer()

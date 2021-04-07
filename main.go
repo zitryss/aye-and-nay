@@ -104,7 +104,7 @@ func main() {
 
 	srvWait := make(chan error, 1)
 	srv := http.NewServer(serv, srvWait)
-	srv.Monitor()
+	srv.Monitor(ctx)
 	log.Info("starting web server")
 	err = srv.Start()
 

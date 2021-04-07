@@ -3,9 +3,6 @@ package http
 import (
 	"context"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -48,11 +45,9 @@ type Server struct {
 	serverWait chan<- error
 }
 
-func (s *Server) Monitor() {
+func (s *Server) Monitor(ctx context.Context) {
 	go func() {
-		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-		<-quit
+		<-ctx.Done()
 		s.shutdown()
 	}()
 }

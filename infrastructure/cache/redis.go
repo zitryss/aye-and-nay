@@ -213,3 +213,11 @@ func (r *Redis) Get(ctx context.Context, album uint64, token uint64) (uint64, er
 	}
 	return image, nil
 }
+
+func (r *Redis) Close() error {
+	err := r.client.Close()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	return nil
+}

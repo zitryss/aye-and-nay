@@ -136,4 +136,20 @@ func main() {
 	if err != nil {
 		log.Error(err)
 	}
+
+	r, ok := cach.(*cache.Redis)
+	if ok {
+		err = r.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+	m, ok := data.(*database.Mongo)
+	if ok {
+		err = m.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}
 }

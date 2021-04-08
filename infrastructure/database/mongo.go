@@ -57,11 +57,13 @@ func NewMongo() (*Mongo, error) {
 	if err != nil {
 		return &Mongo{}, errors.Wrap(err)
 	}
-	return &Mongo{conf, images, edges, cache}, nil
+	return &Mongo{conf, client, db, images, edges, cache}, nil
 }
 
 type Mongo struct {
 	conf   mongoConfig
+	client *mongodb.Client
+	db     *mongodb.Database
 	images *mongodb.Collection
 	edges  *mongodb.Collection
 	cache  *lru.Cache
@@ -350,5 +352,15 @@ func (m *Mongo) lruAdd(ctx context.Context, album uint64) error {
 		return errors.Wrap(err)
 	}
 	m.cache.Add(album, albLru)
+	return nil
+}
+
+func (m *Mongo) Close() error {
+	ctx, cancel := context.WithTimeout(context.Background(), m.conf.timeout)
+	defer cancel()
+	err := m.client.Disconnect(ctx)
+	if err != nil {
+		return errors.Wrap(err)
+	}
 	return nil
 }

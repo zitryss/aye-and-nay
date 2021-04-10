@@ -1,6 +1,8 @@
 package http
 
 import (
+	"hash/fnv"
+	"io"
 	"net/http"
 	"sync"
 	"time"
@@ -68,24 +70,24 @@ func (m *middleware) limit(h http.Handler) http.Handler {
 		limiter *rate.Limiter
 		seen    time.Time
 	}
-	type syncmap struct {
+	type syncVisitors struct {
 		sync.Mutex
-		data map[string]*visitor
+		visitors map[uint64]*visitor
 	}
-	sm := syncmap{data: map[string]*visitor{}}
+	sv := syncVisitors{visitors: map[uint64]*visitor{}}
 	go func() {
 		for {
 			if m.heartbeat != nil {
 				m.heartbeat <- struct{}{}
 			}
 			now := time.Now()
-			sm.Lock()
-			for k, v := range sm.data {
+			sv.Lock()
+			for k, v := range sv.visitors {
 				if now.Sub(v.seen) >= m.conf.limiterTimeToLive {
-					delete(sm.data, k)
+					delete(sv.visitors, k)
 				}
 			}
-			sm.Unlock()
+			sv.Unlock()
 			time.Sleep(m.conf.limiterCleanupInterval)
 			if m.heartbeat != nil {
 				m.heartbeat <- struct{}{}
@@ -95,19 +97,24 @@ func (m *middleware) limit(h http.Handler) http.Handler {
 	return handleHttpError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			ip := r.RemoteAddr
-			sm.Lock()
-			v, ok := sm.data[ip]
+			hash := fnv.New64a()
+			_, err := io.WriteString(hash, ip)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+			id := hash.Sum64()
+			sv.Lock()
+			v, ok := sv.visitors[id]
 			if !ok {
 				l := rate.NewLimiter(rate.Limit(m.conf.limiterRequestsPerSecond), m.conf.limiterBurst)
 				v = &visitor{limiter: l}
-				sm.data[ip] = v
+				sv.visitors[id] = v
 			}
 			v.seen = time.Now()
+			sv.Unlock()
 			if !v.limiter.Allow() {
-				sm.Unlock()
 				return errors.Wrap(model.ErrTooManyRequests)
 			}
-			sm.Unlock()
 			h.ServeHTTP(w, r)
 			return nil
 		},

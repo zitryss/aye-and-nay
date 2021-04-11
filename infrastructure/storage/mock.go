@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"mime/multipart"
 	"os"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -26,6 +27,8 @@ func (m *Mock) Put(_ context.Context, album uint64, image uint64, f model.File) 
 		case *os.File:
 			_ = v.Close()
 			_ = os.Remove(v.Name())
+		case multipart.File:
+			_ = v.Close()
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
 		default:

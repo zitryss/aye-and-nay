@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 
@@ -114,6 +115,8 @@ func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.Fil
 		case *os.File:
 			_ = v.Close()
 			_ = os.Remove(v.Name())
+		case multipart.File:
+			_ = v.Close()
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
 		default:

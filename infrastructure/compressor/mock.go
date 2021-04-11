@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"mime/multipart"
 	"os"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -24,6 +25,8 @@ func (m *Mock) Compress(_ context.Context, f model.File) (model.File, error) {
 		case *os.File:
 			_ = v.Close()
 			_ = os.Remove(v.Name())
+		case multipart.File:
+			_ = v.Close()
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
 		default:

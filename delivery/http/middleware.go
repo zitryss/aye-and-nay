@@ -14,29 +14,29 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func newMiddleware(opts ...options) middleware {
+func NewMiddleware(opts ...options) *Middleware {
 	conf := newMiddlewareConfig()
-	m := middleware{conf: conf}
+	m := Middleware{conf: conf}
 	for _, opt := range opts {
 		opt(&m)
 	}
-	return m
+	return &m
 }
 
-type options func(*middleware)
+type options func(*Middleware)
 
 func WithHeartbeat(ch chan<- interface{}) options {
-	return func(m *middleware) {
+	return func(m *Middleware) {
 		m.heartbeat = ch
 	}
 }
 
-type middleware struct {
+type Middleware struct {
 	conf      middlewareConfig
 	heartbeat chan<- interface{}
 }
 
-func (m *middleware) chain(h http.Handler) http.Handler {
+func (m *Middleware) Chain(h http.Handler) http.Handler {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{m.conf.corsAllowOrigin},
 		AllowedMethods: []string{"GET", "POST", "PATCH"},
@@ -44,7 +44,7 @@ func (m *middleware) chain(h http.Handler) http.Handler {
 	return c.Handler(m.recover(m.limit(h)))
 }
 
-func (m *middleware) recover(h http.Handler) http.Handler {
+func (m *Middleware) recover(h http.Handler) http.Handler {
 	return handleHttpError(
 		func(w http.ResponseWriter, r *http.Request) (e error) {
 			defer func() {
@@ -65,7 +65,7 @@ func (m *middleware) recover(h http.Handler) http.Handler {
 	)
 }
 
-func (m *middleware) limit(h http.Handler) http.Handler {
+func (m *Middleware) limit(h http.Handler) http.Handler {
 	type visitor struct {
 		limiter *rate.Limiter
 		seen    time.Time

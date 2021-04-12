@@ -18,7 +18,7 @@ func TestMiddlewareRecover(t *testing.T) {
 			w.WriteHeader(418)
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}
-		m := newMiddleware()
+		m := NewMiddleware()
 		h := m.recover(http.HandlerFunc(fn))
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
@@ -31,7 +31,7 @@ func TestMiddlewareRecover(t *testing.T) {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			panic("don't")
 		}
-		m := newMiddleware()
+		m := NewMiddleware()
 		h := m.recover(http.HandlerFunc(fn))
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest("GET", "/", nil)
@@ -50,7 +50,7 @@ func TestMiddlewareLimit(t *testing.T) {
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}
 		heartbeatMiddle := make(chan interface{})
-		m := newMiddleware(WithHeartbeat(heartbeatMiddle))
+		m := NewMiddleware(WithHeartbeat(heartbeatMiddle))
 		h := m.limit(http.HandlerFunc(fn))
 		rps := int(m.conf.limiterRequestsPerSecond)
 		for i := 0; i < rps; i++ {
@@ -82,7 +82,7 @@ func TestMiddlewareLimit(t *testing.T) {
 			w.WriteHeader(418)
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}
-		m := newMiddleware()
+		m := NewMiddleware()
 		h := m.limit(http.HandlerFunc(fn))
 		for i := 0; i < m.conf.limiterBurst; i++ {
 			w := httptest.NewRecorder()

@@ -17,14 +17,14 @@ var (
 )
 
 func NewServer(
+	middle func(http.Handler) http.Handler,
 	serv model.Servicer,
 	serverWait chan<- error,
 ) *Server {
 	conf := newServerConfig()
 	contr := newController(serv)
 	router := newRouter(contr)
-	middle := newMiddleware()
-	handler := middle.chain(router)
+	handler := middle(router)
 	https := newHttps(conf, handler)
 	return &Server{conf, https, serverWait}
 }

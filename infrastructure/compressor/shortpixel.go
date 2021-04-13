@@ -38,19 +38,12 @@ func WithHeartbeatRestart(ch chan<- interface{}) options {
 	}
 }
 
-func WithHeartbeatRepeat(ch chan<- interface{}) options {
-	return func(sp *Shortpixel) {
-		sp.heartbeat.repeat = ch
-	}
-}
-
 type Shortpixel struct {
 	conf      shortPixelConfig
 	done      uint32
 	ch        chan struct{}
 	heartbeat struct {
 		restart chan<- interface{}
-		repeat  chan<- interface{}
 	}
 }
 
@@ -258,13 +251,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 }
 
 func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
-	if sp.heartbeat.repeat != nil {
-		sp.heartbeat.repeat <- struct{}{}
-	}
 	time.Sleep(sp.conf.repeatIn)
-	if sp.heartbeat.repeat != nil {
-		sp.heartbeat.repeat <- struct{}{}
-	}
 	body := pool.GetBuffer()
 	defer pool.PutBuffer(body)
 	request := struct {

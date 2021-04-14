@@ -102,7 +102,7 @@ func main() {
 	log.Info("starting deletion worker pool")
 	serv.StartWorkingPoolDel(ctxDel, gDel)
 
-	middle := http.NewMiddleware()
+	middle := http.NewMiddleware(cach)
 	srvWait := make(chan error, 1)
 	srv := http.NewServer(middle.Chain, serv, srvWait)
 	srv.Monitor(ctx)

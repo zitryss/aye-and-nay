@@ -38,10 +38,15 @@ type Databaser interface {
 }
 
 type Cacher interface {
+	Limiter
 	Queuer
 	PQueuer
 	Stacker
 	Tokener
+}
+
+type Limiter interface {
+	Allow(ctx context.Context, ip uint64) (bool, error)
 }
 
 type Queuer interface {

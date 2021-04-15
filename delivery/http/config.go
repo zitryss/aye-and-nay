@@ -28,20 +28,12 @@ type serverConfig struct {
 
 func newMiddlewareConfig() middlewareConfig {
 	return middlewareConfig{
-		corsAllowOrigin:          viper.GetString("middleware.cors.allowOrigin"),
-		limiterRequestsPerSecond: viper.GetFloat64("middleware.limiter.requestsPerSecond"),
-		limiterBurst:             viper.GetInt("middleware.limiter.burst"),
-		limiterTimeToLive:        viper.GetDuration("middleware.limiter.timeToLive"),
-		limiterCleanupInterval:   viper.GetDuration("middleware.limiter.cleanupInterval"),
+		corsAllowOrigin: viper.GetString("middleware.cors.allowOrigin"),
 	}
 }
 
 type middlewareConfig struct {
-	corsAllowOrigin          string
-	limiterRequestsPerSecond float64
-	limiterBurst             int
-	limiterTimeToLive        time.Duration
-	limiterCleanupInterval   time.Duration
+	corsAllowOrigin string
 }
 
 func newContrConfig() contrConfig {

@@ -8,14 +8,18 @@ import (
 
 func newMemConfig() memConfig {
 	return memConfig{
-		timeToLive:      viper.GetDuration("cache.redis.timeToLive"),
-		cleanupInterval: viper.GetDuration("cache.redis.cleanupInterval"),
+		limiterRequestsPerSecond: viper.GetFloat64("middleware.limiter.requestsPerSecond"),
+		limiterBurst:             viper.GetInt("middleware.limiter.burst"),
+		timeToLive:               viper.GetDuration("cache.redis.timeToLive"),
+		cleanupInterval:          viper.GetDuration("cache.redis.cleanupInterval"),
 	}
 }
 
 type memConfig struct {
-	timeToLive      time.Duration
-	cleanupInterval time.Duration
+	limiterRequestsPerSecond float64
+	limiterBurst             int
+	timeToLive               time.Duration
+	cleanupInterval          time.Duration
 }
 
 func newRedisConfig() redisConfig {

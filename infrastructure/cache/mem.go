@@ -7,6 +7,7 @@ import (
 
 	"github.com/emirpasic/gods/sets/linkedhashset"
 	"github.com/emirpasic/gods/trees/binaryheap"
+	"golang.org/x/time/rate"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -15,11 +16,12 @@ import (
 func NewMem(opts ...options) *Mem {
 	conf := newMemConfig()
 	m := &Mem{
-		conf:        conf,
-		syncQueues:  syncQueues{queues: map[uint64]*linkedhashset.Set{}},
-		syncPQueues: syncPQueues{pqueues: map[uint64]*binaryheap.Heap{}},
-		syncPairs:   syncPairs{pairs: map[uint64]*pairsTime{}},
-		syncTokens:  syncTokens{tokens: map[uint64]*tokenTime{}},
+		conf:         conf,
+		syncVisitors: syncVisitors{visitors: map[uint64]*visitorTime{}},
+		syncQueues:   syncQueues{queues: map[uint64]*linkedhashset.Set{}},
+		syncPQueues:  syncPQueues{pqueues: map[uint64]*binaryheap.Heap{}},
+		syncPairs:    syncPairs{pairs: map[uint64]*pairsTime{}},
+		syncTokens:   syncTokens{tokens: map[uint64]*tokenTime{}},
 	}
 	for _, opt := range opts {
 		opt(m)
@@ -43,6 +45,7 @@ func WithHeartbeatToken(ch chan<- interface{}) options {
 
 type Mem struct {
 	conf memConfig
+	syncVisitors
 	syncQueues
 	syncPQueues
 	syncPairs
@@ -51,6 +54,16 @@ type Mem struct {
 		pair  chan<- interface{}
 		token chan<- interface{}
 	}
+}
+
+type syncVisitors struct {
+	sync.Mutex
+	visitors map[uint64]*visitorTime
+}
+
+type visitorTime struct {
+	limiter *rate.Limiter
+	seen    time.Time
 }
 
 type syncQueues struct {
@@ -104,6 +117,19 @@ func timeComparator(a, b interface{}) int {
 func (m *Mem) Monitor() {
 	go func() {
 		for {
+			now := time.Now()
+			m.syncVisitors.Lock()
+			for k, v := range m.visitors {
+				if now.Sub(v.seen) >= m.conf.timeToLive {
+					delete(m.visitors, k)
+				}
+			}
+			m.syncVisitors.Unlock()
+			time.Sleep(m.conf.cleanupInterval)
+		}
+	}()
+	go func() {
+		for {
 			if m.heartbeat.pair != nil {
 				m.heartbeat.pair <- struct{}{}
 			}
@@ -140,6 +166,19 @@ func (m *Mem) Monitor() {
 			}
 		}
 	}()
+}
+
+func (m *Mem) Allow(_ context.Context, ip uint64) (bool, error) {
+	m.syncVisitors.Lock()
+	defer m.syncVisitors.Unlock()
+	v, ok := m.visitors[ip]
+	if !ok {
+		l := rate.NewLimiter(rate.Limit(m.conf.limiterRequestsPerSecond), m.conf.limiterBurst)
+		v = &visitorTime{limiter: l}
+		m.visitors[ip] = v
+	}
+	v.seen = time.Now()
+	return v.limiter.Allow(), nil
 }
 
 func (m *Mem) Add(_ context.Context, queue uint64, album uint64) error {

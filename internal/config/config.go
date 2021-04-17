@@ -9,7 +9,6 @@ import (
 func init() {
 	viper.Set("middleware.limiter.requestsPerSecond", 100)
 	viper.Set("middleware.limiter.burst", 1)
-	viper.Set("middleware.limiter.timeToLive", "0ms")
 	viper.Set("controller.maxNumberOfFiles", 3)
 	viper.Set("controller.maxFileSize", 512*unit.KB)
 	viper.Set("service.numberOfWorkersCalc", 2)

@@ -14,8 +14,6 @@ middleware:
   limiter:
     requestsPerSecond: 300
     burst: 10
-    timeToLive: 15m
-    cleanupInterval: 15m
 controller:
   maxNumberOfFiles: 100
   maxFileSize: 5242880 # 5 MB

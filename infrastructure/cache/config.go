@@ -24,20 +24,24 @@ type memConfig struct {
 
 func newRedisConfig() redisConfig {
 	return redisConfig{
-		host:       viper.GetString("cache.redis.host"),
-		port:       viper.GetString("cache.redis.port"),
-		times:      viper.GetInt("cache.redis.retry.times"),
-		pause:      viper.GetDuration("cache.redis.retry.pause"),
-		timeout:    viper.GetDuration("cache.redis.retry.timeout"),
-		timeToLive: viper.GetDuration("cache.redis.timeToLive"),
+		host:                     viper.GetString("cache.redis.host"),
+		port:                     viper.GetString("cache.redis.port"),
+		times:                    viper.GetInt("cache.redis.retry.times"),
+		pause:                    viper.GetDuration("cache.redis.retry.pause"),
+		timeout:                  viper.GetDuration("cache.redis.retry.timeout"),
+		limiterRequestsPerMinute: viper.GetInt("middleware.limiter.requestsPerSecond"),
+		limiterBurst:             viper.GetInt64("middleware.limiter.burst"),
+		timeToLive:               viper.GetDuration("cache.redis.timeToLive"),
 	}
 }
 
 type redisConfig struct {
-	host       string
-	port       string
-	times      int
-	pause      time.Duration
-	timeout    time.Duration
-	timeToLive time.Duration
+	host                     string
+	port                     string
+	times                    int
+	pause                    time.Duration
+	timeout                  time.Duration
+	limiterRequestsPerMinute int
+	limiterBurst             int64
+	timeToLive               time.Duration
 }

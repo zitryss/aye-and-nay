@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
@@ -34,6 +35,33 @@ func NewRedis() (*Redis, error) {
 type Redis struct {
 	conf   redisConfig
 	client *redisdb.Client
+}
+
+func (r *Redis) Allow(ctx context.Context, ip uint64) (bool, error) {
+	ipB64 := base64.FromUint64(ip)
+	key := "ip:" + ipB64
+	value, err := r.client.Get(ctx, key).Result()
+	if err != nil && !errors.Is(err, redisdb.Nil) {
+		return false, errors.Wrap(err)
+	}
+	if errors.Is(err, redisdb.Nil) {
+		value = "-1"
+	}
+	count, err := strconv.Atoi(value)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	if count >= r.conf.limiterRequestsPerMinute {
+		return false, nil
+	}
+	pipe := r.client.Pipeline()
+	pipe.IncrBy(ctx, key, r.conf.limiterBurst)
+	pipe.Expire(ctx, key, 59*time.Second)
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	return true, nil
 }
 
 func (r *Redis) Add(ctx context.Context, queue uint64, album uint64) error {

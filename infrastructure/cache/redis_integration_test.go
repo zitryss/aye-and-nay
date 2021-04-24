@@ -12,6 +12,61 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
+func TestRedisAllow(t *testing.T) {
+	t.Run("Positive", func(t *testing.T) {
+		if testing.Short() {
+			t.Skip("short flag is set")
+		}
+		redis, err := NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		rpm := redis.conf.limiterRequestsPerMinute
+		for j := 0; j < rpm; j++ {
+			allowed, err := redis.Allow(context.Background(), 0xDEAD)
+			if err != nil {
+				t.Error(err)
+			}
+			if !allowed {
+				t.Error("!allowed")
+			}
+		}
+		time.Sleep(60 * time.Second)
+		for j := 0; j < rpm; j++ {
+			allowed, err := redis.Allow(context.Background(), 0xDEAD)
+			if err != nil {
+				t.Error(err)
+			}
+			if !allowed {
+				t.Error("!allowed")
+			}
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		redis, err := NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		rps := redis.conf.limiterRequestsPerMinute
+		for i := 0; i < rps; i++ {
+			allowed, err := redis.Allow(context.Background(), 0xBEEF)
+			if err != nil {
+				t.Error(err)
+			}
+			if !allowed {
+				t.Error("!allowed")
+			}
+		}
+		allowed, err := redis.Allow(context.Background(), 0xBEEF)
+		if err != nil {
+			t.Error(err)
+		}
+		if allowed {
+			t.Error("allowed")
+		}
+	})
+}
+
 func TestRedisQueue(t *testing.T) {
 	redis, err := NewRedis()
 	if err != nil {

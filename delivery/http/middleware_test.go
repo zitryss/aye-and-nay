@@ -86,7 +86,7 @@ func TestMiddlewareLimit(t *testing.T) {
 		r := httptest.NewRequest("GET", "/", nil)
 		handler.ServeHTTP(w, r)
 		CheckStatusCode(t, w, 429)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `Too Many Requests`+"\n")
+		CheckContentType(t, w, "application/json; charset=utf-8")
+		CheckBody(t, w, `{"error":{"msg":"Too Many Requests"}}`+"\n")
 	})
 }

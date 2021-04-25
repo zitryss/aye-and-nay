@@ -186,6 +186,7 @@ func (r *Redis) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 	if err != nil {
 		return 0x0, 0x0, errors.Wrap(err)
 	}
+	_ = r.client.Expire(ctx, key, r.conf.timeToLive)
 	imagesB64 := strings.Split(val, ":")
 	if len(imagesB64) != 2 {
 		return 0x0, 0x0, errors.Wrap(model.ErrUnknown)

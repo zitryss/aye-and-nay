@@ -2,12 +2,14 @@ package model
 
 import (
 	"io"
+	"time"
 )
 
 type Album struct {
-	Id     uint64
-	Images []Image
-	Edges  map[uint64]map[uint64]int
+	Id      uint64
+	Images  []Image
+	Edges   map[uint64]map[uint64]int
+	Expires time.Time
 }
 
 type Image struct {

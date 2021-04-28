@@ -83,7 +83,8 @@ func AlbumEmptyFactory(id uint64) model.Album {
 	edgs[0xDA2A] = map[uint64]int{}
 	edgs[0x51DE] = map[uint64]int{}
 	edgs[0xDA52] = map[uint64]int{}
-	alb := model.Album{id, imgs, edgs}
+	expires := time.Time{}
+	alb := model.Album{id, imgs, edgs, expires}
 	return alb
 }
 

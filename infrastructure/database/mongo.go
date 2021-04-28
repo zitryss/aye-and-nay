@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"go.mongodb.org/mongo-driver/bson"
@@ -22,6 +23,7 @@ type imageDao struct {
 	Src        string
 	Rating     float64
 	Compressed bool
+	Expires    time.Time
 }
 
 type edgeDao struct {
@@ -81,7 +83,7 @@ func (m *Mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 	imgsDao := make([]interface{}, 0, len(alb.Images))
 	albLru := make(albumLru, len(alb.Images))
 	for _, img := range alb.Images {
-		imgDao := imageDao{int64(alb.Id), int64(img.Id), img.Src, img.Rating, m.conf.compressed}
+		imgDao := imageDao{int64(alb.Id), int64(img.Id), img.Src, img.Rating, m.conf.compressed, alb.Expires}
 		imgsDao = append(imgsDao, imgDao)
 		albLru[img.Id] = img.Src
 	}

@@ -383,7 +383,11 @@ func (s *Service) Album(ctx context.Context, ff []model.File, dur time.Duration)
 		imgs = append(imgs, img)
 	}
 	edgs := map[uint64]map[uint64]int(nil)
-	alb := model.Album{album, imgs, edgs}
+	expires := s.rand.now().Add(dur)
+	if dur == 0 {
+		expires = time.Time{}
+	}
+	alb := model.Album{album, imgs, edgs, expires}
 	err = s.pers.SaveAlbum(ctx, alb)
 	if err != nil {
 		return 0x0, errors.Wrap(err)
@@ -392,9 +396,11 @@ func (s *Service) Album(ctx context.Context, ff []model.File, dur time.Duration)
 	if err != nil {
 		return 0x0, errors.Wrap(err)
 	}
-	err = s.queue.del.add(ctx, album, s.rand.now().Add(dur))
-	if err != nil {
-		return 0x0, errors.Wrap(err)
+	if dur != 0 {
+		err = s.queue.del.add(ctx, album, expires)
+		if err != nil {
+			return 0x0, errors.Wrap(err)
+		}
 	}
 	return alb.Id, nil
 }

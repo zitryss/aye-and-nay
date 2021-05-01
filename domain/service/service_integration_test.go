@@ -593,46 +593,96 @@ func TestServiceIntegrationTop(t *testing.T) {
 }
 
 func TestServiceIntegrationDelete(t *testing.T) {
-	fn := func() time.Time {
-		return time.Now()
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	imaginary, err := compressor.NewImaginary()
-	if err != nil {
-		t.Fatal(err)
-	}
-	minio, err := storage.NewMinio()
-	if err != nil {
-		t.Fatal(err)
-	}
-	mongo, err := database.NewMongo()
-	if err != nil {
-		t.Fatal(err)
-	}
-	redis, err := cache.NewRedis()
-	if err != nil {
-		t.Fatal(err)
-	}
-	qCalc := &QueueCalc{}
-	qCalc.Monitor(ctx)
-	qComp := &QueueComp{}
-	qComp.Monitor(ctx)
-	qDel := &QueueDel{newPQueue(0xEF3F, redis)}
-	qDel.Monitor(ctx)
-	heartbeatDel := make(chan interface{})
-	serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
-	gDel, ctxDel := errgroup.WithContext(ctx)
-	serv.StartWorkingPoolDel(ctxDel, gDel)
-	files := []model.File{Png(), Png()}
-	dur := 100 * time.Millisecond
-	album, err := serv.Album(ctx, files, dur)
-	if err != nil {
-		t.Error(err)
-	}
-	CheckChannel(t, heartbeatDel)
-	_, err = serv.Top(ctx, album)
-	if !errors.Is(err, model.ErrAlbumNotFound) {
-		t.Error(err)
-	}
+	t.Run("Positive", func(t *testing.T) {
+		fn := func() time.Time {
+			return time.Now()
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := cache.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{newPQueue(0xEF3F, redis)}
+		qDel.Monitor(ctx)
+		heartbeatDel := make(chan interface{})
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+		gDel, ctxDel := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolDel(ctxDel, gDel)
+		files := []model.File{Png(), Png()}
+		dur := 100 * time.Millisecond
+		album, err := serv.Album(ctx, files, dur)
+		if err != nil {
+			t.Error(err)
+		}
+		CheckChannel(t, heartbeatDel)
+		_, err = serv.Top(ctx, album)
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		fn := func() time.Time {
+			return time.Now()
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := cache.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{newPQueue(0xEF3F, redis)}
+		qDel.Monitor(ctx)
+		heartbeatDel := make(chan interface{})
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+		gDel, ctxDel := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolDel(ctxDel, gDel)
+		files := []model.File{Png(), Png()}
+		dur := 0 * time.Second
+		album, err := serv.Album(ctx, files, dur)
+		if err != nil {
+			t.Error(err)
+		}
+		select {
+		case <-heartbeatDel:
+			t.Error("<-heartbeatDel")
+		case <-time.After(1 * time.Second):
+		}
+		_, err = serv.Top(ctx, album)
+		if err != nil {
+			t.Error(err)
+		}
+	})
 }

@@ -462,38 +462,72 @@ func TestServiceTop(t *testing.T) {
 }
 
 func TestServiceDelete(t *testing.T) {
-	fn := func() time.Time {
-		return time.Now()
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	comp := compressor.NewMock()
-	stor := storage.NewMock()
-	mDb := database.NewMem()
-	mCache := cache.NewMem()
-	qCalc := &QueueCalc{}
-	qCalc.Monitor(ctx)
-	qComp := &QueueComp{}
-	qComp.Monitor(ctx)
-	qDel := &QueueDel{newPQueue(0xEF3F, mCache)}
-	qDel.Monitor(ctx)
-	heartbeatDel := make(chan interface{})
-	serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
-	gDel, ctxDel := errgroup.WithContext(ctx)
-	serv.StartWorkingPoolDel(ctxDel, gDel)
-	files := []model.File{Png(), Png()}
-	dur := 100 * time.Millisecond
-	album, err := serv.Album(ctx, files, dur)
-	if err != nil {
-		t.Error(err)
-	}
-	select {
-	case <-heartbeatDel:
-	case <-time.After(120 * time.Millisecond):
-		t.Error("<-time.After(120 * time.Millisecond)")
-	}
-	_, err = serv.Top(ctx, album)
-	if !errors.Is(err, model.ErrAlbumNotFound) {
-		t.Error(err)
-	}
+	t.Run("Positive", func(t *testing.T) {
+		fn := func() time.Time {
+			return time.Now()
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		comp := compressor.NewMock()
+		stor := storage.NewMock()
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{newPQueue(0xEF3F, mCache)}
+		qDel.Monitor(ctx)
+		heartbeatDel := make(chan interface{})
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+		gDel, ctxDel := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolDel(ctxDel, gDel)
+		files := []model.File{Png(), Png()}
+		dur := 100 * time.Millisecond
+		album, err := serv.Album(ctx, files, dur)
+		if err != nil {
+			t.Error(err)
+		}
+		CheckChannel(t, heartbeatDel)
+		_, err = serv.Top(ctx, album)
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		fn := func() time.Time {
+			return time.Now()
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		comp := compressor.NewMock()
+		stor := storage.NewMock()
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{newPQueue(0xEF3F, mCache)}
+		qDel.Monitor(ctx)
+		heartbeatDel := make(chan interface{})
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+		gDel, ctxDel := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolDel(ctxDel, gDel)
+		files := []model.File{Png(), Png()}
+		dur := 0 * time.Second
+		album, err := serv.Album(ctx, files, dur)
+		if err != nil {
+			t.Error(err)
+		}
+		select {
+		case <-heartbeatDel:
+			t.Error("<-heartbeatDel")
+		case <-time.After(1 * time.Second):
+		}
+		_, err = serv.Top(ctx, album)
+		if err != nil {
+			t.Error(err)
+		}
+	})
 }

@@ -594,9 +594,6 @@ func TestServiceIntegrationTop(t *testing.T) {
 
 func TestServiceIntegrationDelete(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		fn := func() time.Time {
-			return time.Now()
-		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		imaginary, err := compressor.NewImaginary()
@@ -622,7 +619,7 @@ func TestServiceIntegrationDelete(t *testing.T) {
 		qDel := &QueueDel{newPQueue(0xEF3F, redis)}
 		qDel.Monitor(ctx)
 		heartbeatDel := make(chan interface{})
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
 		gDel, ctxDel := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolDel(ctxDel, gDel)
 		files := []model.File{Png(), Png()}
@@ -638,9 +635,6 @@ func TestServiceIntegrationDelete(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		fn := func() time.Time {
-			return time.Now()
-		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		imaginary, err := compressor.NewImaginary()
@@ -666,7 +660,7 @@ func TestServiceIntegrationDelete(t *testing.T) {
 		qDel := &QueueDel{newPQueue(0xEF3F, redis)}
 		qDel.Monitor(ctx)
 		heartbeatDel := make(chan interface{})
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
 		gDel, ctxDel := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolDel(ctxDel, gDel)
 		files := []model.File{Png(), Png()}

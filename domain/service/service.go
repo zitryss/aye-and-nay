@@ -43,11 +43,9 @@ func New(
 		rand: struct {
 			id      func() (uint64, error)
 			shuffle func(n int, swap func(i int, j int))
-			now     func() time.Time
 		}{
 			myrand.Id,
 			rand.Shuffle,
-			time.Now,
 		},
 	}
 	for _, opt := range opts {
@@ -94,12 +92,6 @@ func WithRandShuffle(fn func(int, func(int, int))) options {
 	}
 }
 
-func WithRandNow(fn func() time.Time) options {
-	return func(s *Service) {
-		s.rand.now = fn
-	}
-}
-
 func WithHeartbeatCalc(ch chan<- interface{}) options {
 	return func(s *Service) {
 		s.heartbeat.calc = ch
@@ -133,7 +125,6 @@ type Service struct {
 	rand struct {
 		id      func() (uint64, error)
 		shuffle func(n int, swap func(i, j int))
-		now     func() time.Time
 	}
 	heartbeat struct {
 		calc chan<- interface{}
@@ -383,7 +374,7 @@ func (s *Service) Album(ctx context.Context, ff []model.File, dur time.Duration)
 		imgs = append(imgs, img)
 	}
 	edgs := map[uint64]map[uint64]int(nil)
-	expires := s.rand.now().Add(dur)
+	expires := time.Now().Add(dur)
 	if dur == 0 {
 		expires = time.Time{}
 	}

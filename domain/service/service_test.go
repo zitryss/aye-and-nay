@@ -463,9 +463,6 @@ func TestServiceTop(t *testing.T) {
 
 func TestServiceDelete(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		fn := func() time.Time {
-			return time.Now()
-		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -479,7 +476,7 @@ func TestServiceDelete(t *testing.T) {
 		qDel := &QueueDel{newPQueue(0xEF3F, mCache)}
 		qDel.Monitor(ctx)
 		heartbeatDel := make(chan interface{})
-		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
 		gDel, ctxDel := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolDel(ctxDel, gDel)
 		files := []model.File{Png(), Png()}
@@ -495,9 +492,6 @@ func TestServiceDelete(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		fn := func() time.Time {
-			return time.Now()
-		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -511,7 +505,7 @@ func TestServiceDelete(t *testing.T) {
 		qDel := &QueueDel{newPQueue(0xEF3F, mCache)}
 		qDel.Monitor(ctx)
 		heartbeatDel := make(chan interface{})
-		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
 		gDel, ctxDel := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolDel(ctxDel, gDel)
 		files := []model.File{Png(), Png()}

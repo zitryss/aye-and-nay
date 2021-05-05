@@ -181,7 +181,7 @@ func (s *Service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 						e = err
 						continue
 					}
-					vect := linalg.PageRank(edgs)
+					vect := linalg.PageRank(edgs, s.conf.accuracy)
 					err = s.pers.UpdateRatings(ctx, album, vect)
 					if err != nil {
 						err = errors.Wrap(err)

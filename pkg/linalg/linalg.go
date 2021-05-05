@@ -1,6 +1,6 @@
 package linalg
 
-func PageRank(graph map[uint64]map[uint64]int) map[uint64]float64 {
+func PageRank(graph map[uint64]map[uint64]int, accuracy float64) map[uint64]float64 {
 	// n - amount of vertices
 	n := len(graph)
 
@@ -70,7 +70,7 @@ func PageRank(graph map[uint64]map[uint64]int) map[uint64]float64 {
 	for i := 0; i < n; i++ {
 		v[i] = 1 / float64(n)
 	}
-	for i := 0; i < 50; i++ {
+	for i := float64(0); i < accuracy*80; i++ {
 		vv := make([]float64, n)
 		for j := 0; j < n; j++ {
 			for k := 0; k < n; k++ {

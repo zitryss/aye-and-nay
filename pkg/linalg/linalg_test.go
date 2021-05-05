@@ -1,8 +1,8 @@
 package linalg_test
 
 import (
+	"fmt"
 	"math/rand"
-	"strconv"
 	"testing"
 
 	. "github.com/zitryss/aye-and-nay/internal/testing"
@@ -26,7 +26,7 @@ func TestPageRank(t *testing.T) {
 	edgs[0xFC63][0x804F]++
 	edgs[0xFC63][0xFB26]++
 	edgs[0xFC63][0xF523]++
-	got := linalg.PageRank(edgs)
+	got := linalg.PageRank(edgs, 0.625)
 	want := map[uint64]float64{}
 	want[0x5B92] = 0.539773357682638
 	want[0x804F] = 0.20997909420705596
@@ -39,22 +39,24 @@ func TestPageRank(t *testing.T) {
 }
 
 func BenchmarkPageRank(b *testing.B) {
-	for i := 995; i <= 1005; i++ {
-		b.Run(strconv.Itoa(i), func(b *testing.B) {
-			edgs := map[uint64]map[uint64]int{}
-			for j := 0; j < i; j++ {
-				node := uint64(j)
-				edgs[node] = map[uint64]int{}
-			}
-			for j := 0; j < i; j++ {
-				from := uint64(rand.Intn(i))
-				to := uint64(rand.Intn(i))
-				edgs[from][to]++
-			}
-			b.ResetTimer()
-			for j := 0; j < b.N; j++ {
-				linalg.PageRank(edgs)
-			}
-		})
+	for k := 0.2; k <= 1; k += 0.2 {
+		for i := 98; i <= 102; i++ {
+			b.Run(fmt.Sprintf("%f-%d", k, i), func(b *testing.B) {
+				edgs := map[uint64]map[uint64]int{}
+				for j := 0; j < i; j++ {
+					node := uint64(j)
+					edgs[node] = map[uint64]int{}
+				}
+				for j := 0; j < i; j++ {
+					from := uint64(rand.Intn(i))
+					to := uint64(rand.Intn(i))
+					edgs[from][to]++
+				}
+				b.ResetTimer()
+				for j := 0; j < b.N; j++ {
+					linalg.PageRank(edgs, k)
+				}
+			})
+		}
 	}
 }

@@ -20,6 +20,7 @@ controller:
 service:
   numberOfWorkersCalc: 8
   numberOfWorkersComp: 8
+  accuracy: 0.625
 cache:
   use: redis
   redis:

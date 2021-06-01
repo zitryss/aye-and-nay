@@ -35,6 +35,7 @@ type Databaser interface {
 	UpdateRatings(ctx context.Context, album uint64, vector map[uint64]float64) error
 	GetImagesOrdered(ctx context.Context, album uint64) ([]Image, error)
 	DeleteAlbum(ctx context.Context, album uint64) error
+	AlbumsToBeDeleted(ctx context.Context) ([]uint64, error)
 }
 
 type Cacher interface {

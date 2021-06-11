@@ -33,7 +33,7 @@ cache:
     timeToLive: 15m
     cleanupInterval: 15m
 compressor:
-  use: imaginary
+  use: mock
   imaginary:
     host: prod_imaginary_1
     port: 9001

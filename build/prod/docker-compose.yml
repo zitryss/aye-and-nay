@@ -1,4 +1,3 @@
-version: "3"
 services:
 
   caddy:
@@ -35,10 +34,10 @@ services:
   #    volumes:
   #      - "./redis.conf:/usr/local/etc/redis/redis.conf"
 
-  imaginary:
-    build:
-      context: .
-      dockerfile: Dockerfile-imaginary
+  #  imaginary:
+  #    build:
+  #      context: .
+  #      dockerfile: Dockerfile-imaginary
 
   mongo:
     build:

@@ -203,14 +203,14 @@ func (m *Mem) DeleteAlbum(_ context.Context, album uint64) error {
 	return nil
 }
 
-func (m *Mem) AlbumsToBeDeleted(_ context.Context) ([]uint64, error) {
+func (m *Mem) AlbumsToBeDeleted(_ context.Context) ([]model.Album, error) {
 	m.syncAlbums.Lock()
 	defer m.syncAlbums.Unlock()
-	albums := []uint64(nil)
+	albs := []model.Album(nil)
 	for _, alb := range m.albums {
 		if !alb.Expires.IsZero() {
-			albums = append(albums, alb.Id)
+			albs = append(albs, alb)
 		}
 	}
-	return albums, nil
+	return albs, nil
 }

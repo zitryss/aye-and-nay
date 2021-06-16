@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	_ "github.com/zitryss/aye-and-nay/internal/config"
@@ -322,7 +323,7 @@ func TestMemRatings(t *testing.T) {
 }
 
 func TestMemDelete(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
+	t.Run("Positive1", func(t *testing.T) {
 		mem := NewMem()
 		alb := AlbumEmptyFactory(0x748C)
 		_, err := mem.CountImages(context.Background(), 0x748C)
@@ -340,11 +341,42 @@ func TestMemDelete(t *testing.T) {
 		if n != 5 {
 			t.Error("n != 5")
 		}
+		albums, err := mem.AlbumsToBeDeleted(context.Background())
+		if err != nil {
+			t.Error(err)
+		}
+		if albums != nil {
+			t.Error("albums != nil")
+		}
 		err = mem.DeleteAlbum(context.Background(), 0x748C)
 		if err != nil {
 			t.Error(err)
 		}
 		_, err = mem.CountImages(context.Background(), 0x748C)
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Positive2", func(t *testing.T) {
+		mem := NewMem()
+		alb := AlbumEmptyFactory(0x7B43)
+		alb.Expires = time.Now().Add(-1 * time.Hour)
+		err := mem.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		albums, err := mem.AlbumsToBeDeleted(context.Background())
+		if err != nil {
+			t.Error(err)
+		}
+		if !(len(albums) == 1 && albums[0].Id == alb.Id && !albums[0].Expires.IsZero()) {
+			t.Error("!(len(albums) == 1 && albums[0].Id == alb.Id && !albums[0].Expires.IsZero())")
+		}
+		err = mem.DeleteAlbum(context.Background(), 0x7B43)
+		if err != nil {
+			t.Error(err)
+		}
+		_, err = mem.CountImages(context.Background(), 0x7B43)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}

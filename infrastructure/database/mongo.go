@@ -6,6 +6,7 @@ import (
 
 	lru "github.com/hashicorp/golang-lru"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	mongodb "go.mongodb.org/mongo-driver/mongo"
 	optionsdb "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -304,6 +305,25 @@ func (m *Mongo) DeleteAlbum(ctx context.Context, album uint64) error {
 	}
 	m.cache.Remove(album)
 	return nil
+}
+
+func (m *Mongo) AlbumsToBeDeleted(ctx context.Context) ([]model.Album, error) {
+	match := bson.D{{"$match", bson.D{{"expires", bson.D{{"$ne", time.Time{}}}}}}}
+	group := bson.D{{"$group", bson.D{{"_id", "$album"}, {"expires", bson.D{{"$first", "$expires"}}}}}}
+	cursor, err := m.images.Aggregate(ctx, mongodb.Pipeline{match, group})
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	results := []bson.M(nil)
+	err = cursor.All(ctx, &results)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	albs := make([]model.Album, 0, len(results))
+	for _, r := range results {
+		albs = append(albs, model.Album{Id: uint64(r["_id"].(int64)), Expires: r["expires"].(primitive.DateTime).Time()})
+	}
+	return albs, nil
 }
 
 func (m *Mongo) lruGetOrAddAndGet(ctx context.Context, album uint64) (albumLru, error) {

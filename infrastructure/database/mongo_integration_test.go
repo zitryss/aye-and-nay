@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	_ "github.com/zitryss/aye-and-nay/internal/config"
@@ -381,7 +382,7 @@ func TestMongoRatings(t *testing.T) {
 }
 
 func TestMongoDelete(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
+	t.Run("Positive1", func(t *testing.T) {
 		mongo, err := NewMongo()
 		if err != nil {
 			t.Fatal(err)
@@ -402,11 +403,45 @@ func TestMongoDelete(t *testing.T) {
 		if n != 5 {
 			t.Error("n != 5")
 		}
+		albums, err := mongo.AlbumsToBeDeleted(context.Background())
+		if err != nil {
+			t.Error(err)
+		}
+		if len(albums) != 0 {
+			t.Error("len(albums) != 0")
+		}
 		err = mongo.DeleteAlbum(context.Background(), 0x748C)
 		if err != nil {
 			t.Error(err)
 		}
 		_, err = mongo.CountImages(context.Background(), 0x748C)
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Positive2", func(t *testing.T) {
+		mongo, err := NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		alb := AlbumEmptyFactory(0x7B43)
+		alb.Expires = time.Now().Add(-1 * time.Hour)
+		err = mongo.SaveAlbum(context.Background(), alb)
+		if err != nil {
+			t.Error(err)
+		}
+		albums, err := mongo.AlbumsToBeDeleted(context.Background())
+		if err != nil {
+			t.Error(err)
+		}
+		if !(len(albums) == 1 && albums[0].Id == alb.Id && !albums[0].Expires.IsZero()) {
+			t.Error("!(len(albums) == 1 && albums[0].Id == alb.Id && !albums[0].Expires.IsZero())")
+		}
+		err = mongo.DeleteAlbum(context.Background(), 0x7B43)
+		if err != nil {
+			t.Error(err)
+		}
+		_, err = mongo.CountImages(context.Background(), 0x7B43)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}

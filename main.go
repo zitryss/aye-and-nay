@@ -85,6 +85,11 @@ func main() {
 	qDel.Monitor(ctx)
 
 	serv := service.New(comp, stor, data, cach, qCalc, qComp, qDel)
+	err = serv.CleanUp(ctx)
+	if err != nil {
+		log.Critical(err)
+		os.Exit(1)
+	}
 
 	gCalc, ctxCalc := errgroup.WithContext(ctx)
 	log.Info("starting calculation worker pool")

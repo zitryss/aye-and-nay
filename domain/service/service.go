@@ -497,3 +497,17 @@ func (s *Service) Top(ctx context.Context, album uint64) ([]model.Image, error) 
 	}
 	return imgs, nil
 }
+
+func (s *Service) CleanUp(ctx context.Context) error {
+	albs, err := s.pers.AlbumsToBeDeleted(ctx)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	for _, alb := range albs {
+		err = s.queue.del.add(ctx, alb.Id, alb.Expires)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
+	return nil
+}

@@ -593,7 +593,61 @@ func TestServiceIntegrationTop(t *testing.T) {
 }
 
 func TestServiceIntegrationDelete(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
+	t.Run("Positive1", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := cache.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{newPQueue(0xE3FF, redis)}
+		qDel.Monitor(ctx)
+		alb1 := AlbumEmptyFactory(0x101F)
+		alb1.Expires = time.Now().Add(-1 * time.Hour)
+		err = mongo.SaveAlbum(ctx, alb1)
+		if err != nil {
+			t.Error(err)
+		}
+		alb2 := AlbumEmptyFactory(0xFFBB)
+		alb2.Expires = time.Now().Add(1 * time.Hour)
+		err = mongo.SaveAlbum(ctx, alb2)
+		if err != nil {
+			t.Error(err)
+		}
+		heartbeatDel := make(chan interface{})
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
+		err = serv.CleanUp(ctx)
+		if err != nil {
+			t.Error(err)
+		}
+		gDel, ctxDel := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolDel(ctxDel, gDel)
+		v := CheckChannel(t, heartbeatDel)
+		album, ok := v.(uint64)
+		if !ok {
+			t.Error("v.(type) != uint64")
+		}
+		if album != 0x101F {
+			t.Error("album != 0x101F")
+		}
+	})
+	t.Run("Positive2", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		imaginary, err := compressor.NewImaginary()

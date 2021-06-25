@@ -347,7 +347,7 @@ func (s *Service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
 				}
 			}
 			if s.heartbeat.del != nil {
-				s.heartbeat.del <- struct{}{}
+				s.heartbeat.del <- album
 			}
 		}
 	})

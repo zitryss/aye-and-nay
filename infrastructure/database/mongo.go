@@ -188,51 +188,32 @@ func (m *Mongo) GetEdges(ctx context.Context, album uint64) (map[uint64]map[uint
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	edgs := make(map[uint64]map[uint64]int, len(albLru))
 	filter := bson.D{{"album", int64(album)}}
 	cursor, err := m.images.Find(ctx, filter)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	defer cursor.Close(ctx)
-	for cursor.Next(ctx) {
-		imgDao := imageDao{}
-		err := cursor.Decode(&imgDao)
-		if err != nil {
-			return nil, errors.Wrap(err)
-		}
+	imgsDao := make([]imageDao, 0, len(albLru))
+	err = cursor.All(ctx, &imgsDao)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	edgs := make(map[uint64]map[uint64]int, len(albLru))
+	for _, imgDao := range imgsDao {
 		edgs[uint64(imgDao.Id)] = make(map[uint64]int, len(albLru))
 		filter := bson.D{{"album", int64(album)}, {"from", imgDao.Id}}
 		cursor, err := m.edges.Find(ctx, filter)
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
-		for cursor.Next(ctx) {
-			edgDao := edgeDao{}
-			err := cursor.Decode(&edgDao)
-			if err != nil {
-				_ = cursor.Close(ctx)
-				return nil, errors.Wrap(err)
-			}
+		edgsDao := []edgeDao(nil)
+		err = cursor.All(ctx, &edgsDao)
+		if err != nil {
+			return nil, errors.Wrap(err)
+		}
+		for _, edgDao := range edgsDao {
 			edgs[uint64(edgDao.From)][uint64(edgDao.To)] = edgDao.Weight
 		}
-		err = cursor.Err()
-		if err != nil {
-			_ = cursor.Close(ctx)
-			return nil, errors.Wrap(err)
-		}
-		err = cursor.Close(ctx)
-		if err != nil {
-			return nil, errors.Wrap(err)
-		}
-	}
-	err = cursor.Err()
-	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-	err = cursor.Close(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err)
 	}
 	return edgs, nil
 }
@@ -258,30 +239,21 @@ func (m *Mongo) GetImagesOrdered(ctx context.Context, album uint64) ([]model.Ima
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	imgs := make([]model.Image, 0, len(albLru))
 	filter := bson.D{{"album", int64(album)}}
 	opts := optionsdb.Find().SetSort(bson.D{{"rating", -1}})
 	cursor, err := m.images.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	defer cursor.Close(ctx)
-	for cursor.Next(ctx) {
-		imgDao := imageDao{}
-		err := cursor.Decode(&imgDao)
-		if err != nil {
-			return nil, errors.Wrap(err)
-		}
+	imgsDao := make([]imageDao, 0, len(albLru))
+	err = cursor.All(ctx, &imgsDao)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	imgs := make([]model.Image, 0, len(albLru))
+	for _, imgDao := range imgsDao {
 		img := model.Image{Id: uint64(imgDao.Id), Src: imgDao.Src, Rating: imgDao.Rating}
 		imgs = append(imgs, img)
-	}
-	err = cursor.Err()
-	if err != nil {
-		return nil, errors.Wrap(err)
-	}
-	err = cursor.Close(ctx)
-	if err != nil {
-		return nil, errors.Wrap(err)
 	}
 	return imgs, nil
 }
@@ -350,28 +322,19 @@ func (m *Mongo) lruAdd(ctx context.Context, album uint64) error {
 	if n == 0 {
 		return errors.Wrap(model.ErrAlbumNotFound)
 	}
-	albLru := make(albumLru, n)
 	filter = bson.D{{"album", int64(album)}}
 	cursor, err := m.images.Find(ctx, filter)
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	defer cursor.Close(ctx)
-	for cursor.Next(ctx) {
-		imgDao := imageDao{}
-		err := cursor.Decode(&imgDao)
-		if err != nil {
-			return errors.Wrap(err)
-		}
+	imgsDao := []imageDao(nil)
+	err = cursor.All(ctx, &imgsDao)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	albLru := make(albumLru, n)
+	for _, imgDao := range imgsDao {
 		albLru[uint64(imgDao.Id)] = imgDao.Src
-	}
-	err = cursor.Err()
-	if err != nil {
-		return errors.Wrap(err)
-	}
-	err = cursor.Close(ctx)
-	if err != nil {
-		return errors.Wrap(err)
 	}
 	m.cache.Add(album, albLru)
 	return nil

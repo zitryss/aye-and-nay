@@ -646,6 +646,10 @@ func TestServiceIntegrationDelete(t *testing.T) {
 		if album != 0x101F {
 			t.Error("album != 0x101F")
 		}
+		t.Cleanup(func() {
+			_ = mongo.DeleteAlbum(context.Background(), 0x101F)
+			_ = mongo.DeleteAlbum(context.Background(), 0xFFBB)
+		})
 	})
 	t.Run("Positive2", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())

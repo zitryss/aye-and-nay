@@ -3,9 +3,6 @@ package http
 import (
 	"context"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"golang.org/x/net/http2"
@@ -20,14 +17,14 @@ var (
 )
 
 func NewServer(
+	middle func(http.Handler) http.Handler,
 	serv model.Servicer,
 	serverWait chan<- error,
 ) *Server {
 	conf := newServerConfig()
 	contr := newController(serv)
 	router := newRouter(contr)
-	middle := newMiddleware()
-	handler := middle.chain(router)
+	handler := middle(router)
 	https := newHttps(conf, handler)
 	return &Server{conf, https, serverWait}
 }
@@ -48,11 +45,9 @@ type Server struct {
 	serverWait chan<- error
 }
 
-func (s *Server) Monitor() {
+func (s *Server) Monitor(ctx context.Context) {
 	go func() {
-		quit := make(chan os.Signal, 1)
-		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-		<-quit
+		<-ctx.Done()
 		s.shutdown()
 	}()
 }

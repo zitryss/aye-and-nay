@@ -19,7 +19,7 @@ func TestMinio(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		f, err := minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		f, err := minio.Get(context.Background(), 0x70D8, 0xD5C7)
 		e := (*minios3.ErrorResponse)(nil)
 		if errors.As(err, &e) {
 			t.Error(err)
@@ -27,25 +27,25 @@ func TestMinio(t *testing.T) {
 		if f.Reader != nil {
 			t.Error("f.Reader != nil")
 		}
-		src, err := minio.Put(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU", Png())
+		src, err := minio.Put(context.Background(), 0x70D8, 0xD5C7, Png())
 		if err != nil {
 			t.Error(err)
 		}
-		if src != "/aye-and-nay/albums/pXFAGSZpY844QjvY/images/qmgc5mNJtxUtF8WU" {
-			t.Error("src != \"/aye-and-nay/albums/pXFAGSZpY844QjvY/images/qmgc5mNJtxUtF8WU\"")
+		if src != "/aye-and-nay/albums/2HAAAAAAAAA/images/x9UAAAAAAAA" {
+			t.Error("src != \"/aye-and-nay/albums/2HAAAAAAAAA/images/x9UAAAAAAAA\"")
 		}
-		f, err = minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		f, err = minio.Get(context.Background(), 0x70D8, 0xD5C7)
 		if err != nil {
 			t.Error(err)
 		}
 		if !EqualFile(f, Png()) {
 			t.Error("!EqualFile(f, Png())")
 		}
-		err = minio.Remove(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		err = minio.Remove(context.Background(), 0x70D8, 0xD5C7)
 		if err != nil {
 			t.Error(err)
 		}
-		f, err = minio.Get(context.Background(), "pXFAGSZpY844QjvY", "qmgc5mNJtxUtF8WU")
+		f, err = minio.Get(context.Background(), 0x70D8, 0xD5C7)
 		e = (*minios3.ErrorResponse)(nil)
 		if errors.As(err, &e) {
 			t.Error(err)
@@ -59,30 +59,30 @@ func TestMinio(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		src, err := minio.Put(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D", Png())
+		src, err := minio.Put(context.Background(), 0x872D, 0x882D, Png())
 		if err != nil {
 			t.Error(err)
 		}
-		if src != "/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D" {
-			t.Error("src != \"/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D\"")
+		if src != "/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA" {
+			t.Error("src != \"/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA\"")
 		}
-		f, err := minio.Get(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D")
+		f, err := minio.Get(context.Background(), 0x872D, 0x882D)
 		if err != nil {
 			t.Error(err)
 		}
 		if !EqualFile(f, Png()) {
 			t.Error("!EqualFile(f, Png())")
 		}
-		err = minio.Remove(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D")
+		err = minio.Remove(context.Background(), 0x872D, 0x882D)
 		if err != nil {
 			t.Error(err)
 		}
-		src, err = minio.Put(context.Background(), "DRkhsmc3WAsXkSFm", "aYWVaKdC8fg2e65D", Png())
+		src, err = minio.Put(context.Background(), 0x872D, 0x882D, Png())
 		if err != nil {
 			t.Error(err)
 		}
-		if src != "/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D" {
-			t.Error("src != \"/aye-and-nay/albums/DRkhsmc3WAsXkSFm/images/aYWVaKdC8fg2e65D\"")
+		if src != "/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA" {
+			t.Error("src != \"/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA\"")
 		}
 	})
 }

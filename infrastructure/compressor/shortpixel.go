@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
-	"github.com/zitryss/aye-and-nay/internal/pool"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
+	"github.com/zitryss/aye-and-nay/pkg/pool"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
@@ -38,19 +38,12 @@ func WithHeartbeatRestart(ch chan<- interface{}) options {
 	}
 }
 
-func WithHeartbeatRepeat(ch chan<- interface{}) options {
-	return func(sp *Shortpixel) {
-		sp.heartbeat.repeat = ch
-	}
-}
-
 type Shortpixel struct {
 	conf      shortPixelConfig
 	done      uint32
 	ch        chan struct{}
 	heartbeat struct {
 		restart chan<- interface{}
-		repeat  chan<- interface{}
 	}
 }
 
@@ -86,8 +79,12 @@ func (sp *Shortpixel) Compress(ctx context.Context, f model.File) (model.File, e
 		case *os.File:
 			_ = v.Close()
 			_ = os.Remove(v.Name())
+		case multipart.File:
+			_ = v.Close()
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
+		default:
+			panic(errors.Wrap(model.ErrUnknown))
 		}
 	}()
 	if atomic.LoadUint32(&sp.done) != 0 {
@@ -254,13 +251,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 }
 
 func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
-	if sp.heartbeat.repeat != nil {
-		sp.heartbeat.repeat <- struct{}{}
-	}
 	time.Sleep(sp.conf.repeatIn)
-	if sp.heartbeat.repeat != nil {
-		sp.heartbeat.repeat <- struct{}{}
-	}
 	body := pool.GetBuffer()
 	defer pool.PutBuffer(body)
 	request := struct {

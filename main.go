@@ -85,6 +85,11 @@ func main() {
 	qDel.Monitor(ctx)
 
 	serv := service.New(comp, stor, data, cach, qCalc, qComp, qDel)
+	err = serv.CleanUp(ctx)
+	if err != nil {
+		log.Critical(err)
+		os.Exit(1)
+	}
 
 	gCalc, ctxCalc := errgroup.WithContext(ctx)
 	log.Info("starting calculation worker pool")
@@ -102,9 +107,10 @@ func main() {
 	log.Info("starting deletion worker pool")
 	serv.StartWorkingPoolDel(ctxDel, gDel)
 
+	middle := http.NewMiddleware(cach)
 	srvWait := make(chan error, 1)
-	srv := http.NewServer(serv, srvWait)
-	srv.Monitor()
+	srv := http.NewServer(middle.Chain, serv, srvWait)
+	srv.Monitor(ctx)
 	log.Info("starting web server")
 	err = srv.Start()
 
@@ -135,5 +141,21 @@ func main() {
 	err = gCalc.Wait()
 	if err != nil {
 		log.Error(err)
+	}
+
+	r, ok := cach.(*cache.Redis)
+	if ok {
+		err = r.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+	m, ok := data.(*database.Mongo)
+	if ok {
+		err = m.Close()
+		if err != nil {
+			log.Error(err)
+		}
 	}
 }

@@ -38,12 +38,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 201,
 				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"id":"N2fxX5zbDh8RJQvx1"}}` + "\n",
+				body: `{"album":{"id":"rRsAAAAAAAA"}}` + "\n",
 			},
 		},
 		{
@@ -51,7 +51,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"big.jpg", "big.jpg", "big.jpg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -64,7 +64,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 400,
@@ -77,7 +77,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png", "alan.jpg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -90,7 +90,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg", "john.bmp", "big.jpg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -103,7 +103,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        nil,
 				filenames:  []string{"alan.jpg", "john.bmp", "audio.ogg"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 415,
@@ -141,7 +141,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrTooManyRequests,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 429,
@@ -154,7 +154,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrBodyTooLarge,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "2H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -167,7 +167,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrWrongContentType,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "3H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 415,
@@ -180,7 +180,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrNotEnoughImages,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "6H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 400,
@@ -193,7 +193,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrTooManyImages,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "12H",
+				duration:   "11h",
 			},
 			want: want{
 				code: 413,
@@ -206,7 +206,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrImageTooLarge,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1D",
+				duration:   "1h",
 			},
 			want: want{
 				code: 413,
@@ -219,7 +219,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrNotImage,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "2D",
+				duration:   "1h",
 			},
 			want: want{
 				code: 415,
@@ -232,7 +232,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrDurationNotSet,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "3D",
+				duration:   "1h",
 			},
 			want: want{
 				code: 400,
@@ -245,7 +245,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrDurationInvalid,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1W",
+				duration:   "1h",
 			},
 			want: want{
 				code: 400,
@@ -258,7 +258,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrAlbumNotFound,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 404,
@@ -271,7 +271,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrTokenNotFound,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 404,
@@ -284,7 +284,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        model.ErrThirdPartyUnavailable,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 500,
@@ -297,7 +297,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        context.Canceled,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 500,
@@ -310,7 +310,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 				err:        context.DeadlineExceeded,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
-				duration:   "1H",
+				duration:   "1h",
 			},
 			want: want{
 				code: 500,
@@ -531,8 +531,8 @@ func TestControllerHandleReady(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleReady()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/api/albums/N2fxX5zbDh8RJQvx1/ready", nil)
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "N2fxX5zbDh8RJQvx1"}}
+			r := httptest.NewRequest("GET", "/api/albums/rRsAAAAAAAA/ready", nil)
+			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "rRsAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
 			CheckContentType(t, w, tt.want.typ)
@@ -561,7 +561,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 200,
 				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"img1":{"token":"DfsXRkDxVeH2xmme5","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme2"},"img2":{"token":"DfsXRkDxVeH2xmme6","src":"/aye-and-nay/albums/DfsXRkDxVeH2xmme1/images/DfsXRkDxVeH2xmme3"}}}` + "\n",
+				body: `{"album":{"img1":{"token":"f8cAAAAAAAA","src":"/aye-and-nay/albums/nkUAAAAAAAA/images/21EAAAAAAAA"},"img2":{"token":"iakAAAAAAAA","src":"/aye-and-nay/albums/nkUAAAAAAAA/images/K2IAAAAAAAA"}}}` + "\n",
 			},
 		},
 		{
@@ -711,8 +711,8 @@ func TestControllerHandlePair(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handlePair()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/api/albums/DfsXRkDxVeH2xmme1/", nil)
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "DfsXRkDxVeH2xmme1"}}
+			r := httptest.NewRequest("GET", "/api/albums/nkUAAAAAAAA/", nil)
+			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "nkUAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
 			CheckContentType(t, w, tt.want.typ)
@@ -891,10 +891,10 @@ func TestControllerHandleVote(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleVote()
 			w := httptest.NewRecorder()
-			json := strings.NewReader(`{"album":{"imgFrom":{"token":"MvdZUxVgPD5p6JTa5"},"imgTo":{"token":"MvdZUxVgPD5p6JTa6"}}}`)
-			r := httptest.NewRequest("PATCH", "/api/albums/MvdZUxVgPD5p6JTa1/", json)
+			json := strings.NewReader(`{"album":{"imgFrom":{"token":"fYIAAAAAAAA"},"imgTo":{"token":"foIAAAAAAAA"}}}`)
+			r := httptest.NewRequest("PATCH", "/api/albums/fIIAAAAAAAA/", json)
 			r.Header.Set("Content-Type", "application/json; charset=utf-8")
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "MvdZUxVgPD5p6JTa1"}}
+			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "fIIAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
 			CheckContentType(t, w, tt.want.typ)
@@ -923,7 +923,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 200,
 				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"images":[{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ2","rating":0.5},{"src":"/aye-and-nay/albums/bYCppY8q6qjvXjMZ1/images/bYCppY8q6qjvXjMZ3","rating":0.5}]}}` + "\n",
+				body: `{"album":{"images":[{"src":"/aye-and-nay/albums/byYAAAAAAAA/images/yFwAAAAAAAA","rating":0.5},{"src":"/aye-and-nay/albums/byYAAAAAAAA/images/jVgAAAAAAAA","rating":0.5}]}}` + "\n",
 			},
 		},
 		{
@@ -1073,8 +1073,8 @@ func TestControllerHandleTop(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleTop()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/api/albums/bYCppY8q6qjvXjMZ1/top/", nil)
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "bYCppY8q6qjvXjMZ1"}}
+			r := httptest.NewRequest("GET", "/api/albums/byYAAAAAAAA/top/", nil)
+			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "byYAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
 			CheckContentType(t, w, tt.want.typ)

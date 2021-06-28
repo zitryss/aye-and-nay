@@ -82,7 +82,7 @@ func (d *docker) RunMongo() {
 
 func (d *docker) RunMinio() {
 	repository := "minio/minio"
-	tag := "RELEASE.2020-09-02T18-19-50Z"
+	tag := "RELEASE.2021-06-07T21-40-51Z"
 	accessKey := viper.GetString("storage.minio.accessKey")
 	secretKey := viper.GetString("storage.minio.secretKey")
 	env := []string{"MINIO_ACCESS_KEY=" + accessKey, "MINIO_SECRET_KEY=" + secretKey}

@@ -98,7 +98,7 @@ func readFiles() {
 			debug.Check(err)
 		}
 	}
-	err := multi.WriteField("duration", "1H")
+	err := multi.WriteField("duration", "1h")
 	debug.Check(err)
 	err = multi.Close()
 	debug.Check(err)

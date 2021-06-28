@@ -12,7 +12,9 @@ paths:
     post:
       description: >
         First request in a sequence. Server receives images and responds
-        with an ID for the new album.
+        with an ID for the new album. A duration string is a sequence of
+        decimal numbers, each with optional fraction and a unit suffix,
+        such as "20m", "1.5h" or "2h45m". Valid time units are "m", "h".
       requestBody:
         $ref: '#/components/requestBodies/AlbumRequest'
       responses:
@@ -126,16 +128,6 @@ components:
             format: binary
         duration:
           type: string
-          enum:
-            - 1H
-            - 2H
-            - 3H
-            - 6H
-            - 12H
-            - 1D
-            - 2D
-            - 3D
-            - 1W
     AlbumResponse:
       type: object
       properties:

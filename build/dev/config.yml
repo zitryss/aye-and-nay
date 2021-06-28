@@ -14,17 +14,13 @@ middleware:
   limiter:
     requestsPerSecond: 10000
     burst: 10
-    timeToLive: 15m
-    cleanupInterval: 15m
 controller:
   maxNumberOfFiles: 100
   maxFileSize: 5242880 # 5 MB
 service:
   numberOfWorkersCalc: 8
   numberOfWorkersComp: 8
-  albumIdLength: 8
-  imageIdLength: 8
-  tokenIdLength: 8
+  accuracy: 0.625
 cache:
   use: redis
   redis:
@@ -67,6 +63,7 @@ database:
       times: 4
       pause: 5s
       timeout: 30s
+    lru: 100
 storage:
   use: minio
   minio:

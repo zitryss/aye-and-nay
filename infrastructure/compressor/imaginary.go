@@ -8,11 +8,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/zitryss/aye-and-nay/internal/pool"
-	"github.com/zitryss/aye-and-nay/pkg/retry"
-
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
+	"github.com/zitryss/aye-and-nay/pkg/pool"
+	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
 func NewImaginary() (*Imaginary, error) {
@@ -61,8 +60,12 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 		case *os.File:
 			_ = v.Close()
 			_ = os.Remove(v.Name())
+		case multipart.File:
+			_ = v.Close()
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
+		default:
+			panic(errors.Wrap(model.ErrUnknown))
 		}
 	}()
 	buf := pool.GetBuffer()

@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"reflect"
-	"strconv"
 	"testing"
 	"time"
 
@@ -47,12 +46,11 @@ func TestMain(m *testing.M) {
 
 func TestServiceIntegrationAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		fn1 := func() func(int) (string, error) {
-			id := "zcU244KtR3jJrnt9"
-			i := 0
-			return func(length int) (string, error) {
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
 				i++
-				return id + strconv.Itoa(i), nil
+				return 0x463E + i, nil
 			}
 		}()
 		ctx, cancel := context.WithCancel(context.Background())
@@ -75,7 +73,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 		qCalc := &QueueCalc{}
 		qCalc.Monitor(ctx)
-		qComp := &QueueComp{newQueue("TV7ZuMmhz3CDfa7n", redis)}
+		qComp := &QueueComp{newQueue(0xB273, redis)}
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
@@ -106,12 +104,11 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		fn1 := func() func(int) (string, error) {
-			id := "wZE65QekXNTP9vpK"
-			i := 0
-			return func(length int) (string, error) {
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
 				i++
-				return id + strconv.Itoa(i), nil
+				return 0x915C + i, nil
 			}
 		}()
 		ctx, cancel := context.WithCancel(context.Background())
@@ -133,7 +130,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}
 		qCalc := &QueueCalc{}
 		qCalc.Monitor(ctx)
-		qComp := &QueueComp{newQueue("mhynV9uhnGFEV4uf", redis)}
+		qComp := &QueueComp{newQueue(0x88AB, redis)}
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
@@ -147,6 +144,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			t.Error(err)
 		}
 		v := CheckChannel(t, heartbeatComp)
+		_ = CheckChannel(t, heartbeatComp)
 		err, ok := v.(error)
 		if !ok {
 			t.Error("v.(type) != error")
@@ -183,6 +181,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 			t.Error(err)
 		}
 		v = CheckChannel(t, heartbeatComp)
+		_ = CheckChannel(t, heartbeatComp)
 		err, ok = v.(error)
 		if !ok {
 			t.Error("v.(type) != error")
@@ -216,12 +215,11 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 
 func TestServiceIntegrationPair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		fn1 := func() func(int) (string, error) {
-			id := "Rkur9G4z9PKtURHe"
-			i := 0
-			return func(length int) (string, error) {
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
 				i++
-				return id + strconv.Itoa(i), nil
+				return 0x3BC5 + i, nil
 			}
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
@@ -260,8 +258,8 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img1 := model.Image{Id: "Rkur9G4z9PKtURHe2", Token: "Rkur9G4z9PKtURHe4", Src: "/aye-and-nay/albums/Rkur9G4z9PKtURHe1/images/Rkur9G4z9PKtURHe2"}
-		img2 := model.Image{Id: "Rkur9G4z9PKtURHe3", Token: "Rkur9G4z9PKtURHe5", Src: "/aye-and-nay/albums/Rkur9G4z9PKtURHe1/images/Rkur9G4z9PKtURHe3"}
+		img1 := model.Image{Id: 0x3BC7, Token: 0x3BC9, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/xzsAAAAAAAA"}
+		img2 := model.Image{Id: 0x3BC8, Token: 0x3BCA, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/yDsAAAAAAAA"}
 		imgs1 := []model.Image{img1, img2}
 		if reflect.DeepEqual(img7, img8) {
 			t.Error("img7 == img8")
@@ -276,8 +274,8 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img3 := model.Image{Id: "Rkur9G4z9PKtURHe3", Token: "Rkur9G4z9PKtURHe6", Src: "/aye-and-nay/albums/Rkur9G4z9PKtURHe1/images/Rkur9G4z9PKtURHe3"}
-		img4 := model.Image{Id: "Rkur9G4z9PKtURHe2", Token: "Rkur9G4z9PKtURHe7", Src: "/aye-and-nay/albums/Rkur9G4z9PKtURHe1/images/Rkur9G4z9PKtURHe2"}
+		img3 := model.Image{Id: 0x3BC8, Token: 0x3BCB, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/yDsAAAAAAAA"}
+		img4 := model.Image{Id: 0x3BC7, Token: 0x3BCC, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/xzsAAAAAAAA"}
 		imgs2 := []model.Image{img3, img4}
 		if reflect.DeepEqual(img9, img10) {
 			t.Error("img9 == img10")
@@ -292,8 +290,8 @@ func TestServiceIntegrationPair(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img5 := model.Image{Id: "Rkur9G4z9PKtURHe2", Token: "Rkur9G4z9PKtURHe8", Src: "/aye-and-nay/albums/Rkur9G4z9PKtURHe1/images/Rkur9G4z9PKtURHe2"}
-		img6 := model.Image{Id: "Rkur9G4z9PKtURHe3", Token: "Rkur9G4z9PKtURHe9", Src: "/aye-and-nay/albums/Rkur9G4z9PKtURHe1/images/Rkur9G4z9PKtURHe3"}
+		img5 := model.Image{Id: 0x3BC7, Token: 0x3BCD, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/xzsAAAAAAAA"}
+		img6 := model.Image{Id: 0x3BC8, Token: 0x3BCE, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/yDsAAAAAAAA"}
 		imgs3 := []model.Image{img5, img6}
 		if reflect.DeepEqual(img11, img12) {
 			t.Error("img11 == img12")
@@ -331,7 +329,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
-		_, _, err = serv.Pair(ctx, "A755jF7tvnTJrPCD")
+		_, _, err = serv.Pair(ctx, 0xEB46)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -340,12 +338,11 @@ func TestServiceIntegrationPair(t *testing.T) {
 
 func TestServiceIntegrationVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		fn1 := func() func(int) (string, error) {
-			id := "kh6yGRSrzXXqW9Ap"
-			i := 0
-			return func(length int) (string, error) {
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
 				i++
-				return id + strconv.Itoa(i), nil
+				return 0xC389 + i, nil
 			}
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
@@ -390,12 +387,11 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		fn1 := func() func(int) (string, error) {
-			id := "4UF24e4Ka9UWtEdg"
-			i := 0
-			return func(length int) (string, error) {
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
 				i++
-				return id + strconv.Itoa(i), nil
+				return 0xE24F + i, nil
 			}
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
@@ -434,18 +430,17 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		err = serv.Vote(ctx, "tHwPdF76b3DahJrP", img1.Token, img2.Token)
+		err = serv.Vote(ctx, 0x12E6, img1.Token, img2.Token)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		fn1 := func() func(int) (string, error) {
-			id := "hw9mwZyRgxBC9Xbt"
-			i := 0
-			return func(length int) (string, error) {
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
 				i++
-				return id + strconv.Itoa(i), nil
+				return 0xBC43 + i, nil
 			}
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
@@ -484,7 +479,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		err = serv.Vote(ctx, album, "h9zY3PqD3ng7MJxk", "mhVPPxW2GmqLBZwL")
+		err = serv.Vote(ctx, album, 0x1CC1, 0xF83C)
 		if !errors.Is(err, model.ErrTokenNotFound) {
 			t.Error(err)
 		}
@@ -493,12 +488,11 @@ func TestServiceIntegrationVote(t *testing.T) {
 
 func TestServiceIntegrationTop(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		fn1 := func() func(int) (string, error) {
-			id := "L2j8Uc3z2HNLZHvJ"
-			i := 0
-			return func(length int) (string, error) {
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
 				i++
-				return id + strconv.Itoa(i), nil
+				return 0x4DB8 + i, nil
 			}
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {
@@ -521,7 +515,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		qCalc := &QueueCalc{newQueue("RKvUKsDj7whcrpzA", redis)}
+		qCalc := &QueueCalc{newQueue(0x1A01, redis)}
 		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
 		qComp.Monitor(ctx)
@@ -558,8 +552,8 @@ func TestServiceIntegrationTop(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img5 := model.Image{Id: "L2j8Uc3z2HNLZHvJ2", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ2", Rating: 0.5, Compressed: false}
-		img6 := model.Image{Id: "L2j8Uc3z2HNLZHvJ3", Src: "/aye-and-nay/albums/L2j8Uc3z2HNLZHvJ1/images/L2j8Uc3z2HNLZHvJ3", Rating: 0.5, Compressed: false}
+		img5 := model.Image{Id: 0x4DBA, Src: "/aye-and-nay/albums/uU0AAAAAAAA/images/uk0AAAAAAAA", Rating: 0.5, Compressed: false}
+		img6 := model.Image{Id: 0x4DBB, Src: "/aye-and-nay/albums/uU0AAAAAAAA/images/u00AAAAAAAA", Rating: 0.5, Compressed: false}
 		imgs2 := []model.Image{img5, img6}
 		if !reflect.DeepEqual(imgs1, imgs2) {
 			t.Error("imgs1 != imgs2")
@@ -591,7 +585,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
-		_, err = serv.Top(ctx, "XXAzCcc6EHr6mpcH")
+		_, err = serv.Top(ctx, 0x83CD)
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
@@ -599,46 +593,148 @@ func TestServiceIntegrationTop(t *testing.T) {
 }
 
 func TestServiceIntegrationDelete(t *testing.T) {
-	fn := func() time.Time {
-		return time.Now()
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	imaginary, err := compressor.NewImaginary()
-	if err != nil {
-		t.Fatal(err)
-	}
-	minio, err := storage.NewMinio()
-	if err != nil {
-		t.Fatal(err)
-	}
-	mongo, err := database.NewMongo()
-	if err != nil {
-		t.Fatal(err)
-	}
-	redis, err := cache.NewRedis()
-	if err != nil {
-		t.Fatal(err)
-	}
-	qCalc := &QueueCalc{}
-	qCalc.Monitor(ctx)
-	qComp := &QueueComp{}
-	qComp.Monitor(ctx)
-	qDel := &QueueDel{newPQueue("en8wWYq2ms5Zgnw7", redis)}
-	qDel.Monitor(ctx)
-	heartbeatDel := make(chan interface{})
-	serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandNow(fn), WithHeartbeatDel(heartbeatDel))
-	gDel, ctxDel := errgroup.WithContext(ctx)
-	serv.StartWorkingPoolDel(ctxDel, gDel)
-	files := []model.File{Png(), Png()}
-	dur := 100 * time.Millisecond
-	album, err := serv.Album(ctx, files, dur)
-	if err != nil {
-		t.Error(err)
-	}
-	CheckChannel(t, heartbeatDel)
-	_, err = serv.Top(ctx, album)
-	if !errors.Is(err, model.ErrAlbumNotFound) {
-		t.Error(err)
-	}
+	t.Run("Positive1", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := cache.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{newPQueue(0xE3FF, redis)}
+		qDel.Monitor(ctx)
+		alb1 := AlbumEmptyFactory(0x101F)
+		alb1.Expires = time.Now().Add(-1 * time.Hour)
+		err = mongo.SaveAlbum(ctx, alb1)
+		if err != nil {
+			t.Error(err)
+		}
+		alb2 := AlbumEmptyFactory(0xFFBB)
+		alb2.Expires = time.Now().Add(1 * time.Hour)
+		err = mongo.SaveAlbum(ctx, alb2)
+		if err != nil {
+			t.Error(err)
+		}
+		heartbeatDel := make(chan interface{})
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
+		err = serv.CleanUp(ctx)
+		if err != nil {
+			t.Error(err)
+		}
+		gDel, ctxDel := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolDel(ctxDel, gDel)
+		v := CheckChannel(t, heartbeatDel)
+		album, ok := v.(uint64)
+		if !ok {
+			t.Error("v.(type) != uint64")
+		}
+		if album != 0x101F {
+			t.Error("album != 0x101F")
+		}
+		t.Cleanup(func() {
+			_ = mongo.DeleteAlbum(context.Background(), 0x101F)
+			_ = mongo.DeleteAlbum(context.Background(), 0xFFBB)
+		})
+	})
+	t.Run("Positive2", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := cache.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{newPQueue(0xEF3F, redis)}
+		qDel.Monitor(ctx)
+		heartbeatDel := make(chan interface{})
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
+		gDel, ctxDel := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolDel(ctxDel, gDel)
+		files := []model.File{Png(), Png()}
+		dur := 100 * time.Millisecond
+		album, err := serv.Album(ctx, files, dur)
+		if err != nil {
+			t.Error(err)
+		}
+		CheckChannel(t, heartbeatDel)
+		_, err = serv.Top(ctx, album)
+		if !errors.Is(err, model.ErrAlbumNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		imaginary, err := compressor.NewImaginary()
+		if err != nil {
+			t.Fatal(err)
+		}
+		minio, err := storage.NewMinio()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mongo, err := database.NewMongo()
+		if err != nil {
+			t.Fatal(err)
+		}
+		redis, err := cache.NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{newPQueue(0xEF3F, redis)}
+		qDel.Monitor(ctx)
+		heartbeatDel := make(chan interface{})
+		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
+		gDel, ctxDel := errgroup.WithContext(ctx)
+		serv.StartWorkingPoolDel(ctxDel, gDel)
+		files := []model.File{Png(), Png()}
+		dur := 0 * time.Second
+		album, err := serv.Album(ctx, files, dur)
+		if err != nil {
+			t.Error(err)
+		}
+		select {
+		case <-heartbeatDel:
+			t.Error("<-heartbeatDel")
+		case <-time.After(1 * time.Second):
+		}
+		_, err = serv.Top(ctx, album)
+		if err != nil {
+			t.Error(err)
+		}
+	})
 }

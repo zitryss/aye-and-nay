@@ -445,6 +445,9 @@ func TestMongoDelete(t *testing.T) {
 		if !errors.Is(err, model.ErrAlbumNotFound) {
 			t.Error(err)
 		}
+		t.Cleanup(func() {
+			_ = mongo.DeleteAlbum(context.Background(), 0x7B43)
+		})
 	})
 	t.Run("Negative", func(t *testing.T) {
 		mongo, err := NewMongo()

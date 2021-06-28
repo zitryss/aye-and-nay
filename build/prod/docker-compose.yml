@@ -23,7 +23,7 @@ services:
       - "./config.yml:/config.yml"
     depends_on:
       # - redis
-      - imaginary
+      # - imaginary
       - mongo
       - minio
 

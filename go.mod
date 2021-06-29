@@ -10,6 +10,7 @@ require (
 	github.com/cenkalti/backoff/v4 v4.1.1 // indirect
 	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/containerd/continuity v0.1.0 // indirect
+	github.com/dgraph-io/badger/v3 v3.2103.0 // indirect
 	github.com/emirpasic/gods v1.12.0
 	github.com/fatih/color v1.12.0 // indirect
 	github.com/go-redis/redis/v8 v8.10.0

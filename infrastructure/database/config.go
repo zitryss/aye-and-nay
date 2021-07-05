@@ -37,3 +37,19 @@ type mongoConfig struct {
 	compressed bool
 	lru        int
 }
+
+func newBadgerConfig() badgerConfig {
+	return badgerConfig{
+		gcRatio:         viper.GetFloat64("database.badger.gcRatio"),
+		cleanupInterval: viper.GetDuration("database.badger.cleanupInterval"),
+		compressed:      viper.GetString("compressor.use") == "mock",
+		lru:             viper.GetInt("database.badger.lru"),
+	}
+}
+
+type badgerConfig struct {
+	gcRatio         float64
+	cleanupInterval time.Duration
+	compressed      bool
+	lru             int
+}

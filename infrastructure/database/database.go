@@ -10,6 +10,13 @@ func New(s string) (model.Databaser, error) {
 	case "mongo":
 		log.Info("connecting to database")
 		return NewMongo()
+	case "badger":
+		log.Info("connecting to embedded database")
+		b, err := NewBadger(disk)
+		if err != nil {
+			return nil, err
+		}
+		return b, nil
 	case "mem":
 		return NewMem(), nil
 	default:

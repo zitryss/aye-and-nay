@@ -1,7 +1,7 @@
 .PHONY: gen compile test test-int test-ci dev-up dev-down prod-up prod-down loadtest
 
 gen:
-	go install github.com/mailru/easyjson/easyjson
+	go install github.com/mailru/easyjson/easyjson@latest
 	go generate ./...
 
 compile: gen

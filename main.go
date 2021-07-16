@@ -158,4 +158,12 @@ func main() {
 			log.Error(err)
 		}
 	}
+
+	b, ok := data.(*database.Badger)
+	if ok {
+		err = b.Close()
+		if err != nil {
+			log.Error(err)
+		}
+	}
 }

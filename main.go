@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path"
+	"strings"
 	"syscall"
 
 	"github.com/spf13/viper"
@@ -27,11 +29,13 @@ var (
 
 func main() {
 	conf := ""
-	flag.StringVar(&conf, "config", ".", "relative path to config file")
+	flag.StringVar(&conf, "config", "./config.yml", "relative filepath to a config file")
 	flag.Parse()
+	dir, file := path.Split(conf)
+	base := strings.TrimSuffix(file, path.Ext(file))
 
-	viper.SetConfigName("config")
-	viper.AddConfigPath(conf)
+	viper.SetConfigName(base)
+	viper.AddConfigPath(dir)
 	err := viper.ReadInConfig()
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, "critical:", err)
@@ -109,7 +113,11 @@ func main() {
 
 	middle := http.NewMiddleware(cach)
 	srvWait := make(chan error, 1)
-	srv := http.NewServer(middle.Chain, serv, srvWait)
+	srv, err := http.NewServer(middle.Chain, serv, srvWait)
+	if err != nil {
+		log.Critical(err)
+		os.Exit(1)
+	}
 	srv.Monitor(ctx)
 	log.Info("starting web server")
 	err = srv.Start()

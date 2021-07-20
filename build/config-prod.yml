@@ -2,8 +2,10 @@ app:
   ballast: 0
   log: info
 server:
-  host: localhost
+  domain:
+  host:
   port: 8001
+  h2c: true
   readTimeout:  60s
   writeTimeout: 120s
   idleTimeout:  120s
@@ -24,7 +26,7 @@ service:
 cache:
   use: redis
   redis:
-    host: localhost
+    host: build_redis_1
     port: 6379
     retry:
       times: 4
@@ -35,7 +37,7 @@ cache:
 compressor:
   use: imaginary
   imaginary:
-    host: localhost
+    host: build_imaginary_1
     port: 9001
     retry:
       times: 4
@@ -57,17 +59,21 @@ compressor:
 database:
   use: mongo
   mongo:
-    host: localhost
+    host: build_mongo_1
     port: 27017
     retry:
       times: 4
       pause: 5s
       timeout: 30s
     lru: 100
+  badger:
+    gcRatio: 0.7
+    cleanupInterval: 5m
+    lru: 100
 storage:
   use: minio
   minio:
-    host: localhost
+    host: build_minio_1
     port: 9000
     accessKey: 12345678
     secretKey: qwertyui
@@ -78,4 +84,4 @@ storage:
       pause: 5s
       timeout: 30s
     location: eu-central-1
-    prefix: http://localhost:9000
+    prefix: /s3

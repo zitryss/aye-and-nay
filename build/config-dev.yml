@@ -2,8 +2,10 @@ app:
   ballast: 0
   log: info
 server:
-  host:
+  domain:
+  host: localhost
   port: 8001
+  h2c: false
   readTimeout:  60s
   writeTimeout: 120s
   idleTimeout:  120s
@@ -12,7 +14,7 @@ middleware:
   cors:
     allowOrigin: "*"
   limiter:
-    requestsPerSecond: 300
+    requestsPerSecond: 10000
     burst: 10
 controller:
   maxNumberOfFiles: 100
@@ -22,9 +24,9 @@ service:
   numberOfWorkersComp: 8
   accuracy: 0.625
 cache:
-  use: mem
+  use: redis
   redis:
-    host: prod_redis_1
+    host: localhost
     port: 6379
     retry:
       times: 4
@@ -33,9 +35,9 @@ cache:
     timeToLive: 15m
     cleanupInterval: 15m
 compressor:
-  use: mock
+  use: imaginary
   imaginary:
-    host: prod_imaginary_1
+    host: localhost
     port: 9001
     retry:
       times: 4
@@ -57,17 +59,21 @@ compressor:
 database:
   use: mongo
   mongo:
-    host: prod_mongo_1
+    host: localhost
     port: 27017
     retry:
       times: 4
       pause: 5s
       timeout: 30s
     lru: 100
+  badger:
+    gcRatio: 0.7
+    cleanupInterval: 5m
+    lru: 100
 storage:
   use: minio
   minio:
-    host: prod_minio_1
+    host: localhost
     port: 9000
     accessKey: 12345678
     secretKey: qwertyui
@@ -78,4 +84,4 @@ storage:
       pause: 5s
       timeout: 30s
     location: eu-central-1
-    prefix: /s3
+    prefix: http://localhost:9000

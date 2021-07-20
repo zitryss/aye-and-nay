@@ -3,7 +3,7 @@ app:
   log: info
 server:
   domain:
-  host: localhost
+  host:
   port: 8001
   h2c: false
   readTimeout:  60s
@@ -26,7 +26,7 @@ service:
 cache:
   use: mem
   redis:
-    host: localhost
+    host: build_redis_1
     port: 6379
     retry:
       times: 4
@@ -37,7 +37,7 @@ cache:
 compressor:
   use: mock
   imaginary:
-    host: localhost
+    host: build_imaginary_1
     port: 9001
     retry:
       times: 4
@@ -57,9 +57,9 @@ compressor:
     repeatIn: 10s
     restartIn: 15m
 database:
-  use: mem
+  use: badger
   mongo:
-    host: localhost
+    host: build_mongo_1
     port: 27017
     retry:
       times: 4
@@ -71,9 +71,9 @@ database:
     cleanupInterval: 5m
     lru: 100
 storage:
-  use: mock
+  use: minio
   minio:
-    host: localhost
+    host: build_minio_1
     port: 9000
     accessKey: 12345678
     secretKey: qwertyui
@@ -84,4 +84,4 @@ storage:
       pause: 5s
       timeout: 30s
     location: eu-central-1
-    prefix:
+    prefix: http://localhost:9000

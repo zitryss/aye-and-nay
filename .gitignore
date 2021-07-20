@@ -9,8 +9,8 @@
 
 # aye-and-nay
 /badger/
-/build/prod/badger/
-/build/prod/caddy/
-/build/prod/minio/
-/build/prod/mongo/
+/build/badger/
+/build/caddy/
+/build/minio/
+/build/mongo/
 /delivery/http/*_easyjson.go

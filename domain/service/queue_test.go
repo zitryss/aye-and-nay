@@ -40,8 +40,8 @@ func TestPQueue(t *testing.T) {
 	if album != 0x89C1 {
 		t.Error("album != 0x89C1")
 	}
-	if !(390*time.Millisecond < d && d < 410*time.Millisecond) {
-		t.Error("!(390*time.Millisecond < d && d < 410*time.Millisecond)")
+	if !(380*time.Millisecond < d && d < 420*time.Millisecond) {
+		t.Error("!(380*time.Millisecond < d && d < 420*time.Millisecond)")
 	}
 	start = time.Now()
 	album, err = pq.poll(ctx)
@@ -52,8 +52,8 @@ func TestPQueue(t *testing.T) {
 	if album != 0x85D5 {
 		t.Error("album != 0x85D5")
 	}
-	if !(90*time.Millisecond < d && d < 110*time.Millisecond) {
-		t.Error("!(90*time.Millisecond < d && d < 110*time.Millisecond)")
+	if !(80*time.Millisecond < d && d < 120*time.Millisecond) {
+		t.Error("!(80*time.Millisecond < d && d < 120*time.Millisecond)")
 	}
 	start = time.Now()
 	album, err = pq.poll(ctx)
@@ -64,7 +64,7 @@ func TestPQueue(t *testing.T) {
 	if album != 0x97D3 {
 		t.Error("album != 0x97D3")
 	}
-	if !(190*time.Millisecond < d && d < 210*time.Millisecond) {
-		t.Error("!(190*time.Millisecond < d && d < 210*time.Millisecond)")
+	if !(180*time.Millisecond < d && d < 220*time.Millisecond) {
+		t.Error("!(180*time.Millisecond < d && d < 220*time.Millisecond)")
 	}
 }

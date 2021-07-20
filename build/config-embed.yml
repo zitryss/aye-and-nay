@@ -2,8 +2,10 @@ app:
   ballast: 0
   log: info
 server:
+  domain:
   host:
   port: 8001
+  h2c: false
   readTimeout:  60s
   writeTimeout: 120s
   idleTimeout:  120s
@@ -12,7 +14,7 @@ middleware:
   cors:
     allowOrigin: "*"
   limiter:
-    requestsPerSecond: 300
+    requestsPerSecond: 10000
     burst: 10
 controller:
   maxNumberOfFiles: 100
@@ -24,7 +26,7 @@ service:
 cache:
   use: mem
   redis:
-    host: prod_redis_1
+    host: embed-redis
     port: 6379
     retry:
       times: 4
@@ -35,7 +37,7 @@ cache:
 compressor:
   use: mock
   imaginary:
-    host: prod_imaginary_1
+    host: embed-imaginary
     port: 9001
     retry:
       times: 4
@@ -55,19 +57,23 @@ compressor:
     repeatIn: 10s
     restartIn: 15m
 database:
-  use: mongo
+  use: badger
   mongo:
-    host: prod_mongo_1
+    host: embed-mongo
     port: 27017
     retry:
       times: 4
       pause: 5s
       timeout: 30s
     lru: 100
+  badger:
+    gcRatio: 0.7
+    cleanupInterval: 5m
+    lru: 100
 storage:
   use: minio
   minio:
-    host: prod_minio_1
+    host: embed-minio
     port: 9000
     accessKey: 12345678
     secretKey: qwertyui

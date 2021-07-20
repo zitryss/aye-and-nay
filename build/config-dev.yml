@@ -2,8 +2,10 @@ app:
   ballast: 0
   log: info
 server:
+  domain:
   host: localhost
   port: 8001
+  h2c: false
   readTimeout:  60s
   writeTimeout: 120s
   idleTimeout:  120s
@@ -63,6 +65,10 @@ database:
       times: 4
       pause: 5s
       timeout: 30s
+    lru: 100
+  badger:
+    gcRatio: 0.7
+    cleanupInterval: 5m
     lru: 100
 storage:
   use: minio

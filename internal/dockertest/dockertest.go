@@ -15,8 +15,7 @@ import (
 func New() docker {
 	host, err := env.Lookup("DOCKER_HOST")
 	if err != nil {
-		log.Critical("dockertest: ", err)
-		os.Exit(1)
+		host = "tcp://localhost:2375"
 	}
 	u, err := url.Parse(host)
 	if err != nil {

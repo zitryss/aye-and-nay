@@ -4,12 +4,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-caddy
+    container_name: prod-caddy
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - "./Caddyfile:/etc/caddy/Caddyfile"
-      - "./../../assets/static/:/var/www/"
+      - "./../assets/static/:/var/www/"
       - "./caddy/data/:/data/"
       - "./caddy/config/:/config/"
     depends_on:
@@ -17,32 +18,36 @@ services:
 
   app:
     build:
-      context: ./../../
-      dockerfile: ./build/prod/Dockerfile-app
+      context: ./../
+      dockerfile: ./build/Dockerfile-app
+    container_name: prod-app
     volumes:
-      - "./config.yml:/config.yml"
+      - "./config-prod.yml:/config.yml"
     depends_on:
-      # - redis
-      # - imaginary
+      - redis
+      - imaginary
       - mongo
       - minio
 
-  #  redis:
-  #    build:
-  #      context: .
-  #      dockerfile: Dockerfile-redis
-  #    volumes:
-  #      - "./redis.conf:/usr/local/etc/redis/redis.conf"
+  redis:
+    build:
+      context: .
+      dockerfile: Dockerfile-redis
+    container_name: prod-redis
+    volumes:
+      - "./redis.conf:/usr/local/etc/redis/redis.conf"
 
-  #  imaginary:
-  #    build:
-  #      context: .
-  #      dockerfile: Dockerfile-imaginary
+  imaginary:
+    build:
+      context: .
+      dockerfile: Dockerfile-imaginary
+    container_name: prod-imaginary
 
   mongo:
     build:
       context: .
       dockerfile: Dockerfile-mongo
+    container_name: prod-mongo
     volumes:
       - "./mongo.js:/docker-entrypoint-initdb.d/mongo.js"
     #   - ./mongo/data/db/:/data/db/
@@ -59,5 +64,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-minio
+    container_name: prod-minio
     volumes:
       - "./minio/data/:/data/"

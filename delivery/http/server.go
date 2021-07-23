@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/caddyserver/certmagic"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
@@ -20,28 +21,42 @@ func NewServer(
 	middle func(http.Handler) http.Handler,
 	serv model.Servicer,
 	serverWait chan<- error,
-) *Server {
+) (*Server, error) {
 	conf := newServerConfig()
 	contr := newController(serv)
 	router := newRouter(contr)
 	handler := middle(router)
-	https := newHttps(conf, handler)
-	return &Server{conf, https, serverWait}
+	srv, err := newServer(conf, handler)
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
+	return &Server{conf, srv, serverWait}, nil
 }
 
-func newHttps(conf serverConfig, handler http.Handler) *http.Server {
-	return &http.Server{
+func newServer(conf serverConfig, handler http.Handler) (*http.Server, error) {
+	srv := &http.Server{
 		Addr:         conf.host + ":" + conf.port,
-		Handler:      h2c.NewHandler(http.TimeoutHandler(handler, conf.writeTimeout, ""), &http2.Server{}),
+		Handler:      http.TimeoutHandler(handler, conf.writeTimeout, ""),
 		ReadTimeout:  conf.readTimeout,
 		WriteTimeout: conf.writeTimeout + 1*time.Second,
 		IdleTimeout:  conf.idleTimeout,
 	}
+	if conf.domain != "" {
+		tlsConfig, err := certmagic.TLS([]string{conf.domain})
+		if err != nil {
+			return nil, errors.Wrap(err)
+		}
+		srv.TLSConfig = tlsConfig
+	}
+	if conf.h2c {
+		srv.Handler = h2c.NewHandler(srv.Handler, &http2.Server{})
+	}
+	return srv, nil
 }
 
 type Server struct {
 	conf       serverConfig
-	https      *http.Server
+	srv        *http.Server
 	serverWait chan<- error
 }
 
@@ -53,7 +68,7 @@ func (s *Server) Monitor(ctx context.Context) {
 }
 
 func (s *Server) Start() error {
-	err := s.https.ListenAndServe()
+	err := s.srv.ListenAndServe()
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -63,6 +78,6 @@ func (s *Server) Start() error {
 func (s *Server) shutdown() {
 	ctx, cancel := context.WithTimeout(context.Background(), s.conf.shutdownTimeout)
 	defer cancel()
-	err := s.https.Shutdown(ctx)
+	err := s.srv.Shutdown(ctx)
 	s.serverWait <- err
 }

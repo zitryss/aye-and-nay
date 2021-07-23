@@ -8,8 +8,10 @@ import (
 
 func newServerConfig() serverConfig {
 	return serverConfig{
+		domain:          viper.GetString("server.domain"),
 		host:            viper.GetString("server.host"),
 		port:            viper.GetString("server.port"),
+		h2c:             viper.GetBool("server.h2c"),
 		readTimeout:     viper.GetDuration("server.readTimeout"),
 		writeTimeout:    viper.GetDuration("server.writeTimeout"),
 		idleTimeout:     viper.GetDuration("server.idleTimeout"),
@@ -18,8 +20,10 @@ func newServerConfig() serverConfig {
 }
 
 type serverConfig struct {
+	domain          string
 	host            string
 	port            string
+	h2c             bool
 	readTimeout     time.Duration
 	writeTimeout    time.Duration
 	idleTimeout     time.Duration

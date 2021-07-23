@@ -4,7 +4,7 @@ on:
     branches:
       - master
 jobs:
-  loadtest:
+  loadtest-prod:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,5 +17,20 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
       - run: make prod-up
-      - run: sleep 5 && make loadtest
+      - run: sleep 5 && make prod-loadtest
       - run: make prod-down
+  loadtest-embed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-go-
+      - run: make compile
+      - run: ./aye-and-nay -config ./build/config-embed.yml &
+      - run: sleep 5 && make embed-loadtest

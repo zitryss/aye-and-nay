@@ -20,5 +20,5 @@ services:
     container_name: embed-minio
     ports:
       - "9000:9000"
-  volumes:
+    volumes:
       - "./minio/data/:/data/"

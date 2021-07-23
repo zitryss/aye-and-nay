@@ -31,8 +31,8 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - run: make compile
+      # - run: make compile
       - run: make embed-up
-      - run: ./aye-and-nay -config ./build/config-embed.yml &
+      # - run: ./aye-and-nay -config ./build/config-embed.yml &
       - run: sleep 5 && make embed-loadtest
       - run: make embed-down

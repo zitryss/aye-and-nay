@@ -2,14 +2,14 @@ localhost {
     root * /var/www/
     file_server
 
-    reverse_proxy /api/* build_app_1:8001 {
+    reverse_proxy /api/* prod-app:8001 {
         transport http {
             versions h2c 2
         }
     }
 
     handle_path /s3/* {
-        reverse_proxy build_minio_1:9000
+        reverse_proxy prod-minio:9000
     }
 
     encode gzip

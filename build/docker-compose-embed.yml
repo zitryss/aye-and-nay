@@ -1,22 +1,24 @@
 services:
 
-  app:
-    build:
-      context: ./../
-      dockerfile: ./build/Dockerfile-app
-    container_name: embed-app
-    ports:
-      - "8001:8001"
-    volumes:
-      - "./config-embed.yml:/config.yml"
-      - "./badger/:/badger/"
-    depends_on:
-      - minio
+  # app:
+  #   build:
+  #     context: ./../
+  #     dockerfile: ./build/Dockerfile-app
+  #   container_name: embed-app
+  #   ports:
+  #     - "8001:8001"
+  #   volumes:
+  #     - "./config-embed.yml:/config.yml"
+  #     - "./badger/:/badger/"
+  #   depends_on:
+  #     - minio
 
   minio:
     build:
       context: .
       dockerfile: Dockerfile-minio
     container_name: embed-minio
-    volumes:
+    ports:
+      - "9000:9000"
+  volumes:
       - "./minio/data/:/data/"

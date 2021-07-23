@@ -73,7 +73,7 @@ database:
 storage:
   use: minio
   minio:
-    host: embed-minio
+    host: localhost
     port: 9000
     accessKey: 12345678
     secretKey: qwertyui

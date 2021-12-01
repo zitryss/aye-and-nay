@@ -1,11 +1,11 @@
 package compressor
 
 import (
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
-func New(s string) (model.Compresser, error) {
+func New(s string) (domain.Compresser, error) {
 	switch s {
 	case "imaginary":
 		log.Info("connecting to imaginary")

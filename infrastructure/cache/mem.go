@@ -9,7 +9,7 @@ import (
 	"github.com/emirpasic/gods/trees/binaryheap"
 	"golang.org/x/time/rate"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
@@ -198,11 +198,11 @@ func (m *Mem) Poll(_ context.Context, queue uint64) (uint64, error) {
 	defer m.syncQueues.Unlock()
 	q, ok := m.queues[queue]
 	if !ok {
-		return 0x0, errors.Wrap(model.ErrUnknown)
+		return 0x0, errors.Wrap(domain.ErrUnknown)
 	}
 	it := q.Iterator()
 	if !it.Next() {
-		return 0x0, errors.Wrap(model.ErrUnknown)
+		return 0x0, errors.Wrap(domain.ErrUnknown)
 	}
 	album := it.Value().(uint64)
 	q.Remove(album)
@@ -237,11 +237,11 @@ func (m *Mem) PPoll(_ context.Context, pqueue uint64) (uint64, time.Time, error)
 	defer m.syncPQueues.Unlock()
 	pq, ok := m.pqueues[pqueue]
 	if !ok {
-		return 0x0, time.Time{}, errors.Wrap(model.ErrUnknown)
+		return 0x0, time.Time{}, errors.Wrap(domain.ErrUnknown)
 	}
 	e, ok := pq.Pop()
 	if !ok {
-		return 0x0, time.Time{}, errors.Wrap(model.ErrUnknown)
+		return 0x0, time.Time{}, errors.Wrap(domain.ErrUnknown)
 	}
 	return e.(elem).album, e.(elem).expires, nil
 }
@@ -278,10 +278,10 @@ func (m *Mem) Pop(_ context.Context, album uint64) (uint64, uint64, error) {
 	defer m.syncPairs.Unlock()
 	p, ok := m.pairs[album]
 	if !ok {
-		return 0x0, 0x0, errors.Wrap(model.ErrPairNotFound)
+		return 0x0, 0x0, errors.Wrap(domain.ErrPairNotFound)
 	}
 	if len(p.pairs) == 0 {
-		return 0x0, 0x0, errors.Wrap(model.ErrPairNotFound)
+		return 0x0, 0x0, errors.Wrap(domain.ErrPairNotFound)
 	}
 	images := (p.pairs)[0]
 	p.pairs = (p.pairs)[1:]
@@ -294,7 +294,7 @@ func (m *Mem) Set(_ context.Context, _ uint64, token uint64, image uint64) error
 	defer m.syncTokens.Unlock()
 	_, ok := m.tokens[token]
 	if ok {
-		return errors.Wrap(model.ErrTokenAlreadyExists)
+		return errors.Wrap(domain.ErrTokenAlreadyExists)
 	}
 	t := &tokenTime{}
 	t.token = image
@@ -308,7 +308,7 @@ func (m *Mem) Get(_ context.Context, _ uint64, token uint64) (uint64, error) {
 	defer m.syncTokens.Unlock()
 	image, ok := m.tokens[token]
 	if !ok {
-		return 0x0, errors.Wrap(model.ErrTokenNotFound)
+		return 0x0, errors.Wrap(domain.ErrTokenNotFound)
 	}
 	delete(m.tokens, token)
 	return image.token, nil

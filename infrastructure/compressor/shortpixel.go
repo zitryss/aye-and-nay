@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -84,7 +85,7 @@ func (sp *Shortpixel) Compress(ctx context.Context, f model.File) (model.File, e
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
 		default:
-			panic(errors.Wrap(model.ErrUnknown))
+			panic(errors.Wrap(domain.ErrUnknown))
 		}
 	}()
 	if atomic.LoadUint32(&sp.done) != 0 {
@@ -96,7 +97,7 @@ func (sp *Shortpixel) Compress(ctx context.Context, f model.File) (model.File, e
 		return model.File{Reader: buf, Size: n}, nil
 	}
 	buf, err := sp.compress(ctx, f)
-	if errors.Is(err, model.ErrThirdPartyUnavailable) {
+	if errors.Is(err, domain.ErrThirdPartyUnavailable) {
 		if atomic.CompareAndSwapUint32(&sp.done, 0, 1) {
 			sp.ch <- struct{}{}
 		}
@@ -186,12 +187,12 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	err = retry.Do(sp.conf.times, sp.conf.pause, func() error {
 		resp, err = c.Do(req)
 		if err != nil {
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
+			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
 		return nil
 	})
@@ -227,7 +228,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	if err != nil {
 		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
-		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+		return "", errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)
 	}
 	err = resp.Body.Close()
 	if err != nil {
@@ -243,9 +244,9 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	case "2":
 		src = response.LossyUrl
 	case -201.0, -202.0:
-		return "", errors.Wrap(model.ErrNotImage)
+		return "", errors.Wrap(domain.ErrNotImage)
 	default:
-		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
+		return "", errors.Wrapf(domain.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
 	}
 	return src, nil
 }
@@ -280,12 +281,12 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	err = retry.Do(sp.conf.times, sp.conf.pause, func() error {
 		resp, err = c.Do(req)
 		if err != nil {
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
+			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
 		return nil
 	})
@@ -320,7 +321,7 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	if err != nil {
 		_, _ = io.Copy(io.Discard, resp.Body)
 		_ = resp.Body.Close()
-		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+		return "", errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)
 	}
 	err = resp.Body.Close()
 	if err != nil {
@@ -328,11 +329,11 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	}
 	switch response.Status.Code {
 	case "1":
-		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
+		return "", errors.Wrapf(domain.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
 	case "2":
 		return response.LossyUrl, nil
 	default:
-		return "", errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
+		return "", errors.Wrapf(domain.ErrThirdPartyUnavailable, "status code %v: message %q", response.Status.Code, response.Status.Message)
 	}
 }
 
@@ -347,12 +348,12 @@ func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, err
 	err = retry.Do(sp.conf.times, sp.conf.pause, func() error {
 		resp, err = c.Do(req)
 		if err != nil {
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
+			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
 		return nil
 	})

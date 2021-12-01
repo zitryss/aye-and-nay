@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"os"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/pool"
@@ -30,7 +31,7 @@ func (m *Mock) Compress(_ context.Context, f model.File) (model.File, error) {
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
 		default:
-			panic(errors.Wrap(model.ErrUnknown))
+			panic(errors.Wrap(domain.ErrUnknown))
 		}
 	}()
 	buf := pool.GetBuffer()

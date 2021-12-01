@@ -1,11 +1,11 @@
 package cache
 
 import (
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
-func New(s string) (model.Cacher, error) {
+func New(s string) (domain.Cacher, error) {
 	switch s {
 	case "redis":
 		log.Info("connecting to cache")

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	_ "github.com/zitryss/aye-and-nay/internal/config"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
@@ -156,7 +156,7 @@ func TestRedisQueue(t *testing.T) {
 		t.Error("n != 0")
 	}
 	_, err = redis.Poll(context.Background(), 0x5D6D)
-	if !errors.Is(err, model.ErrUnknown) {
+	if !errors.Is(err, domain.ErrUnknown) {
 		t.Error(err)
 	}
 }
@@ -237,7 +237,7 @@ func TestRedisPQueue(t *testing.T) {
 		t.Error("n != 0")
 	}
 	_, _, err = redis.PPoll(context.Background(), 0x7D31)
-	if !errors.Is(err, model.ErrUnknown) {
+	if !errors.Is(err, domain.ErrUnknown) {
 		t.Error(err)
 	}
 }
@@ -271,7 +271,7 @@ func TestRedisPair(t *testing.T) {
 			t.Fatal(err)
 		}
 		_, _, err = redis.Pop(context.Background(), 0x73BF)
-		if !errors.Is(err, model.ErrPairNotFound) {
+		if !errors.Is(err, domain.ErrPairNotFound) {
 			t.Error(err)
 		}
 	})
@@ -291,7 +291,7 @@ func TestRedisPair(t *testing.T) {
 			t.Error(err)
 		}
 		_, _, err = redis.Pop(context.Background(), 0x1AE9)
-		if !errors.Is(err, model.ErrPairNotFound) {
+		if !errors.Is(err, domain.ErrPairNotFound) {
 			t.Error(err)
 		}
 	})
@@ -329,7 +329,7 @@ func TestRedisToken(t *testing.T) {
 			t.Error(err)
 		}
 		err = redis.Set(context.Background(), 0x1C4A, token, image)
-		if !errors.Is(err, model.ErrTokenAlreadyExists) {
+		if !errors.Is(err, domain.ErrTokenAlreadyExists) {
 			t.Error(err)
 		}
 	})
@@ -339,7 +339,7 @@ func TestRedisToken(t *testing.T) {
 			t.Fatal(err)
 		}
 		_, err = redis.Get(context.Background(), 0x1C4A, 0xC4F8)
-		if !errors.Is(err, model.ErrTokenNotFound) {
+		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
 	})
@@ -359,7 +359,7 @@ func TestRedisToken(t *testing.T) {
 			t.Error(err)
 		}
 		_, err = redis.Get(context.Background(), 0xEB96, token)
-		if !errors.Is(err, model.ErrTokenNotFound) {
+		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
 	})

@@ -8,7 +8,7 @@ import (
 
 	redisdb "github.com/go-redis/redis/v8"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
@@ -92,7 +92,7 @@ func (r *Redis) Poll(ctx context.Context, queue uint64) (uint64, error) {
 	key1 := "queue:" + queueB64 + ":list"
 	albumB64, err := r.client.LPop(ctx, key1).Result()
 	if errors.Is(err, redisdb.Nil) {
-		return 0x0, errors.Wrap(model.ErrUnknown)
+		return 0x0, errors.Wrap(domain.ErrUnknown)
 	}
 	key2 := "queue:" + queueB64 + ":set"
 	_, err = r.client.SRem(ctx, key2, albumB64).Result()
@@ -135,7 +135,7 @@ func (r *Redis) PPoll(ctx context.Context, pqueue uint64) (uint64, time.Time, er
 		return 0x0, time.Time{}, errors.Wrap(err)
 	}
 	if len(val) == 0 {
-		return 0x0, time.Time{}, errors.Wrap(model.ErrUnknown)
+		return 0x0, time.Time{}, errors.Wrap(domain.ErrUnknown)
 	}
 	album, err := base64.ToUint64(val[0].Member.(string))
 	if err != nil {
@@ -180,7 +180,7 @@ func (r *Redis) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 		return 0x0, 0x0, errors.Wrap(err)
 	}
 	if n == 0 {
-		return 0x0, 0x0, errors.Wrap(model.ErrPairNotFound)
+		return 0x0, 0x0, errors.Wrap(domain.ErrPairNotFound)
 	}
 	val, err := r.client.LPop(ctx, key).Result()
 	if err != nil {
@@ -189,7 +189,7 @@ func (r *Redis) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 	_ = r.client.Expire(ctx, key, r.conf.timeToLive)
 	imagesB64 := strings.Split(val, ":")
 	if len(imagesB64) != 2 {
-		return 0x0, 0x0, errors.Wrap(model.ErrUnknown)
+		return 0x0, 0x0, errors.Wrap(domain.ErrUnknown)
 	}
 	image0, err := base64.ToUint64(imagesB64[0])
 	if err != nil {
@@ -212,7 +212,7 @@ func (r *Redis) Set(ctx context.Context, album uint64, token uint64, image uint6
 		return errors.Wrap(err)
 	}
 	if n == 1 {
-		return errors.Wrap(model.ErrTokenAlreadyExists)
+		return errors.Wrap(domain.ErrTokenAlreadyExists)
 	}
 	err = r.client.Set(ctx, key, imageB64, r.conf.timeToLive).Err()
 	if err != nil {
@@ -227,7 +227,7 @@ func (r *Redis) Get(ctx context.Context, album uint64, token uint64) (uint64, er
 	key := "album:" + albumB64 + ":token:" + tokenB64 + ":image"
 	imageB64, err := r.client.Get(ctx, key).Result()
 	if errors.Is(err, redisdb.Nil) {
-		return 0x0, errors.Wrap(model.ErrTokenNotFound)
+		return 0x0, errors.Wrap(domain.ErrTokenNotFound)
 	}
 	if err != nil {
 		return 0x0, errors.Wrap(err)

@@ -11,6 +11,7 @@ import (
 	optionsdb "go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
@@ -79,7 +80,7 @@ func (m *Mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 		return errors.Wrap(err)
 	}
 	if n > 0 {
-		return errors.Wrap(model.ErrAlbumAlreadyExists)
+		return errors.Wrap(domain.ErrAlbumAlreadyExists)
 	}
 	imgsDao := make([]interface{}, 0, len(alb.Images))
 	albLru := make(albumLru, len(alb.Images))
@@ -133,7 +134,7 @@ func (m *Mongo) UpdateCompressionStatus(ctx context.Context, album uint64, image
 	}
 	_, ok := albLru[image]
 	if !ok {
-		return errors.Wrap(model.ErrImageNotFound)
+		return errors.Wrap(domain.ErrImageNotFound)
 	}
 	filter := bson.D{{"album", int64(album)}, {"id", int64(image)}}
 	update := bson.D{{"$set", bson.D{{"compressed", true}}}}
@@ -151,7 +152,7 @@ func (m *Mongo) GetImageSrc(ctx context.Context, album uint64, image uint64) (st
 	}
 	src, ok := albLru[image]
 	if !ok {
-		return "", errors.Wrap(model.ErrImageNotFound)
+		return "", errors.Wrap(domain.ErrImageNotFound)
 	}
 	return src, nil
 }
@@ -265,7 +266,7 @@ func (m *Mongo) DeleteAlbum(ctx context.Context, album uint64) error {
 		return errors.Wrap(err)
 	}
 	if n == 0 {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	_, err = m.images.DeleteMany(ctx, filter)
 	if err != nil {
@@ -307,7 +308,7 @@ func (m *Mongo) lruGetOrAddAndGet(ctx context.Context, album uint64) (albumLru, 
 		}
 		a, ok = m.cache.Get(album)
 		if !ok {
-			return nil, errors.Wrap(model.ErrUnknown)
+			return nil, errors.Wrap(domain.ErrUnknown)
 		}
 	}
 	return a.(albumLru), nil
@@ -320,7 +321,7 @@ func (m *Mongo) lruAdd(ctx context.Context, album uint64) error {
 		return errors.Wrap(err)
 	}
 	if n == 0 {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	filter = bson.D{{"album", int64(album)}}
 	cursor, err := m.images.Find(ctx, filter)

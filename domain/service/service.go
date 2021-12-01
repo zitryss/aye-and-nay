@@ -7,6 +7,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/linalg"
@@ -14,10 +15,10 @@ import (
 )
 
 func New(
-	comp model.Compresser,
-	stor model.Storager,
-	pers model.Databaser,
-	temp model.Cacher,
+	comp domain.Compresser,
+	stor domain.Storager,
+	pers domain.Databaser,
+	temp domain.Cacher,
 	qCalc *QueueCalc,
 	qComp *QueueComp,
 	qDel *QueueDel,
@@ -54,7 +55,7 @@ func New(
 	return s
 }
 
-func NewQueueCalc(q model.Queuer) *QueueCalc {
+func NewQueueCalc(q domain.Queuer) *QueueCalc {
 	return &QueueCalc{newQueue(0x6CF9, q)}
 }
 
@@ -62,7 +63,7 @@ type QueueCalc struct {
 	*queue
 }
 
-func NewQueueComp(q model.Queuer) *QueueComp {
+func NewQueueComp(q domain.Queuer) *QueueComp {
 	return &QueueComp{newQueue(0xDD66, q)}
 }
 
@@ -70,7 +71,7 @@ type QueueComp struct {
 	*queue
 }
 
-func NewQueueDel(q model.PQueuer) *QueueDel {
+func NewQueueDel(q domain.PQueuer) *QueueDel {
 	return &QueueDel{newPQueue(0xCDF9, q)}
 }
 
@@ -112,11 +113,11 @@ func WithHeartbeatDel(ch chan<- interface{}) options {
 
 type Service struct {
 	conf  serviceConfig
-	comp  model.Compresser
-	stor  model.Storager
-	pers  model.Databaser
-	pair  model.Stacker
-	token model.Tokener
+	comp  domain.Compresser
+	stor  domain.Storager
+	pers  domain.Databaser
+	pair  domain.Stacker
+	token domain.Tokener
 	queue struct {
 		calc *QueueCalc
 		comp *QueueComp
@@ -153,7 +154,7 @@ func (s *Service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 					if ok {
 						e = errors.Wrap(err)
 					} else {
-						e = errors.Wrapf(model.ErrUnknown, "%v", v)
+						e = errors.Wrapf(domain.ErrUnknown, "%v", v)
 					}
 				}()
 				for {
@@ -218,7 +219,7 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 					if ok {
 						e = errors.Wrap(err)
 					} else {
-						e = errors.Wrapf(model.ErrUnknown, "%v", v)
+						e = errors.Wrapf(domain.ErrUnknown, "%v", v)
 					}
 				}()
 				for {
@@ -255,7 +256,7 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 							continue
 						}
 						f, err = s.comp.Compress(ctx, f)
-						if errors.Is(err, model.ErrThirdPartyUnavailable) {
+						if errors.Is(err, domain.ErrThirdPartyUnavailable) {
 							if s.heartbeat.comp != nil {
 								s.heartbeat.comp <- err
 							}
@@ -302,7 +303,7 @@ func (s *Service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
 			if ok {
 				e = errors.Wrap(err)
 			} else {
-				e = errors.Wrapf(model.ErrUnknown, "%v", v)
+				e = errors.Wrapf(domain.ErrUnknown, "%v", v)
 			}
 		}()
 		for {
@@ -410,7 +411,7 @@ func (s *Service) Progress(ctx context.Context, album uint64) (float64, error) {
 
 func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Image, error) {
 	image1, image2, err := s.pair.Pop(ctx, album)
-	if errors.Is(err, model.ErrPairNotFound) {
+	if errors.Is(err, domain.ErrPairNotFound) {
 		err = s.genPairs(ctx, album)
 		if err != nil {
 			return model.Image{}, model.Image{}, errors.Wrap(err)

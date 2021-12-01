@@ -10,13 +10,14 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
 func newController(
-	serv model.Servicer,
+	serv domain.Servicer,
 ) controller {
 	conf := newContrConfig()
 	return controller{conf, serv}
@@ -24,7 +25,7 @@ func newController(
 
 type controller struct {
 	conf contrConfig
-	serv model.Servicer
+	serv domain.Servicer
 }
 
 func (c *controller) handleAlbum() httprouter.Handle {
@@ -32,11 +33,11 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		ctx := r.Context()
 		ct := r.Header.Get("Content-Type")
 		if !strings.HasPrefix(ct, "multipart/form-data") {
-			return nil, albumRequest{}, errors.Wrap(model.ErrWrongContentType)
+			return nil, albumRequest{}, errors.Wrap(domain.ErrWrongContentType)
 		}
 		maxBodySize := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
 		if r.ContentLength > maxBodySize {
-			return nil, albumRequest{}, errors.Wrap(model.ErrBodyTooLarge)
+			return nil, albumRequest{}, errors.Wrap(domain.ErrBodyTooLarge)
 		}
 		err := r.ParseMultipartForm(r.ContentLength)
 		if err != nil {
@@ -44,10 +45,10 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		}
 		fhs := r.MultipartForm.File["images"]
 		if len(fhs) < 2 {
-			return nil, albumRequest{}, errors.Wrap(model.ErrNotEnoughImages)
+			return nil, albumRequest{}, errors.Wrap(domain.ErrNotEnoughImages)
 		}
 		if len(fhs) > c.conf.maxNumberOfFiles {
-			return nil, albumRequest{}, errors.Wrap(model.ErrTooManyImages)
+			return nil, albumRequest{}, errors.Wrap(domain.ErrTooManyImages)
 		}
 		req := albumRequest{ff: make([]model.File, 0, len(fhs)), multi: r.MultipartForm}
 		defer func() {
@@ -58,7 +59,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		}()
 		for _, fh := range fhs {
 			if fh.Size > c.conf.maxFileSize {
-				return nil, albumRequest{}, errors.Wrap(model.ErrImageTooLarge)
+				return nil, albumRequest{}, errors.Wrap(domain.ErrImageTooLarge)
 			}
 			f, err := fh.Open()
 			if err != nil {
@@ -78,17 +79,17 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			typ := http.DetectContentType(b)
 			if !strings.HasPrefix(typ, "image/") {
 				_ = f.Close()
-				return nil, albumRequest{}, errors.Wrap(model.ErrNotImage)
+				return nil, albumRequest{}, errors.Wrap(domain.ErrNotImage)
 			}
 			req.ff = append(req.ff, model.File{Reader: f, Size: fh.Size})
 		}
 		vals := r.MultipartForm.Value["duration"]
 		if len(vals) == 0 {
-			return nil, albumRequest{}, errors.Wrap(model.ErrDurationNotSet)
+			return nil, albumRequest{}, errors.Wrap(domain.ErrDurationNotSet)
 		}
 		dur, err := time.ParseDuration(vals[0])
 		if err != nil {
-			return nil, albumRequest{}, errors.Wrap(model.ErrDurationInvalid)
+			return nil, albumRequest{}, errors.Wrap(domain.ErrDurationInvalid)
 		}
 		req.dur = dur
 		return ctx, req, nil
@@ -243,7 +244,7 @@ func (c *controller) handleVote() httprouter.Handle {
 		req.Album.id = ps.ByName("album")
 		ct := r.Header.Get("Content-Type")
 		if !strings.HasPrefix(ct, "application/json") {
-			return nil, voteRequest{}, errors.Wrap(model.ErrWrongContentType)
+			return nil, voteRequest{}, errors.Wrap(domain.ErrWrongContentType)
 		}
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {

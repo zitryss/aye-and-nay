@@ -1,3 +1,5 @@
+//go:build unit
+
 package retry_test
 
 import (

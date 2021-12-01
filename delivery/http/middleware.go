@@ -24,7 +24,7 @@ type Middleware struct {
 func (m *Middleware) Chain(h http.Handler) http.Handler {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{m.conf.corsAllowOrigin},
-		AllowedMethods: []string{"GET", "POST", "PATCH"},
+		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch},
 	})
 	return c.Handler(m.recover(m.limit(h)))
 }

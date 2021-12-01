@@ -19,7 +19,7 @@ jobs:
       - run: make dev-up
       - env:
           CONTINUOUS_INTEGRATION: "true"
-        run: make test-ci
+        run: make test-int-ci
       - run: make dev-down
       - uses: codecov/codecov-action@v1
         with:

@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"mime/multipart"
+	"net/http"
 	"net/http/httptest"
 	"os"
 	"strings"
@@ -353,7 +354,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			if err != nil {
 				t.Error(err)
 			}
-			r := httptest.NewRequest("POST", "/api/albums/", &body)
+			r := httptest.NewRequest(http.MethodPost, "/api/albums/", &body)
 			r.Header.Set("Content-Type", multi.FormDataContentType())
 			fn(w, r, nil)
 			CheckStatusCode(t, w, tt.want.code)
@@ -533,7 +534,7 @@ func TestControllerHandleReady(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleReady()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/api/albums/rRsAAAAAAAA/ready", nil)
+			r := httptest.NewRequest(http.MethodGet, "/api/albums/rRsAAAAAAAA/ready", nil)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "rRsAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
@@ -713,7 +714,7 @@ func TestControllerHandlePair(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handlePair()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/api/albums/nkUAAAAAAAA/", nil)
+			r := httptest.NewRequest(http.MethodGet, "/api/albums/nkUAAAAAAAA/", nil)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "nkUAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
@@ -894,7 +895,7 @@ func TestControllerHandleVote(t *testing.T) {
 			fn := contr.handleVote()
 			w := httptest.NewRecorder()
 			json := strings.NewReader(`{"album":{"imgFrom":{"token":"fYIAAAAAAAA"},"imgTo":{"token":"foIAAAAAAAA"}}}`)
-			r := httptest.NewRequest("PATCH", "/api/albums/fIIAAAAAAAA/", json)
+			r := httptest.NewRequest(http.MethodPatch, "/api/albums/fIIAAAAAAAA/", json)
 			r.Header.Set("Content-Type", "application/json; charset=utf-8")
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "fIIAAAAAAAA"}}
 			fn(w, r, ps)
@@ -1075,7 +1076,7 @@ func TestControllerHandleTop(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleTop()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", "/api/albums/byYAAAAAAAA/top/", nil)
+			r := httptest.NewRequest(http.MethodGet, "/api/albums/byYAAAAAAAA/top/", nil)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "byYAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)

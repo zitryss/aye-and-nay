@@ -7,6 +7,7 @@ import (
 	"mime/multipart"
 	"os"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
@@ -32,7 +33,7 @@ func (m *Mock) Put(_ context.Context, album uint64, image uint64, f model.File) 
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
 		default:
-			panic(errors.Wrap(model.ErrUnknown))
+			panic(errors.Wrap(domain.ErrUnknown))
 		}
 	}()
 	albumB64 := base64.FromUint64(album)

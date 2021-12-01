@@ -12,6 +12,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
@@ -149,7 +150,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if !ok {
 			t.Error("v.(type) != error")
 		}
-		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
+		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
 		files = []model.File{Png(), Png()}
@@ -186,7 +187,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		if !ok {
 			t.Error("v.(type) != error")
 		}
-		if !errors.Is(err, model.ErrThirdPartyUnavailable) {
+		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
 		files = []model.File{Png(), Png()}
@@ -330,7 +331,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		qDel.Monitor(ctx)
 		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
 		_, _, err = serv.Pair(ctx, 0xEB46)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -431,7 +432,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 			t.Error(err)
 		}
 		err = serv.Vote(ctx, 0x12E6, img1.Token, img2.Token)
-		if !errors.Is(err, model.ErrTokenNotFound) {
+		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
 	})
@@ -480,7 +481,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 			t.Error(err)
 		}
 		err = serv.Vote(ctx, album, 0x1CC1, 0xF83C)
-		if !errors.Is(err, model.ErrTokenNotFound) {
+		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
 	})
@@ -586,7 +587,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		qDel.Monitor(ctx)
 		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
 		_, err = serv.Top(ctx, 0x83CD)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -688,7 +689,7 @@ func TestServiceIntegrationDelete(t *testing.T) {
 		}
 		CheckChannel(t, heartbeatDel)
 		_, err = serv.Top(ctx, album)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})

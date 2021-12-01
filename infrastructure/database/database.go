@@ -1,11 +1,11 @@
 package database
 
 import (
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
-func New(s string) (model.Databaser, error) {
+func New(s string) (domain.Databaser, error) {
 	switch s {
 	case "mongo":
 		log.Info("connecting to database")

@@ -11,7 +11,7 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/service"
 	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
@@ -56,7 +56,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Body Too Large"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
@@ -69,7 +69,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Not Enough Images"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
@@ -82,7 +82,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
@@ -95,7 +95,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Image Too Large"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
@@ -108,7 +108,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Image Format"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -120,7 +120,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Not Set"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
@@ -133,12 +133,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Invalid"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrTooManyRequests,
+				err:        domain.ErrTooManyRequests,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -146,12 +146,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Requests"}}` + "\n",
+				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrBodyTooLarge,
+				err:        domain.ErrBodyTooLarge,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -159,12 +159,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Body Too Large"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrWrongContentType,
+				err:        domain.ErrWrongContentType,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -172,12 +172,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Content Type"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrNotEnoughImages,
+				err:        domain.ErrNotEnoughImages,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -185,12 +185,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Not Enough Images"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrTooManyImages,
+				err:        domain.ErrTooManyImages,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "11h",
@@ -198,12 +198,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrImageTooLarge,
+				err:        domain.ErrImageTooLarge,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -211,12 +211,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Image Too Large"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrNotImage,
+				err:        domain.ErrNotImage,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -224,12 +224,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Image Format"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrDurationNotSet,
+				err:        domain.ErrDurationNotSet,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -237,12 +237,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Not Set"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrDurationInvalid,
+				err:        domain.ErrDurationInvalid,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -250,12 +250,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Invalid"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrAlbumNotFound,
+				err:        domain.ErrAlbumNotFound,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -263,12 +263,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Album Not Found"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrTokenNotFound,
+				err:        domain.ErrTokenNotFound,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -276,12 +276,12 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Token Not Found"}}` + "\n",
+				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        model.ErrThirdPartyUnavailable,
+				err:        domain.ErrThirdPartyUnavailable,
 				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
 				durationOn: true,
 				duration:   "1h",
@@ -289,7 +289,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -302,7 +302,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -315,7 +315,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
 			},
 		},
 	}
@@ -386,122 +386,122 @@ func TestControllerHandleReady(t *testing.T) {
 		},
 		{
 			give: give{
-				err: model.ErrTooManyRequests,
+				err: domain.ErrTooManyRequests,
 			},
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Requests"}}` + "\n",
+				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrBodyTooLarge,
+				err: domain.ErrBodyTooLarge,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Body Too Large"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrWrongContentType,
+				err: domain.ErrWrongContentType,
 			},
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Content Type"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrNotEnoughImages,
+				err: domain.ErrNotEnoughImages,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Not Enough Images"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrTooManyImages,
+				err: domain.ErrTooManyImages,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrImageTooLarge,
+				err: domain.ErrImageTooLarge,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Image Too Large"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrNotImage,
+				err: domain.ErrNotImage,
 			},
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Image Format"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrDurationNotSet,
+				err: domain.ErrDurationNotSet,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Not Set"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrDurationInvalid,
+				err: domain.ErrDurationInvalid,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Invalid"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrAlbumNotFound,
+				err: domain.ErrAlbumNotFound,
 			},
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Album Not Found"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrTokenNotFound,
+				err: domain.ErrTokenNotFound,
 			},
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Token Not Found"}}` + "\n",
+				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrThirdPartyUnavailable,
+				err: domain.ErrThirdPartyUnavailable,
 			},
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -511,7 +511,7 @@ func TestControllerHandleReady(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -521,7 +521,7 @@ func TestControllerHandleReady(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
 			},
 		},
 	}
@@ -566,122 +566,122 @@ func TestControllerHandlePair(t *testing.T) {
 		},
 		{
 			give: give{
-				err: model.ErrTooManyRequests,
+				err: domain.ErrTooManyRequests,
 			},
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Requests"}}` + "\n",
+				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrBodyTooLarge,
+				err: domain.ErrBodyTooLarge,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Body Too Large"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrWrongContentType,
+				err: domain.ErrWrongContentType,
 			},
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Content Type"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrNotEnoughImages,
+				err: domain.ErrNotEnoughImages,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Not Enough Images"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrTooManyImages,
+				err: domain.ErrTooManyImages,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrImageTooLarge,
+				err: domain.ErrImageTooLarge,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Image Too Large"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrNotImage,
+				err: domain.ErrNotImage,
 			},
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Image Format"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrDurationNotSet,
+				err: domain.ErrDurationNotSet,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Not Set"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrDurationInvalid,
+				err: domain.ErrDurationInvalid,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Invalid"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrAlbumNotFound,
+				err: domain.ErrAlbumNotFound,
 			},
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Album Not Found"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrTokenNotFound,
+				err: domain.ErrTokenNotFound,
 			},
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Token Not Found"}}` + "\n",
+				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrThirdPartyUnavailable,
+				err: domain.ErrThirdPartyUnavailable,
 			},
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -691,7 +691,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -701,7 +701,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
 			},
 		},
 	}
@@ -746,122 +746,122 @@ func TestControllerHandleVote(t *testing.T) {
 		},
 		{
 			give: give{
-				err: model.ErrTooManyRequests,
+				err: domain.ErrTooManyRequests,
 			},
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Requests"}}` + "\n",
+				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrBodyTooLarge,
+				err: domain.ErrBodyTooLarge,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Body Too Large"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrWrongContentType,
+				err: domain.ErrWrongContentType,
 			},
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Content Type"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrNotEnoughImages,
+				err: domain.ErrNotEnoughImages,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Not Enough Images"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrTooManyImages,
+				err: domain.ErrTooManyImages,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrImageTooLarge,
+				err: domain.ErrImageTooLarge,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Image Too Large"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrNotImage,
+				err: domain.ErrNotImage,
 			},
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Image Format"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrDurationNotSet,
+				err: domain.ErrDurationNotSet,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Not Set"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrDurationInvalid,
+				err: domain.ErrDurationInvalid,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Invalid"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrAlbumNotFound,
+				err: domain.ErrAlbumNotFound,
 			},
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Album Not Found"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrTokenNotFound,
+				err: domain.ErrTokenNotFound,
 			},
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Token Not Found"}}` + "\n",
+				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrThirdPartyUnavailable,
+				err: domain.ErrThirdPartyUnavailable,
 			},
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -871,7 +871,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -881,7 +881,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
 			},
 		},
 	}
@@ -928,122 +928,122 @@ func TestControllerHandleTop(t *testing.T) {
 		},
 		{
 			give: give{
-				err: model.ErrTooManyRequests,
+				err: domain.ErrTooManyRequests,
 			},
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Requests"}}` + "\n",
+				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrBodyTooLarge,
+				err: domain.ErrBodyTooLarge,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Body Too Large"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrWrongContentType,
+				err: domain.ErrWrongContentType,
 			},
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Content Type"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrNotEnoughImages,
+				err: domain.ErrNotEnoughImages,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Not Enough Images"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrTooManyImages,
+				err: domain.ErrTooManyImages,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Too Many Images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrImageTooLarge,
+				err: domain.ErrImageTooLarge,
 			},
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Image Too Large"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrNotImage,
+				err: domain.ErrNotImage,
 			},
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Unsupported Image Format"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrDurationNotSet,
+				err: domain.ErrDurationNotSet,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Not Set"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrDurationInvalid,
+				err: domain.ErrDurationInvalid,
 			},
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Duration Invalid"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrAlbumNotFound,
+				err: domain.ErrAlbumNotFound,
 			},
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Album Not Found"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrTokenNotFound,
+				err: domain.ErrTokenNotFound,
 			},
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Token Not Found"}}` + "\n",
+				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err: model.ErrThirdPartyUnavailable,
+				err: domain.ErrThirdPartyUnavailable,
 			},
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1053,7 +1053,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1063,7 +1063,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"msg":"Internal Server Error"}}` + "\n",
+				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
 			},
 		},
 	}

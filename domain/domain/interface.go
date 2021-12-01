@@ -1,30 +1,32 @@
-package model
+package domain
 
 import (
 	"context"
 	"time"
+
+	"github.com/zitryss/aye-and-nay/domain/model"
 )
 
 type Servicer interface {
-	Album(ctx context.Context, ff []File, dur time.Duration) (uint64, error)
-	Pair(ctx context.Context, album uint64) (Image, Image, error)
+	Album(ctx context.Context, ff []model.File, dur time.Duration) (uint64, error)
+	Pair(ctx context.Context, album uint64) (model.Image, model.Image, error)
 	Vote(ctx context.Context, album uint64, tokenFrom uint64, tokenTo uint64) error
-	Top(ctx context.Context, album uint64) ([]Image, error)
+	Top(ctx context.Context, album uint64) ([]model.Image, error)
 	Progress(ctx context.Context, album uint64) (float64, error)
 }
 
 type Compresser interface {
-	Compress(ctx context.Context, f File) (File, error)
+	Compress(ctx context.Context, f model.File) (model.File, error)
 }
 
 type Storager interface {
-	Put(ctx context.Context, album uint64, image uint64, f File) (string, error)
-	Get(ctx context.Context, album uint64, image uint64) (File, error)
+	Put(ctx context.Context, album uint64, image uint64, f model.File) (string, error)
+	Get(ctx context.Context, album uint64, image uint64) (model.File, error)
 	Remove(ctx context.Context, album uint64, image uint64) error
 }
 
 type Databaser interface {
-	SaveAlbum(ctx context.Context, alb Album) error
+	SaveAlbum(ctx context.Context, alb model.Album) error
 	CountImages(ctx context.Context, album uint64) (int, error)
 	CountImagesCompressed(ctx context.Context, album uint64) (int, error)
 	UpdateCompressionStatus(ctx context.Context, album uint64, image uint64) error
@@ -33,9 +35,9 @@ type Databaser interface {
 	SaveVote(ctx context.Context, album uint64, imageFrom uint64, imageTo uint64) error
 	GetEdges(ctx context.Context, album uint64) (map[uint64]map[uint64]int, error)
 	UpdateRatings(ctx context.Context, album uint64, vector map[uint64]float64) error
-	GetImagesOrdered(ctx context.Context, album uint64) ([]Image, error)
+	GetImagesOrdered(ctx context.Context, album uint64) ([]model.Image, error)
 	DeleteAlbum(ctx context.Context, album uint64) error
-	AlbumsToBeDeleted(ctx context.Context) ([]Album, error)
+	AlbumsToBeDeleted(ctx context.Context) ([]model.Album, error)
 }
 
 type Cacher interface {

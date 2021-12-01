@@ -9,7 +9,7 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
@@ -19,7 +19,7 @@ var (
 
 func NewServer(
 	middle func(http.Handler) http.Handler,
-	serv model.Servicer,
+	serv domain.Servicer,
 	serverWait chan<- error,
 ) (*Server, error) {
 	conf := newServerConfig()

@@ -3,42 +3,29 @@ package service
 import (
 	"context"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
 func handleError(err error) {
-	switch errors.Cause(err) {
-	case model.ErrTooManyRequests:
-		log.Debug(err)
-	case model.ErrBodyTooLarge:
-		log.Debug(err)
-	case model.ErrWrongContentType:
-		log.Debug(err)
-	case model.ErrNotEnoughImages:
-		log.Debug(err)
-	case model.ErrTooManyImages:
-		log.Debug(err)
-	case model.ErrImageTooLarge:
-		log.Debug(err)
-	case model.ErrNotImage:
-		log.Debug(err)
-	case model.ErrDurationNotSet:
-		log.Debug(err)
-	case model.ErrDurationInvalid:
-		log.Debug(err)
-	case model.ErrAlbumNotFound:
-		log.Debug(err)
-	case model.ErrTokenNotFound:
-		log.Debug(err)
-	case model.ErrThirdPartyUnavailable:
-		log.Critical(err)
+	HandleInnerError(err)
+}
+
+func HandleInnerError(err error) {
+	e := errors.Cause(err)
+	in := domain.Inner(nil)
+	if errors.As(e, &in) {
+		in := in.Inner()
+		log.Println(log.Level(in.Level), in.DevMsg)
+		return
+	}
+	switch e {
 	case context.Canceled:
-		log.Debug(err)
+		log.Debug(e)
 	case context.DeadlineExceeded:
-		log.Debug(err)
+		log.Debug(e)
 	default:
-		log.Errorf("%T %v", err, err)
+		log.Errorf("%T %v", e, e)
 	}
 }

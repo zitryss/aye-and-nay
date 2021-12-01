@@ -12,6 +12,7 @@ import (
 	"github.com/dgraph-io/badger/v3/options"
 	lru "github.com/hashicorp/golang-lru"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/pool"
@@ -61,7 +62,7 @@ func (b *Badger) Monitor() {
 func (b *Badger) SaveAlbum(_ context.Context, alb model.Album) error {
 	_, err := b.get(alb.Id)
 	if err == nil {
-		return errors.Wrap(model.ErrAlbumAlreadyExists)
+		return errors.Wrap(domain.ErrAlbumAlreadyExists)
 	}
 	edgs := make(map[uint64]map[uint64]int, len(alb.Images))
 	albLru := make(albumLru, len(alb.Images))
@@ -91,7 +92,7 @@ func (b *Badger) CountImages(_ context.Context, album uint64) (int, error) {
 func (b *Badger) CountImagesCompressed(_ context.Context, album uint64) (int, error) {
 	alb, err := b.get(album)
 	if errors.Is(err, badger.ErrKeyNotFound) {
-		return 0, errors.Wrap(model.ErrAlbumNotFound)
+		return 0, errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	n := 0
 	for _, img := range alb.Images {
@@ -105,7 +106,7 @@ func (b *Badger) CountImagesCompressed(_ context.Context, album uint64) (int, er
 func (b *Badger) UpdateCompressionStatus(_ context.Context, album uint64, image uint64) error {
 	alb, err := b.get(album)
 	if errors.Is(err, badger.ErrKeyNotFound) {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	found := false
 	for i := range alb.Images {
@@ -117,7 +118,7 @@ func (b *Badger) UpdateCompressionStatus(_ context.Context, album uint64, image 
 		}
 	}
 	if !found {
-		return errors.Wrap(model.ErrImageNotFound)
+		return errors.Wrap(domain.ErrImageNotFound)
 	}
 	err = b.set(alb)
 	if err != nil {
@@ -133,7 +134,7 @@ func (b *Badger) GetImageSrc(_ context.Context, album uint64, image uint64) (str
 	}
 	src, ok := albLru[image]
 	if !ok {
-		return "", errors.Wrap(model.ErrImageNotFound)
+		return "", errors.Wrap(domain.ErrImageNotFound)
 	}
 	return src, nil
 }
@@ -153,7 +154,7 @@ func (b *Badger) GetImagesIds(_ context.Context, album uint64) ([]uint64, error)
 func (b *Badger) SaveVote(_ context.Context, album uint64, imageFrom uint64, imageTo uint64) error {
 	alb, err := b.get(album)
 	if errors.Is(err, badger.ErrKeyNotFound) {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	alb.Edges[imageFrom][imageTo]++
 	err = b.set(alb)
@@ -166,7 +167,7 @@ func (b *Badger) SaveVote(_ context.Context, album uint64, imageFrom uint64, ima
 func (b *Badger) GetEdges(_ context.Context, album uint64) (map[uint64]map[uint64]int, error) {
 	alb, err := b.get(album)
 	if errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, errors.Wrap(model.ErrAlbumNotFound)
+		return nil, errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	return alb.Edges, nil
 }
@@ -174,7 +175,7 @@ func (b *Badger) GetEdges(_ context.Context, album uint64) (map[uint64]map[uint6
 func (b *Badger) UpdateRatings(_ context.Context, album uint64, vector map[uint64]float64) error {
 	alb, err := b.get(album)
 	if errors.Is(err, badger.ErrKeyNotFound) {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	for id, rating := range vector {
 		for i := range alb.Images {
@@ -195,7 +196,7 @@ func (b *Badger) UpdateRatings(_ context.Context, album uint64, vector map[uint6
 func (b *Badger) GetImagesOrdered(_ context.Context, album uint64) ([]model.Image, error) {
 	alb, err := b.get(album)
 	if errors.Is(err, badger.ErrKeyNotFound) {
-		return nil, errors.Wrap(model.ErrAlbumNotFound)
+		return nil, errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	sort.Slice(alb.Images, func(i, j int) bool { return alb.Images[i].Rating > alb.Images[j].Rating })
 	return alb.Images, nil
@@ -204,7 +205,7 @@ func (b *Badger) GetImagesOrdered(_ context.Context, album uint64) ([]model.Imag
 func (b *Badger) DeleteAlbum(_ context.Context, album uint64) error {
 	_, err := b.get(album)
 	if errors.Is(err, badger.ErrKeyNotFound) {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	key := make([]byte, 8)
 	binary.LittleEndian.PutUint64(key, album)
@@ -325,7 +326,7 @@ func (b *Badger) lruGetOrAddAndGet(album uint64) (albumLru, error) {
 		}
 		a, ok = b.cache.Get(album)
 		if !ok {
-			return nil, errors.Wrap(model.ErrUnknown)
+			return nil, errors.Wrap(domain.ErrUnknown)
 		}
 	}
 	return a.(albumLru), nil
@@ -334,7 +335,7 @@ func (b *Badger) lruGetOrAddAndGet(album uint64) (albumLru, error) {
 func (b *Badger) lruAdd(album uint64) error {
 	alb, err := b.get(album)
 	if errors.Is(err, badger.ErrKeyNotFound) {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	albLru := make(albumLru, len(alb.Images))
 	for _, img := range alb.Images {

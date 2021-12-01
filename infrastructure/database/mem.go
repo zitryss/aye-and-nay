@@ -5,6 +5,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
@@ -32,7 +33,7 @@ func (m *Mem) SaveAlbum(_ context.Context, alb model.Album) error {
 	defer m.syncAlbums.Unlock()
 	_, ok := m.albums[alb.Id]
 	if ok {
-		return errors.Wrap(model.ErrAlbumAlreadyExists)
+		return errors.Wrap(domain.ErrAlbumAlreadyExists)
 	}
 	edgs := make(map[uint64]map[uint64]int, len(alb.Images))
 	for i := range alb.Images {
@@ -50,7 +51,7 @@ func (m *Mem) CountImages(_ context.Context, album uint64) (int, error) {
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return 0, errors.Wrap(model.ErrAlbumNotFound)
+		return 0, errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	n := len(alb.Images)
 	return n, nil
@@ -61,7 +62,7 @@ func (m *Mem) CountImagesCompressed(_ context.Context, album uint64) (int, error
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return 0, errors.Wrap(model.ErrAlbumNotFound)
+		return 0, errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	n := 0
 	for _, img := range alb.Images {
@@ -77,7 +78,7 @@ func (m *Mem) UpdateCompressionStatus(_ context.Context, album uint64, image uin
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	found := false
 	for i := range alb.Images {
@@ -89,7 +90,7 @@ func (m *Mem) UpdateCompressionStatus(_ context.Context, album uint64, image uin
 		}
 	}
 	if !found {
-		return errors.Wrap(model.ErrImageNotFound)
+		return errors.Wrap(domain.ErrImageNotFound)
 	}
 	return nil
 }
@@ -99,7 +100,7 @@ func (m *Mem) GetImageSrc(_ context.Context, album uint64, image uint64) (string
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return "", errors.Wrap(model.ErrAlbumNotFound)
+		return "", errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	found := false
 	index := -1
@@ -111,7 +112,7 @@ func (m *Mem) GetImageSrc(_ context.Context, album uint64, image uint64) (string
 		}
 	}
 	if !found {
-		return "", errors.Wrap(model.ErrImageNotFound)
+		return "", errors.Wrap(domain.ErrImageNotFound)
 	}
 	return alb.Images[index].Src, nil
 }
@@ -121,7 +122,7 @@ func (m *Mem) GetImagesIds(_ context.Context, album uint64) ([]uint64, error) {
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return nil, errors.Wrap(model.ErrAlbumNotFound)
+		return nil, errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	images := make([]uint64, 0, len(alb.Images))
 	for _, img := range alb.Images {
@@ -135,7 +136,7 @@ func (m *Mem) SaveVote(_ context.Context, album uint64, imageFrom uint64, imageT
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	alb.Edges[imageFrom][imageTo]++
 	return nil
@@ -146,7 +147,7 @@ func (m *Mem) GetEdges(_ context.Context, album uint64) (map[uint64]map[uint64]i
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return nil, errors.Wrap(model.ErrAlbumNotFound)
+		return nil, errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	edgs := make(map[uint64]map[uint64]int, len(alb.Edges))
 	for k := range alb.Edges {
@@ -165,7 +166,7 @@ func (m *Mem) UpdateRatings(_ context.Context, album uint64, vector map[uint64]f
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	for id, rating := range vector {
 		for i := range alb.Images {
@@ -184,7 +185,7 @@ func (m *Mem) GetImagesOrdered(_ context.Context, album uint64) ([]model.Image, 
 	defer m.syncAlbums.Unlock()
 	alb, ok := m.albums[album]
 	if !ok {
-		return nil, errors.Wrap(model.ErrAlbumNotFound)
+		return nil, errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	imgs := make([]model.Image, len(alb.Images))
 	copy(imgs, alb.Images)
@@ -197,7 +198,7 @@ func (m *Mem) DeleteAlbum(_ context.Context, album uint64) error {
 	defer m.syncAlbums.Unlock()
 	_, ok := m.albums[album]
 	if !ok {
-		return errors.Wrap(model.ErrAlbumNotFound)
+		return errors.Wrap(domain.ErrAlbumNotFound)
 	}
 	delete(m.albums, album)
 	return nil

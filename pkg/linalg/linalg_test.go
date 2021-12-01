@@ -1,3 +1,5 @@
+//go:build unit
+
 package linalg_test
 
 import (

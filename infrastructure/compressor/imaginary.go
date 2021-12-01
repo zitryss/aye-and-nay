@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/pool"
@@ -65,7 +66,7 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
 		default:
-			panic(errors.Wrap(model.ErrUnknown))
+			panic(errors.Wrap(domain.ErrUnknown))
 		}
 	}()
 	buf := pool.GetBuffer()
@@ -99,21 +100,21 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 	err = retry.Do(im.conf.times, im.conf.pause, func() error {
 		resp, err = c.Do(req)
 		if err != nil {
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "%s", err)
+			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)
 		}
 		if resp.StatusCode == 406 {
 			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
-			return errors.Wrap(model.ErrUnsupportedMediaType)
+			return errors.Wrap(domain.ErrUnsupportedMediaType)
 		}
 		if resp.StatusCode < 200 || resp.StatusCode > 299 {
 			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
-			return errors.Wrapf(model.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
+			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
 		}
 		return nil
 	})
-	if errors.Is(err, model.ErrUnsupportedMediaType) {
+	if errors.Is(err, domain.ErrUnsupportedMediaType) {
 		return model.File{Reader: buf, Size: n}, nil
 	}
 	if err != nil {

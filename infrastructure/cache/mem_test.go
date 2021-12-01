@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -32,7 +32,7 @@ func TestMemPair(t *testing.T) {
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem()
 		_, _, err := mem.Pop(context.Background(), 0x73BF)
-		if !errors.Is(err, model.ErrPairNotFound) {
+		if !errors.Is(err, domain.ErrPairNotFound) {
 			t.Error(err)
 		}
 	})
@@ -47,7 +47,7 @@ func TestMemPair(t *testing.T) {
 			t.Error(err)
 		}
 		_, _, err = mem.Pop(context.Background(), 0x1AE9)
-		if !errors.Is(err, model.ErrPairNotFound) {
+		if !errors.Is(err, domain.ErrPairNotFound) {
 			t.Error(err)
 		}
 	})
@@ -63,7 +63,7 @@ func TestMemPair(t *testing.T) {
 		CheckChannel(t, heartbeatPair)
 		CheckChannel(t, heartbeatPair)
 		_, _, err = mem.Pop(context.Background(), 0xF51A)
-		if !errors.Is(err, model.ErrPairNotFound) {
+		if !errors.Is(err, domain.ErrPairNotFound) {
 			t.Error(err)
 		}
 	})
@@ -91,14 +91,14 @@ func TestMemToken(t *testing.T) {
 			t.Error(err)
 		}
 		err = mem.Set(context.Background(), 0x1C4A, 0xF0EE, 0x583C)
-		if !errors.Is(err, model.ErrTokenAlreadyExists) {
+		if !errors.Is(err, domain.ErrTokenAlreadyExists) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
 		_, err := mem.Get(context.Background(), 0x1C4A, 0xC4F8)
-		if !errors.Is(err, model.ErrTokenNotFound) {
+		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
 	})
@@ -113,7 +113,7 @@ func TestMemToken(t *testing.T) {
 			t.Error(err)
 		}
 		_, err = mem.Get(context.Background(), 0xEB96, 0xC67F)
-		if !errors.Is(err, model.ErrTokenNotFound) {
+		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
 	})
@@ -129,7 +129,7 @@ func TestMemToken(t *testing.T) {
 		CheckChannel(t, heartbeatToken)
 		CheckChannel(t, heartbeatToken)
 		_, err = mem.Get(context.Background(), 0xE0AF, 0xCF1E)
-		if !errors.Is(err, model.ErrTokenNotFound) {
+		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
 	})

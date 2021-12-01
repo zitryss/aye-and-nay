@@ -6,11 +6,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func newQueue(id uint64, q model.Queuer) *queue {
+func newQueue(id uint64, q domain.Queuer) *queue {
 	return &queue{
 		id:     id,
 		queue:  q,
@@ -21,9 +21,9 @@ func newQueue(id uint64, q model.Queuer) *queue {
 }
 
 type queue struct {
-	id     uint64
-	queue  model.Queuer
-	cond   *sync.Cond
+	id    uint64
+	queue domain.Queuer
+	cond  *sync.Cond
 	closed bool
 	valid  bool
 }
@@ -80,7 +80,7 @@ func (q *queue) poll(ctx context.Context) (uint64, error) {
 	return album, nil
 }
 
-func newPQueue(id uint64, pq model.PQueuer) *pqueue {
+func newPQueue(id uint64, pq domain.PQueuer) *pqueue {
 	return &pqueue{
 		id:      id,
 		pqueue:  pq,
@@ -93,9 +93,9 @@ func newPQueue(id uint64, pq model.PQueuer) *pqueue {
 }
 
 type pqueue struct {
-	id      uint64
-	pqueue  model.PQueuer
-	addCh   chan struct{}
+	id     uint64
+	pqueue domain.PQueuer
+	addCh  chan struct{}
 	addBuff chan struct{}
 	done    uint32
 	closed  chan struct{}
@@ -164,7 +164,7 @@ func (pq *pqueue) poll(ctx context.Context) (uint64, error) {
 			return 0x0, nil
 		case <-pq.addCh:
 			newAlbum, newExpires, err := pq.pqueue.PPoll(ctx, pq.id)
-			if errors.Is(err, model.ErrUnknown) {
+			if errors.Is(err, domain.ErrUnknown) {
 				err = errors.Wrap(err)
 				handleError(err)
 				continue

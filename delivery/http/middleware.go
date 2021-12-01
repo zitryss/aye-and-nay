@@ -7,18 +7,18 @@ import (
 
 	"github.com/rs/cors"
 
-	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMiddleware(lim model.Limiter) *Middleware {
+func NewMiddleware(lim domain.Limiter) *Middleware {
 	conf := newMiddlewareConfig()
 	return &Middleware{conf, lim}
 }
 
 type Middleware struct {
 	conf middlewareConfig
-	lim  model.Limiter
+	lim  domain.Limiter
 }
 
 func (m *Middleware) Chain(h http.Handler) http.Handler {
@@ -41,7 +41,7 @@ func (m *Middleware) recover(h http.Handler) http.Handler {
 				if ok {
 					e = errors.Wrap(err)
 				} else {
-					e = errors.Wrapf(model.ErrUnknown, "%v", v)
+					e = errors.Wrapf(domain.ErrUnknown, "%v", v)
 				}
 			}()
 			h.ServeHTTP(w, r)
@@ -65,7 +65,7 @@ func (m *Middleware) limit(h http.Handler) http.Handler {
 				return errors.Wrap(err)
 			}
 			if !allowed {
-				return errors.Wrap(model.ErrTooManyRequests)
+				return errors.Wrap(domain.ErrTooManyRequests)
 			}
 			h.ServeHTTP(w, r)
 			return nil

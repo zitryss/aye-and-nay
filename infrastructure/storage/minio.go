@@ -12,6 +12,7 @@ import (
 	minios3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -120,7 +121,7 @@ func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.Fil
 		case *bytes.Buffer:
 			pool.PutBuffer(v)
 		default:
-			panic(errors.Wrap(model.ErrUnknown))
+			panic(errors.Wrap(domain.ErrUnknown))
 		}
 	}()
 	albumB64 := base64.FromUint64(album)

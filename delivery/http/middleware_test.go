@@ -52,7 +52,7 @@ func TestMiddlewareRecover(t *testing.T) {
 		handler.ServeHTTP(w, r)
 		CheckStatusCode(t, w, 500)
 		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"error":{"msg":"Internal Server Error"}}`+"\n")
+		CheckBody(t, w, `{"error":{"code":17,"msg":"internal server error"}}`+"\n")
 	})
 }
 
@@ -87,6 +87,6 @@ func TestMiddlewareLimit(t *testing.T) {
 		handler.ServeHTTP(w, r)
 		CheckStatusCode(t, w, 429)
 		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"error":{"msg":"Too Many Requests"}}`+"\n")
+		CheckBody(t, w, `{"error":{"code":0,"msg":"too many requests"}}`+"\n")
 	})
 }

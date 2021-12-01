@@ -2,6 +2,7 @@
 
 gen:
 	go install github.com/mailru/easyjson/easyjson@latest
+	go install golang.org/x/tools/cmd/stringer@latest
 	go generate ./...
 
 compile: gen

@@ -1,19 +1,21 @@
+//go:generate $GOPATH/bin/stringer -type=Level -linecomment
 package log
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"strings"
 )
 
-type level int
+type Level int
 
 const (
-	ldisabled level = iota
-	Ldebug
-	Linfo
-	Lerror
-	Lcritical
+	ldisabled Level = iota
+	Ldebug          // debug
+	Linfo           // info
+	Lerror          // error
+	Lcritical       // critical
 )
 
 var (
@@ -22,7 +24,7 @@ var (
 
 type logger struct {
 	*log.Logger
-	level
+	lvl Level
 }
 
 func SetOutput(w io.Writer) {
@@ -37,12 +39,16 @@ func SetFlags(flag int) {
 	l.SetFlags(flag)
 }
 
-func SetLevel(lev interface{}) {
-	oldLevel := l.level
+func SetLevel(lvl interface{}) {
+	oldLevel := l.lvl
 	newLevel := ldisabled
-	switch v := lev.(type) {
-	case level:
-		newLevel = v
+	switch v := lvl.(type) {
+	case Level:
+		if Ldebug <= v && v <= Lcritical {
+			newLevel = v
+		} else {
+			newLevel = oldLevel
+		}
 	case string:
 		v = strings.ToLower(v)
 		switch v {
@@ -60,53 +66,49 @@ func SetLevel(lev interface{}) {
 	default:
 		newLevel = oldLevel
 	}
-	l.level = newLevel
+	l.lvl = newLevel
+}
+
+func Println(level Level, v ...interface{}) {
+	if Ldebug <= level && level <= Lcritical && l.lvl <= level {
+		l.Println(append([]interface{}{fmt.Sprint(level) + ":"}, v...)...)
+	}
+}
+
+func Printf(level Level, format string, v ...interface{}) {
+	if Ldebug <= level && level <= Lcritical && l.lvl <= level {
+		l.Printf("%s: "+format, append([]interface{}{level}, v...)...)
+	}
 }
 
 func Debug(v ...interface{}) {
-	if l.level <= Ldebug {
-		l.Println(append([]interface{}{"debug:"}, v...)...)
-	}
+	Println(Ldebug, v...)
 }
 
 func Debugf(format string, v ...interface{}) {
-	if l.level <= Ldebug {
-		l.Printf("debug: "+format, v...)
-	}
+	Printf(Ldebug, format, v...)
 }
 
 func Info(v ...interface{}) {
-	if l.level <= Linfo {
-		l.Println(append([]interface{}{"info:"}, v...)...)
-	}
+	Println(Linfo, v...)
 }
 
 func Infof(format string, v ...interface{}) {
-	if l.level <= Linfo {
-		l.Printf("info: "+format, v...)
-	}
+	Printf(Linfo, format, v...)
 }
 
 func Error(v ...interface{}) {
-	if l.level <= Lerror {
-		l.Println(append([]interface{}{"error:"}, v...)...)
-	}
+	Println(Lerror, v...)
 }
 
 func Errorf(format string, v ...interface{}) {
-	if l.level <= Lerror {
-		l.Printf("error: "+format, v...)
-	}
+	Printf(Lerror, format, v...)
 }
 
 func Critical(v ...interface{}) {
-	if l.level <= Lcritical {
-		l.Println(append([]interface{}{"critical:"}, v...)...)
-	}
+	Println(Lcritical, v...)
 }
 
 func Criticalf(format string, v ...interface{}) {
-	if l.level <= Lcritical {
-		l.Printf("critical: "+format, v...)
-	}
+	Printf(Lcritical, format, v...)
 }

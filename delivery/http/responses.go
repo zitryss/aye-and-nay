@@ -49,7 +49,8 @@ type image struct {
 //easyjson:json
 type errorResponse struct {
 	Error struct {
-		code int
-		Msg  string `json:"msg"`
+		statusCode int
+		AppCode    int    `json:"code"`
+		UserMsg    string `json:"msg"`
 	} `json:"error"`
 }

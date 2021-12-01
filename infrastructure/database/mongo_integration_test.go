@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
@@ -46,7 +47,7 @@ func TestMongoAlbum(t *testing.T) {
 		}
 		alb = AlbumFullFactory(0xA566)
 		err = mongo.SaveAlbum(context.Background(), alb)
-		if !errors.Is(err, model.ErrAlbumAlreadyExists) {
+		if !errors.Is(err, domain.ErrAlbumAlreadyExists) {
 			t.Error(err)
 		}
 	})
@@ -56,7 +57,7 @@ func TestMongoAlbum(t *testing.T) {
 			t.Fatal(err)
 		}
 		_, err = mongo.GetImagesIds(context.Background(), 0xA9B4)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -66,7 +67,7 @@ func TestMongoAlbum(t *testing.T) {
 			t.Fatal(err)
 		}
 		_, err = mongo.GetEdges(context.Background(), 0x3F1E)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -159,7 +160,7 @@ func TestMongoCount(t *testing.T) {
 			t.Fatal(err)
 		}
 		_, err = mongo.CountImages(context.Background(), 0xF256)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -169,7 +170,7 @@ func TestMongoCount(t *testing.T) {
 			t.Fatal(err)
 		}
 		_, err = mongo.CountImagesCompressed(context.Background(), 0xC52A)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -179,7 +180,7 @@ func TestMongoCount(t *testing.T) {
 			t.Fatal(err)
 		}
 		err = mongo.UpdateCompressionStatus(context.Background(), 0xF73E, 0x3E3D)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -194,7 +195,7 @@ func TestMongoCount(t *testing.T) {
 			t.Error(err)
 		}
 		err = mongo.UpdateCompressionStatus(context.Background(), 0xDF75, 0xE7A4)
-		if !errors.Is(err, model.ErrImageNotFound) {
+		if !errors.Is(err, domain.ErrImageNotFound) {
 			t.Error(err)
 		}
 	})
@@ -225,7 +226,7 @@ func TestMongoImage(t *testing.T) {
 			t.Fatal(err)
 		}
 		_, err = mongo.GetImageSrc(context.Background(), 0x12EE, 0x51DE)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -240,7 +241,7 @@ func TestMongoImage(t *testing.T) {
 			t.Error(err)
 		}
 		_, err = mongo.GetImageSrc(context.Background(), 0xD585, 0xDA30)
-		if !errors.Is(err, model.ErrImageNotFound) {
+		if !errors.Is(err, domain.ErrImageNotFound) {
 			t.Error(err)
 		}
 	})
@@ -279,7 +280,7 @@ func TestMongoVote(t *testing.T) {
 			t.Fatal(err)
 		}
 		err = mongo.SaveVote(context.Background(), 0x1FAD, 0x84E6, 0x308E)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -316,7 +317,7 @@ func TestMongoSort(t *testing.T) {
 			t.Fatal(err)
 		}
 		_, err = mongo.GetImagesOrdered(context.Background(), 0x66BE)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -375,7 +376,7 @@ func TestMongoRatings(t *testing.T) {
 		vector[img4.Id] = img4.Rating
 		vector[img5.Id] = img5.Rating
 		err = mongo.UpdateRatings(context.Background(), 0xA293, vector)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -389,7 +390,7 @@ func TestMongoDelete(t *testing.T) {
 		}
 		alb := AlbumEmptyFactory(0x748C)
 		_, err = mongo.CountImages(context.Background(), 0x748C)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 		err = mongo.SaveAlbum(context.Background(), alb)
@@ -415,7 +416,7 @@ func TestMongoDelete(t *testing.T) {
 			t.Error(err)
 		}
 		_, err = mongo.CountImages(context.Background(), 0x748C)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
@@ -442,7 +443,7 @@ func TestMongoDelete(t *testing.T) {
 			t.Error(err)
 		}
 		_, err = mongo.CountImages(context.Background(), 0x7B43)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 		t.Cleanup(func() {
@@ -460,7 +461,7 @@ func TestMongoDelete(t *testing.T) {
 			t.Error(err)
 		}
 		err = mongo.DeleteAlbum(context.Background(), 0xB7FF)
-		if !errors.Is(err, model.ErrAlbumNotFound) {
+		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})

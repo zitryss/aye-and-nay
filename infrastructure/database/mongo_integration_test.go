@@ -1,4 +1,4 @@
-// +build integration
+//go:build integration
 
 package database
 
@@ -472,17 +472,17 @@ func TestMongoLru(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	alb1 := AlbumEmptyFactory(0X36FC)
+	alb1 := AlbumEmptyFactory(0x36FC)
 	err = mongo.SaveAlbum(context.Background(), alb1)
 	if err != nil {
 		t.Error(err)
 	}
-	alb2 := AlbumEmptyFactory(0XB020)
+	alb2 := AlbumEmptyFactory(0xB020)
 	err = mongo.SaveAlbum(context.Background(), alb2)
 	if err != nil {
 		t.Error(err)
 	}
-	edgs, err := mongo.GetEdges(context.Background(), 0X36FC)
+	edgs, err := mongo.GetEdges(context.Background(), 0x36FC)
 	if err != nil {
 		t.Error(err)
 	}

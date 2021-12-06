@@ -21,9 +21,9 @@ func newQueue(id uint64, q domain.Queuer) *queue {
 }
 
 type queue struct {
-	id    uint64
-	queue domain.Queuer
-	cond  *sync.Cond
+	id     uint64
+	queue  domain.Queuer
+	cond   *sync.Cond
 	closed bool
 	valid  bool
 }
@@ -93,9 +93,9 @@ func newPQueue(id uint64, pq domain.PQueuer) *pqueue {
 }
 
 type pqueue struct {
-	id     uint64
-	pqueue domain.PQueuer
-	addCh  chan struct{}
+	id      uint64
+	pqueue  domain.PQueuer
+	addCh   chan struct{}
 	addBuff chan struct{}
 	done    uint32
 	closed  chan struct{}

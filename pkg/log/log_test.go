@@ -1,3 +1,5 @@
+//go:build unit
+
 package log_test
 
 import (
@@ -9,7 +11,7 @@ import (
 
 func TestLogLevelPositive(t *testing.T) {
 	tests := []struct {
-		level string
+		level interface{}
 		want  string
 	}{
 		{
@@ -26,6 +28,22 @@ func TestLogLevelPositive(t *testing.T) {
 		},
 		{
 			level: "CRITICAL",
+			want:  "critical: message7\ncritical: message8: ju iv\n",
+		},
+		{
+			level: log.Ldebug,
+			want:  "debug: message1\ndebug: message2: 60 95\ninfo: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
+		},
+		{
+			level: log.Linfo,
+			want:  "info: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
+		},
+		{
+			level: log.Lerror,
+			want:  "error: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
+		},
+		{
+			level: log.Lcritical,
 			want:  "critical: message7\ncritical: message8: ju iv\n",
 		},
 	}
@@ -50,112 +68,46 @@ func TestLogLevelPositive(t *testing.T) {
 			}
 		})
 	}
-	tests2 := []struct {
-		level log.Level
+}
+
+func TestLogLevelNegative(t *testing.T) {
+	tests := []struct {
+		level interface{}
 		want  string
 	}{
 		{
-			level: log.Ldebug,
+			level: 5,
 			want:  "debug: message1\ndebug: message2: 60 95\ninfo: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
 		},
 		{
-			level: log.Linfo,
-			want:  "info: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
+			level: "warning",
+			want:  "debug: message1\ndebug: message2: 60 95\ninfo: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
 		},
 		{
-			level: log.Lerror,
-			want:  "error: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
-		},
-		{
-			level: log.Lcritical,
-			want:  "critical: message7\ncritical: message8: ju iv\n",
+			level: log.Level(-1),
+			want:  "debug: message1\ndebug: message2: 60 95\ninfo: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
 		},
 	}
-	for _, tt := range tests2 {
+	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			w := strings.Builder{}
 			log.SetOutput(&w)
 			log.SetPrefix("")
 			log.SetFlags(0)
-			log.SetLevel(tt.level)
+			log.SetLevel(log.Ldebug)
 			log.Debug("message1")
 			log.Debugf("message2: %d %d", 60, 95)
 			log.Info("message3")
 			log.Infof("message4: %s %d", "mx", 12)
+			log.SetLevel(tt.level)
 			log.Error("message5")
 			log.Errorf("message6: %d %s", 80, "dq")
 			log.Critical("message7")
 			log.Criticalf("message8: %s %s", "ju", "iv")
 			got := w.String()
 			if got != tt.want {
-				t.Errorf("level = %v; got %v; want %v", tt.level, got, tt.want)
+				t.Errorf("level = %v; got %v; want %v", log.Ldebug, got, tt.want)
 			}
 		})
 	}
-}
-
-func TestLogLevelNegative(t *testing.T) {
-	t.Run("", func(t *testing.T) {
-		w := strings.Builder{}
-		log.SetOutput(&w)
-		log.SetPrefix("")
-		log.SetFlags(0)
-		log.SetLevel(log.Ldebug)
-		log.Debug("message1")
-		log.Debugf("message2: %d %d", 60, 95)
-		log.Info("message3")
-		log.Infof("message4: %s %d", "mx", 12)
-		log.SetLevel(5)
-		log.Error("message5")
-		log.Errorf("message6: %d %s", 80, "dq")
-		log.Critical("message7")
-		log.Criticalf("message8: %s %s", "ju", "iv")
-		got := w.String()
-		want := "debug: message1\ndebug: message2: 60 95\ninfo: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n"
-		if got != want {
-			t.Errorf("level = %v; got %v; want %v", log.Ldebug, got, want)
-		}
-	})
-	t.Run("", func(t *testing.T) {
-		w := strings.Builder{}
-		log.SetOutput(&w)
-		log.SetPrefix("")
-		log.SetFlags(0)
-		log.SetLevel(log.Ldebug)
-		log.Debug("message1")
-		log.Debugf("message2: %d %d", 60, 95)
-		log.Info("message3")
-		log.Infof("message4: %s %d", "mx", 12)
-		log.SetLevel("warning")
-		log.Error("message5")
-		log.Errorf("message6: %d %s", 80, "dq")
-		log.Critical("message7")
-		log.Criticalf("message8: %s %s", "ju", "iv")
-		got := w.String()
-		want := "debug: message1\ndebug: message2: 60 95\ninfo: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n"
-		if got != want {
-			t.Errorf("level = %v; got %v; want %v", log.Ldebug, got, want)
-		}
-	})
-	t.Run("", func(t *testing.T) {
-		w := strings.Builder{}
-		log.SetOutput(&w)
-		log.SetPrefix("")
-		log.SetFlags(0)
-		log.SetLevel(log.Ldebug)
-		log.Debug("message1")
-		log.Debugf("message2: %d %d", 60, 95)
-		log.Info("message3")
-		log.Infof("message4: %s %d", "mx", 12)
-		log.SetLevel(log.Level(-1))
-		log.Error("message5")
-		log.Errorf("message6: %d %s", 80, "dq")
-		log.Critical("message7")
-		log.Criticalf("message8: %s %s", "ju", "iv")
-		got := w.String()
-		want := "debug: message1\ndebug: message2: 60 95\ninfo: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n"
-		if got != want {
-			t.Errorf("level = %v; got %v; want %v", log.Ldebug, got, want)
-		}
-	})
 }

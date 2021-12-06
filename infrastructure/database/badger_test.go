@@ -1,3 +1,5 @@
+//go:build unit
+
 package database
 
 import (
@@ -467,17 +469,17 @@ func TestBadgerLru(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	alb1 := AlbumEmptyFactory(0X36FC)
+	alb1 := AlbumEmptyFactory(0x36FC)
 	err = badger.SaveAlbum(context.Background(), alb1)
 	if err != nil {
 		t.Error(err)
 	}
-	alb2 := AlbumEmptyFactory(0XB020)
+	alb2 := AlbumEmptyFactory(0xB020)
 	err = badger.SaveAlbum(context.Background(), alb2)
 	if err != nil {
 		t.Error(err)
 	}
-	edgs, err := badger.GetEdges(context.Background(), 0X36FC)
+	edgs, err := badger.GetEdges(context.Background(), 0x36FC)
 	if err != nil {
 		t.Error(err)
 	}

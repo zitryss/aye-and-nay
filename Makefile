@@ -1,4 +1,4 @@
-.PHONY: gen compile test test-int test-ci dev-up dev-down prod-up prod-down embed-up embed-down loadtest
+.PHONY: gen compile test-unit test-int test-unit-ci test-int-ci dev-up dev-down prod-loadtest prod-up prod-down embed-loadtest embed-up embed-down
 
 gen:
 	go install github.com/mailru/easyjson/easyjson@latest
@@ -8,14 +8,17 @@ gen:
 compile: gen
 	CGO_ENABLED=0 go build -ldflags="-s -w"
 
-test: gen
-	go test -v -race -count=1 -short -cover ./...
+test-unit: gen
+	go test -v -race -shuffle=on -count=1 -short -tags=unit -cover ./...
 
 test-int: gen
-	go test -v -race -count=1 -short -cover -tags=integration ./...
+	go test -v -race -shuffle=on -count=1 -short -tags=integration -cover ./...
 
-test-ci: gen
-	go test -v -race -count=1 -tags=integration -failfast -coverprofile=coverage.txt -covermode=atomic ./...
+test-unit-ci: gen
+	go test -v -race -shuffle=on -count=1 -tags=unit -failfast -coverprofile=coverage.txt -covermode=atomic ./...
+
+test-int-ci: gen
+	go test -v -race -shuffle=on -count=1 -tags=integration -failfast -coverprofile=coverage.txt -covermode=atomic ./...
 
 dev-up:
 	docker-compose --file ./build/docker-compose-dev.yml up -d --build

@@ -81,7 +81,7 @@ func main() {
 	}
 
 	bar.Finish()
-	fmt.Println(time.Since(bar.StartTime()), "sec")
+	fmt.Println(time.Since(bar.StartTime()))
 	fmt.Println(float64(n*94)/time.Since(bar.StartTime()).Seconds(), "rps")
 }
 

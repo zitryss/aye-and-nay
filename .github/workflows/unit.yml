@@ -4,7 +4,7 @@ on:
     branches:
       - develop
 jobs:
-  integration:
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -16,11 +16,7 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
-      - run: make dev-up
-      - env:
-          CONTINUOUS_INTEGRATION: "true"
-        run: make test-int-ci
-      - run: make dev-down
+      - run: make test-unit-ci
       - uses: codecov/codecov-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

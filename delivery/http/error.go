@@ -45,16 +45,16 @@ func handleOuterError(w http.ResponseWriter, err error) {
 		w.WriteHeader(resp.Error.statusCode)
 		_ = json.NewEncoder(w).Encode(resp)
 	}()
-	e := errors.Cause(err)
-	out := domain.Outer(nil)
-	if errors.As(e, &out) {
-		out := out.Outer()
+	cause := errors.Cause(err)
+	e := domain.Error(nil)
+	if errors.As(cause, &e) {
+		out := e.Outer()
 		resp.Error.statusCode = out.StatusCode
 		resp.Error.AppCode = out.AppCode
 		resp.Error.UserMsg = out.UserMsg
 		return
 	}
-	switch e {
+	switch cause {
 	case context.Canceled:
 		resp.Error.statusCode = http.StatusInternalServerError
 		resp.Error.AppCode = -1

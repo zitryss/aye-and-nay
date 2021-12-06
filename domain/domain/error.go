@@ -214,6 +214,12 @@ var (
 	}
 )
 
+type Error interface {
+	error
+	Outer
+	Inner
+}
+
 type Outer interface {
 	Outer() outerError
 }

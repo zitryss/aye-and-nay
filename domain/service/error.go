@@ -16,15 +16,15 @@ func HandleInnerError(err error) {
 	cause := errors.Cause(err)
 	e := domain.Error(nil)
 	if errors.As(cause, &e) {
-		log.Println(log.Level(e.Inner().Level), e)
+		log.Println(log.Level(e.Inner().Level), err)
 		return
 	}
 	switch cause {
 	case context.Canceled:
-		log.Debug(cause)
+		log.Debug(err)
 	case context.DeadlineExceeded:
-		log.Debug(cause)
+		log.Debug(err)
 	default:
-		log.Errorf("%T %v", cause, cause)
+		log.Errorf("%T %v", err, err)
 	}
 }

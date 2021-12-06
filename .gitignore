@@ -8,6 +8,7 @@
 *.test
 
 # aye-and-nay
+main
 aye-and-nay
 coverage.txt
 /badger/

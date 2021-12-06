@@ -71,7 +71,7 @@ database:
     cleanupInterval: 5m
     lru: 100
 storage:
-  use: minio
+  use: mock
   minio:
     host: embed-minio
     port: 9000

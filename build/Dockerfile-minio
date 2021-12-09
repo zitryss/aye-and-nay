@@ -1,3 +1,3 @@
 FROM minio/minio:RELEASE.2021-11-24T23-19-33Z
 ENV MINIO_ROOT_USER=12345678 MINIO_ROOT_PASSWORD=qwertyui
-CMD ["server", "/data"]
+CMD ["server", "/data", "--console-address", ":9090"]

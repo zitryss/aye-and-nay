@@ -3,10 +3,12 @@ info:
   title: aye-and-nay API
   version: 1.0.0
 servers:
-  - url: https://localhost
-    description: prod
   - url: http://localhost:8001
     description: dev
+  - url: http://localhost:8001
+    description: embed
+  - url: https://localhost
+    description: prod
 paths:
   /api/albums/:
     post:

@@ -6,7 +6,7 @@ services:
       dockerfile: ./build/Dockerfile-app
     container_name: embed-app
     ports:
-      - "80:8001"
+      - "8001:8001"
     volumes:
       - "./config-embed.yml:/config.yml"
       - "./badger/:/badger/"

@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-redis
+    container_name: dev-redis
     ports:
       - "6379:6379"
     volumes:
@@ -13,6 +14,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-imaginary
+    container_name: dev-imaginary
     ports:
       - "9001:9001"
 
@@ -20,6 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-mongo
+    container_name: dev-mongo
     ports:
       - "27017:27017"
     volumes:
@@ -29,6 +32,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-minio
+    container_name: dev-minio
     ports:
       - "9000:9000"
       - "9090:9090"
@@ -37,6 +41,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-swagger
+    container_name: dev-swagger
     ports:
       - "8080:8080"
     volumes:

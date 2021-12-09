@@ -4,3 +4,5 @@
 /build/caddy/
 /build/minio/
 /build/mongo/
+/delivery/http/*_easyjson.go
+/pkg/log/*_string.go

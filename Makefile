@@ -36,7 +36,7 @@ prod-down:
 	docker-compose --file ./build/docker-compose-prod.yml down --rmi all -v
 
 embed-loadtest:
-	go run ./cmd/loadtest/main.go -verbose=false -api-address "http://embed-app:8001" -minio-address ""
+	go run ./cmd/loadtest/main.go -verbose=false -api-address "http://embed-app:80" -minio-address ""
 
 embed-up:
 	docker-compose --file ./build/docker-compose-embed.yml up -d --build

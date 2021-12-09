@@ -31,3 +31,15 @@ services:
       dockerfile: Dockerfile-minio
     ports:
       - "9000:9000"
+      - "9090:9090"
+
+  swagger:
+    build:
+      context: .
+      dockerfile: Dockerfile-swagger
+    ports:
+      - "8080:8080"
+    volumes:
+      - "./swagger.yml:/swagger.yml"
+    environment:
+      - SWAGGER_JSON=/swagger.yml

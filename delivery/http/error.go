@@ -40,8 +40,8 @@ func handleError(w http.ResponseWriter, err error) {
 func handleOuterError(w http.ResponseWriter, err error) {
 	resp := errorResponse{}
 	defer func() {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "application/json; charset=utf-8")
+		w.Header().Set(http.CanonicalHeaderKey("X-Content-Type-Options"), "nosniff")
 		w.WriteHeader(resp.Error.statusCode)
 		_ = json.NewEncoder(w).Encode(resp)
 	}()

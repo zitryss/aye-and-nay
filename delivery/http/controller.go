@@ -111,7 +111,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp albumResponse) error {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "application/json; charset=utf-8")
 		w.WriteHeader(201)
 		err := json.NewEncoder(w).Encode(resp)
 		if err != nil {
@@ -159,7 +159,7 @@ func (c *controller) handleReady() httprouter.Handle {
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp readyResponse) error {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "application/json; charset=utf-8")
 		err := json.NewEncoder(w).Encode(resp)
 		if err != nil {
 			return errors.Wrap(err)
@@ -211,7 +211,7 @@ func (c *controller) handlePair() httprouter.Handle {
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp pairResponse) error {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "application/json; charset=utf-8")
 		err := json.NewEncoder(w).Encode(resp)
 		if err != nil {
 			return errors.Wrap(err)
@@ -319,7 +319,7 @@ func (c *controller) handleTop() httprouter.Handle {
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp topResponse) error {
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "application/json; charset=utf-8")
 		err := json.NewEncoder(w).Encode(resp)
 		if err != nil {
 			return errors.Wrap(err)

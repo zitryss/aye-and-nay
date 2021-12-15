@@ -7,6 +7,7 @@ import (
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	myrand "github.com/zitryss/aye-and-nay/pkg/rand"
 )
@@ -198,33 +199,56 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	src1, err := s.pers.GetImageSrc(ctx, album, image1)
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	src2, err := s.pers.GetImageSrc(ctx, album, image2)
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	token1, err := s.rand.id()
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	err = s.token.Set(ctx, album, token1, image1)
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	token2, err := s.rand.id()
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	err = s.token.Set(ctx, album, token2, image2)
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
+	src1 := ""
+	src2 := ""
+	token1 := image1
+	token2 := image2
+	if s.conf.tempLinks {
+		token1, err = s.rand.id()
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		err = s.token.Set(ctx, token1, album, image1)
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		token1B64 := base64.FromUint64(token1)
+		src1 = "/api/images/" + token1B64
+		token2, err = s.rand.id()
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		err = s.token.Set(ctx, token2, album, image2)
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		token2B64 := base64.FromUint64(token2)
+		src2 = "/api/images/" + token2B64
+	} else {
+		src1, err = s.pers.GetImageSrc(ctx, album, image1)
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		src2, err = s.pers.GetImageSrc(ctx, album, image2)
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
 	}
 	img1 := model.Image{Id: image1, Src: src1, Token: token1}
 	img2 := model.Image{Id: image2, Src: src2, Token: token2}
 	return img1, img2, nil
+}
+
+func (s *Service) Image(ctx context.Context, token uint64) (model.File, error) {
+	album, image, err := s.token.Get(ctx, token)
+	if err != nil {
+		return model.File{}, errors.Wrap(err)
+	}
+	f, err := s.stor.Get(ctx, album, image)
+	if err != nil {
+		return model.File{}, errors.Wrap(err)
+	}
+	return f, nil
 }
 
 func (s *Service) genPairs(ctx context.Context, album uint64) error {
@@ -249,13 +273,26 @@ func (s *Service) genPairs(ctx context.Context, album uint64) error {
 }
 
 func (s *Service) Vote(ctx context.Context, album uint64, tokenFrom uint64, tokenTo uint64) error {
-	imageFrom, err := s.token.Get(ctx, album, tokenFrom)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-	imageTo, err := s.token.Get(ctx, album, tokenTo)
-	if err != nil {
-		return errors.Wrap(err)
+	imageFrom := tokenFrom
+	imageTo := tokenTo
+	err := error(nil)
+	if s.conf.tempLinks {
+		_, imageFrom, err = s.token.Get(ctx, tokenFrom)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		err = s.token.Del(ctx, tokenFrom)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		_, imageTo, err = s.token.Get(ctx, tokenTo)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		err = s.token.Del(ctx, tokenTo)
+		if err != nil {
+			return errors.Wrap(err)
+		}
 	}
 	err = s.pers.SaveVote(ctx, album, imageFrom, imageTo)
 	if err != nil {

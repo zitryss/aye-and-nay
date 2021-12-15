@@ -303,15 +303,19 @@ func TestRedisToken(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		image1 := uint64(0x52BD)
 		token := uint64(0xB41C)
-		err = redis.Set(context.Background(), 0xC2E7, token, image1)
+		album1 := uint64(0xC2E7)
+		image1 := uint64(0x52BD)
+		err = redis.Set(context.Background(), token, album1, image1)
 		if err != nil {
 			t.Error(err)
 		}
-		image2, err := redis.Get(context.Background(), 0xC2E7, token)
+		album2, image2, err := redis.Get(context.Background(), token)
 		if err != nil {
 			t.Error(err)
+		}
+		if album1 != album2 {
+			t.Error("album1 != album2")
 		}
 		if image1 != image2 {
 			t.Error("image1 != image2")
@@ -338,7 +342,7 @@ func TestRedisToken(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, err = redis.Get(context.Background(), 0x1C4A, 0xC4F8)
+		_, _, err = redis.Get(context.Background(), 0xC4F8)
 		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
@@ -354,11 +358,11 @@ func TestRedisToken(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = redis.Get(context.Background(), 0xEB96, token)
+		_, _, err = redis.Get(context.Background(), token)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = redis.Get(context.Background(), 0xEB96, token)
+		_, _, err = redis.Get(context.Background(), token)
 		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}

@@ -20,6 +20,7 @@ controller:
   maxNumberOfFiles: 100
   maxFileSize: 5242880 # 5 MB
 service:
+  tempLinks: true
   numberOfWorkersCalc: 8
   numberOfWorkersComp: 8
   accuracy: 0.625
@@ -84,4 +85,4 @@ storage:
       pause: 5s
       timeout: 30s
     location: eu-central-1
-    prefix: /s3
+    prefix: http://localhost:9000

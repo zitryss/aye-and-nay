@@ -78,9 +78,12 @@ func TestMemToken(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		image, err := mem.Get(context.Background(), 0xC2E7, 0xB41C)
+		album, image, err := mem.Get(context.Background(), 0xC2E7)
 		if err != nil {
 			t.Error(err)
+		}
+		if album != 0xB41C {
+			t.Error("image != 0x52BD")
 		}
 		if image != 0x52BD {
 			t.Error("image != 0x52BD")
@@ -99,7 +102,7 @@ func TestMemToken(t *testing.T) {
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem()
-		_, err := mem.Get(context.Background(), 0x1C4A, 0xC4F8)
+		_, _, err := mem.Get(context.Background(), 0xC4F8)
 		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
@@ -110,11 +113,11 @@ func TestMemToken(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = mem.Get(context.Background(), 0xEB96, 0xC67F)
+		_, _, err = mem.Get(context.Background(), 0xC67F)
 		if err != nil {
 			t.Error(err)
 		}
-		_, err = mem.Get(context.Background(), 0xEB96, 0xC67F)
+		_, _, err = mem.Get(context.Background(), 0xC67F)
 		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
@@ -130,7 +133,7 @@ func TestMemToken(t *testing.T) {
 		time.Sleep(mem.conf.timeToLive)
 		CheckChannel(t, heartbeatToken)
 		CheckChannel(t, heartbeatToken)
-		_, err = mem.Get(context.Background(), 0xE0AF, 0xCF1E)
+		_, _, err = mem.Get(context.Background(), 0xCF1E)
 		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}

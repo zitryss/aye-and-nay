@@ -27,6 +27,12 @@ type pairRequest struct {
 	}
 }
 
+type imageRequest struct {
+	image struct {
+		token string
+	}
+}
+
 //easyjson:json
 type voteRequest struct {
 	Album struct {

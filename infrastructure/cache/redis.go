@@ -202,11 +202,11 @@ func (r *Redis) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 	return image0, image1, nil
 }
 
-func (r *Redis) Set(ctx context.Context, album uint64, token uint64, image uint64) error {
-	albumB64 := base64.FromUint64(album)
+func (r *Redis) Set(ctx context.Context, token uint64, album uint64, image uint64) error {
 	tokenB64 := base64.FromUint64(token)
+	albumB64 := base64.FromUint64(album)
 	imageB64 := base64.FromUint64(image)
-	key := "album:" + albumB64 + ":token:" + tokenB64 + ":image"
+	key := "token:" + tokenB64
 	n, err := r.client.Exists(ctx, key).Result()
 	if err != nil {
 		return errors.Wrap(err)
@@ -214,33 +214,46 @@ func (r *Redis) Set(ctx context.Context, album uint64, token uint64, image uint6
 	if n == 1 {
 		return errors.Wrap(domain.ErrTokenAlreadyExists)
 	}
-	err = r.client.Set(ctx, key, imageB64, r.conf.timeToLive).Err()
+	err = r.client.Set(ctx, key, albumB64+":"+imageB64, r.conf.timeToLive).Err()
 	if err != nil {
 		return errors.Wrap(err)
 	}
 	return nil
 }
 
-func (r *Redis) Get(ctx context.Context, album uint64, token uint64) (uint64, error) {
-	albumB64 := base64.FromUint64(album)
+func (r *Redis) Get(ctx context.Context, token uint64) (uint64, uint64, error) {
 	tokenB64 := base64.FromUint64(token)
-	key := "album:" + albumB64 + ":token:" + tokenB64 + ":image"
-	imageB64, err := r.client.Get(ctx, key).Result()
+	key := "token:" + tokenB64
+	s, err := r.client.Get(ctx, key).Result()
 	if errors.Is(err, redisdb.Nil) {
-		return 0x0, errors.Wrap(domain.ErrTokenNotFound)
+		return 0x0, 0x0, errors.Wrap(domain.ErrTokenNotFound)
 	}
 	if err != nil {
-		return 0x0, errors.Wrap(err)
+		return 0x0, 0x0, errors.Wrap(err)
 	}
-	err = r.client.Del(ctx, key).Err()
+	ss := strings.Split(s, ":")
+	if len(ss) != 2 {
+		return 0x0, 0x0, errors.Wrap(domain.ErrUnknown)
+	}
+	album, err := base64.ToUint64(ss[0])
 	if err != nil {
-		return 0x0, errors.Wrap(err)
+		return 0x0, 0x0, errors.Wrap(err)
 	}
-	image, err := base64.ToUint64(imageB64)
+	image, err := base64.ToUint64(ss[1])
 	if err != nil {
-		return 0x0, errors.Wrap(err)
+		return 0x0, 0x0, errors.Wrap(err)
 	}
-	return image, nil
+	return album, image, nil
+}
+
+func (r *Redis) Del(ctx context.Context, token uint64) error {
+	tokenB64 := base64.FromUint64(token)
+	key := "token:" + tokenB64
+	err := r.client.Del(ctx, key).Err()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	return nil
 }
 
 func (r *Redis) Close() error {

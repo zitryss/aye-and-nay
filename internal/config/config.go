@@ -12,6 +12,7 @@ func init() {
 	viper.Set("controller.maxNumberOfFiles", 3)
 	viper.Set("controller.maxFileSize", 512*unit.KB)
 	viper.Set("service.numberOfWorkersCalc", 2)
+	viper.Set("service.tempLinks", false)
 	viper.Set("service.numberOfWorkersComp", 2)
 	viper.Set("service.accuracy", 0.625)
 	viper.Set("cache.redis.host", "localhost")

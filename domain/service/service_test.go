@@ -268,6 +268,9 @@ func TestServicePair(t *testing.T) {
 	})
 }
 
+func TestServiceImage(t *testing.T) {
+}
+
 func TestServiceVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		fn1 := func() func() (uint64, error) {

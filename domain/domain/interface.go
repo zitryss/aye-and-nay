@@ -10,6 +10,7 @@ import (
 type Servicer interface {
 	Album(ctx context.Context, ff []model.File, dur time.Duration) (uint64, error)
 	Pair(ctx context.Context, album uint64) (model.Image, model.Image, error)
+	Image(ctx context.Context, token uint64) (model.File, error)
 	Vote(ctx context.Context, album uint64, tokenFrom uint64, tokenTo uint64) error
 	Top(ctx context.Context, album uint64) ([]model.Image, error)
 	Progress(ctx context.Context, album uint64) (float64, error)
@@ -70,6 +71,7 @@ type Stacker interface {
 }
 
 type Tokener interface {
-	Set(ctx context.Context, album uint64, token uint64, image uint64) error
-	Get(ctx context.Context, album uint64, token uint64) (uint64, error)
+	Set(ctx context.Context, token uint64, album uint64, image uint64) error
+	Get(ctx context.Context, token uint64) (uint64, uint64, error)
+	Del(ctx context.Context, token uint64) error
 }

@@ -1,10 +1,13 @@
 package http
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -14,6 +17,7 @@ import (
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
+	"github.com/zitryss/aye-and-nay/pkg/pool"
 )
 
 func newController(
@@ -213,6 +217,64 @@ func (c *controller) handlePair() httprouter.Handle {
 	output := func(ctx context.Context, w http.ResponseWriter, resp pairResponse) error {
 		w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "application/json; charset=utf-8")
 		err := json.NewEncoder(w).Encode(resp)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		return nil
+	}
+	return handleHttpRouterError(
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+			ctx, req, err := input(r, ps)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+			resp, err := process(ctx, req)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+			err = output(ctx, w, resp)
+			if err != nil {
+				return errors.Wrap(err)
+			}
+			return nil
+		},
+	)
+}
+
+func (c *controller) handleImage() httprouter.Handle {
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, imageRequest, error) {
+		ctx := r.Context()
+		req := imageRequest{}
+		req.image.token = ps.ByName("token")
+		return ctx, req, nil
+	}
+	process := func(ctx context.Context, req imageRequest) (imageResponse, error) {
+		token, err := base64.ToUint64(req.image.token)
+		if err != nil {
+			return imageResponse{}, errors.Wrap(err)
+		}
+		f, err := c.serv.Image(ctx, token)
+		if err != nil {
+			return imageResponse{}, errors.Wrap(err)
+		}
+		resp := imageResponse{f}
+		return resp, nil
+	}
+	output := func(ctx context.Context, w http.ResponseWriter, resp imageResponse) error {
+		defer func() {
+			switch v := resp.f.Reader.(type) {
+			case *os.File:
+				_ = v.Close()
+				_ = os.Remove(v.Name())
+			case multipart.File:
+				_ = v.Close()
+			case *bytes.Buffer:
+				pool.PutBuffer(v)
+			default:
+				panic(errors.Wrap(domain.ErrUnknown))
+			}
+		}()
+		_, err := io.Copy(w, resp.f)
 		if err != nil {
 			return errors.Wrap(err)
 		}

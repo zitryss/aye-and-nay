@@ -724,6 +724,9 @@ func TestControllerHandlePair(t *testing.T) {
 	}
 }
 
+func TestControllerHandleImage(t *testing.T) {
+}
+
 func TestControllerHandleVote(t *testing.T) {
 	type give struct {
 		err error

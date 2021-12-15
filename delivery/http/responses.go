@@ -2,6 +2,10 @@
 
 package http
 
+import (
+	"github.com/zitryss/aye-and-nay/domain/model"
+)
+
 //easyjson:json
 type albumResponse struct {
 	Album struct {
@@ -28,6 +32,10 @@ type pairResponse struct {
 			Src   string `json:"src"`
 		} `json:"img2"`
 	} `json:"album"`
+}
+
+type imageResponse struct {
+	f model.File
 }
 
 type voteResponse struct {

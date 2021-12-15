@@ -92,7 +92,8 @@ type syncTokens struct {
 }
 
 type tokenTime struct {
-	token uint64
+	album uint64
+	image uint64
 	seen  time.Time
 }
 
@@ -289,7 +290,7 @@ func (m *Mem) Pop(_ context.Context, album uint64) (uint64, uint64, error) {
 	return images[0], images[1], nil
 }
 
-func (m *Mem) Set(_ context.Context, _ uint64, token uint64, image uint64) error {
+func (m *Mem) Set(_ context.Context, token uint64, album uint64, image uint64) error {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
 	_, ok := m.tokens[token]
@@ -297,19 +298,26 @@ func (m *Mem) Set(_ context.Context, _ uint64, token uint64, image uint64) error
 		return errors.Wrap(domain.ErrTokenAlreadyExists)
 	}
 	t := &tokenTime{}
-	t.token = image
+	t.album = album
+	t.image = image
 	t.seen = time.Now()
 	m.tokens[token] = t
 	return nil
 }
 
-func (m *Mem) Get(_ context.Context, _ uint64, token uint64) (uint64, error) {
+func (m *Mem) Get(_ context.Context, token uint64) (uint64, uint64, error) {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
-	image, ok := m.tokens[token]
+	t, ok := m.tokens[token]
 	if !ok {
-		return 0x0, errors.Wrap(domain.ErrTokenNotFound)
+		return 0x0, 0x0, errors.Wrap(domain.ErrTokenNotFound)
 	}
+	return t.album, t.image, nil
+}
+
+func (m *Mem) Del(_ context.Context, token uint64) error {
+	m.syncTokens.Lock()
+	defer m.syncTokens.Unlock()
 	delete(m.tokens, token)
-	return image.token, nil
+	return nil
 }

@@ -535,7 +535,7 @@ func TestControllerHandleReady(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleReady()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/api/albums/rRsAAAAAAAA/ready", nil)
+			r := httptest.NewRequest(http.MethodGet, "/api/albums/rRsAAAAAAAA/ready", http.NoBody)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "rRsAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
@@ -715,7 +715,7 @@ func TestControllerHandlePair(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handlePair()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/api/albums/nkUAAAAAAAA/", nil)
+			r := httptest.NewRequest(http.MethodGet, "/api/albums/nkUAAAAAAAA/", http.NoBody)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "nkUAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
@@ -896,7 +896,7 @@ func TestControllerHandleImage(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleImage()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/api/images/8v7AAAAAAAA/", nil)
+			r := httptest.NewRequest(http.MethodGet, "/api/images/8v7AAAAAAAA/", http.NoBody)
 			ps := httprouter.Params{httprouter.Param{Key: "token", Value: "8v7AAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)
@@ -1258,7 +1258,7 @@ func TestControllerHandleTop(t *testing.T) {
 			contr := newController(serv)
 			fn := contr.handleTop()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/api/albums/byYAAAAAAAA/top/", nil)
+			r := httptest.NewRequest(http.MethodGet, "/api/albums/byYAAAAAAAA/top/", http.NoBody)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "byYAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)

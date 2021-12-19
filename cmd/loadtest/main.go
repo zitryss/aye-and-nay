@@ -139,7 +139,7 @@ func albumApi() string {
 }
 
 func readyApi(album string) {
-	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/ready/", nil)
+	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/ready/", http.NoBody)
 	debug.Check(err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -164,7 +164,7 @@ func pairHtml() {
 }
 
 func pairApi(album string) (string, string, string, string) {
-	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/pair/", nil)
+	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/pair/", http.NoBody)
 	debug.Check(err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -218,7 +218,7 @@ func topHtml() {
 }
 
 func topApi(album string) []string {
-	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/top/", nil)
+	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/top/", http.NoBody)
 	debug.Check(err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -258,7 +258,7 @@ func html(page string) {
 	if htmlAddress == "" {
 		return
 	}
-	req, err := http.NewRequest("GET", htmlAddress+page, nil)
+	req, err := http.NewRequest("GET", htmlAddress+page, http.NoBody)
 	if err != nil {
 		return
 	}
@@ -275,7 +275,7 @@ func minio(src string) {
 	if minioAddress == "" {
 		return
 	}
-	req, err := http.NewRequest("GET", minioAddress+src, nil)
+	req, err := http.NewRequest("GET", minioAddress+src, http.NoBody)
 	if err != nil {
 		return
 	}

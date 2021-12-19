@@ -31,19 +31,19 @@ func TestLogLevelPositive(t *testing.T) {
 			want:  "critical: message7\ncritical: message8: ju iv\n",
 		},
 		{
-			level: log.Ldebug,
+			level: log.DEBUG,
 			want:  "debug: message1\ndebug: message2: 60 95\ninfo: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
 		},
 		{
-			level: log.Linfo,
+			level: log.INFO,
 			want:  "info: message3\ninfo: message4: mx 12\nerror: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
 		},
 		{
-			level: log.Lerror,
+			level: log.ERROR,
 			want:  "error: message5\nerror: message6: 80 dq\ncritical: message7\ncritical: message8: ju iv\n",
 		},
 		{
-			level: log.Lcritical,
+			level: log.CRITICAL,
 			want:  "critical: message7\ncritical: message8: ju iv\n",
 		},
 	}
@@ -94,7 +94,7 @@ func TestLogLevelNegative(t *testing.T) {
 			log.SetOutput(&w)
 			log.SetPrefix("")
 			log.SetFlags(0)
-			log.SetLevel(log.Ldebug)
+			log.SetLevel(log.DEBUG)
 			log.Debug("message1")
 			log.Debugf("message2: %d %d", 60, 95)
 			log.Info("message3")
@@ -106,7 +106,7 @@ func TestLogLevelNegative(t *testing.T) {
 			log.Criticalf("message8: %s %s", "ju", "iv")
 			got := w.String()
 			if got != tt.want {
-				t.Errorf("level = %v; got %v; want %v", log.Ldebug, got, tt.want)
+				t.Errorf("level = %v; got %v; want %v", log.DEBUG, got, tt.want)
 			}
 		})
 	}

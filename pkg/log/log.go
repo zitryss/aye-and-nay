@@ -11,11 +11,11 @@ import (
 type Level int
 
 const (
-	ldisabled Level = iota
-	Ldebug          // debug
-	Linfo           // info
-	Lerror          // error
-	Lcritical       // critical
+	disabled Level = iota
+	DEBUG          // debug
+	INFO           // info
+	ERROR          // error
+	CRITICAL       // critical
 )
 
 var (
@@ -41,10 +41,10 @@ func SetFlags(flag int) {
 
 func SetLevel(lvl interface{}) {
 	oldLevel := l.lvl
-	newLevel := ldisabled
+	newLevel := disabled
 	switch v := lvl.(type) {
 	case Level:
-		if Ldebug <= v && v <= Lcritical {
+		if DEBUG <= v && v <= CRITICAL {
 			newLevel = v
 		} else {
 			newLevel = oldLevel
@@ -53,13 +53,13 @@ func SetLevel(lvl interface{}) {
 		v = strings.ToLower(v)
 		switch v {
 		case "debug":
-			newLevel = Ldebug
+			newLevel = DEBUG
 		case "info":
-			newLevel = Linfo
+			newLevel = INFO
 		case "error":
-			newLevel = Lerror
+			newLevel = ERROR
 		case "critical":
-			newLevel = Lcritical
+			newLevel = CRITICAL
 		default:
 			newLevel = oldLevel
 		}
@@ -70,45 +70,45 @@ func SetLevel(lvl interface{}) {
 }
 
 func Println(level Level, v ...interface{}) {
-	if Ldebug <= level && level <= Lcritical && l.lvl <= level {
+	if DEBUG <= level && level <= CRITICAL && l.lvl <= level {
 		l.Println(append([]interface{}{fmt.Sprint(level) + ":"}, v...)...)
 	}
 }
 
 func Printf(level Level, format string, v ...interface{}) {
-	if Ldebug <= level && level <= Lcritical && l.lvl <= level {
+	if DEBUG <= level && level <= CRITICAL && l.lvl <= level {
 		l.Printf("%s: "+format, append([]interface{}{level}, v...)...)
 	}
 }
 
 func Debug(v ...interface{}) {
-	Println(Ldebug, v...)
+	Println(DEBUG, v...)
 }
 
 func Debugf(format string, v ...interface{}) {
-	Printf(Ldebug, format, v...)
+	Printf(DEBUG, format, v...)
 }
 
 func Info(v ...interface{}) {
-	Println(Linfo, v...)
+	Println(INFO, v...)
 }
 
 func Infof(format string, v ...interface{}) {
-	Printf(Linfo, format, v...)
+	Printf(INFO, format, v...)
 }
 
 func Error(v ...interface{}) {
-	Println(Lerror, v...)
+	Println(ERROR, v...)
 }
 
 func Errorf(format string, v ...interface{}) {
-	Printf(Lerror, format, v...)
+	Printf(ERROR, format, v...)
 }
 
 func Critical(v ...interface{}) {
-	Println(Lcritical, v...)
+	Println(CRITICAL, v...)
 }
 
 func Criticalf(format string, v ...interface{}) {
-	Printf(Lcritical, format, v...)
+	Printf(CRITICAL, format, v...)
 }

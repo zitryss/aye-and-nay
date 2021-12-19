@@ -16,7 +16,7 @@ func TestMain(m *testing.M) {
 	_, err := env.Lookup("CONTINUOUS_INTEGRATION")
 	if err != nil {
 		log.SetOutput(os.Stderr)
-		log.SetLevel(log.Lcritical)
+		log.SetLevel(log.CRITICAL)
 		docker := dockertest.New()
 		docker.RunMongo()
 		log.SetOutput(io.Discard)

@@ -44,9 +44,11 @@ func main() {
 
 	ballast = make([]byte, viper.GetInt64("app.ballast"))
 
-	lvl := viper.GetString("app.log")
+	p := viper.GetString("app.name")
+	l := viper.GetString("app.log")
 	log.SetOutput(os.Stderr)
-	log.SetLevel(lvl)
+	log.SetPrefix(p)
+	log.SetLevel(l)
 	log.Info("logging initialized")
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

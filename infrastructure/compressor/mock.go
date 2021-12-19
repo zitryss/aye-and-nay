@@ -35,7 +35,7 @@ func (m *Mock) Compress(_ context.Context, f model.File) (model.File, error) {
 		}
 	}()
 	buf := pool.GetBuffer()
-	n, err := io.CopyN(buf, f, f.Size)
+	n, err := io.Copy(buf, f)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}

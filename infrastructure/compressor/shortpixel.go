@@ -90,7 +90,7 @@ func (sp *Shortpixel) Compress(ctx context.Context, f model.File) (model.File, e
 	}()
 	if atomic.LoadUint32(&sp.done) != 0 {
 		buf := pool.GetBuffer()
-		n, err := io.CopyN(buf, f, f.Size)
+		n, err := io.Copy(buf, f)
 		if err != nil {
 			return model.File{}, errors.Wrap(err)
 		}
@@ -169,7 +169,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	_, err = io.CopyN(part, f, f.Size)
+	_, err = io.Copy(part, f)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}

@@ -48,7 +48,7 @@ func (m *Mock) Image(_ context.Context, _ uint64) (model.File, error) {
 	}
 	buf := pool.GetBuffer()
 	f := Png()
-	n, err := io.CopyN(buf, f, f.Size)
+	n, err := io.Copy(buf, f)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}

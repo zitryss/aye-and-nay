@@ -46,7 +46,7 @@ func (m *Mock) Put(_ context.Context, album uint64, image uint64, f model.File) 
 func (m *Mock) Get(_ context.Context, _ uint64, _ uint64) (model.File, error) {
 	buf := pool.GetBuffer()
 	f := Png()
-	n, err := io.CopyN(buf, f, f.Size)
+	n, err := io.Copy(buf, f)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}

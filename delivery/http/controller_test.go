@@ -5,6 +5,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -725,6 +726,184 @@ func TestControllerHandlePair(t *testing.T) {
 }
 
 func TestControllerHandleImage(t *testing.T) {
+	body, _ := io.ReadAll(Png())
+	type give struct {
+		err error
+	}
+	type want struct {
+		code int
+		typ  string
+		body string
+	}
+	tests := []struct {
+		give
+		want
+	}{
+		{
+			give: give{
+				err: nil,
+			},
+			want: want{
+				code: 200,
+				typ:  "image/png",
+				body: string(body),
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrTooManyRequests,
+			},
+			want: want{
+				code: 429,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrBodyTooLarge,
+			},
+			want: want{
+				code: 413,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrWrongContentType,
+			},
+			want: want{
+				code: 415,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrNotEnoughImages,
+			},
+			want: want{
+				code: 400,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrTooManyImages,
+			},
+			want: want{
+				code: 413,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrImageTooLarge,
+			},
+			want: want{
+				code: 413,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrNotImage,
+			},
+			want: want{
+				code: 415,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrDurationNotSet,
+			},
+			want: want{
+				code: 400,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrDurationInvalid,
+			},
+			want: want{
+				code: 400,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrAlbumNotFound,
+			},
+			want: want{
+				code: 404,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrTokenNotFound,
+			},
+			want: want{
+				code: 404,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrThirdPartyUnavailable,
+			},
+			want: want{
+				code: 500,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: context.Canceled,
+			},
+			want: want{
+				code: 500,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: context.DeadlineExceeded,
+			},
+			want: want{
+				code: 500,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run("", func(t *testing.T) {
+			serv := service.NewMock(tt.give.err)
+			contr := newController(serv)
+			fn := contr.handleImage()
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/api/images/8v7AAAAAAAA/", nil)
+			ps := httprouter.Params{httprouter.Param{Key: "token", Value: "8v7AAAAAAAA"}}
+			fn(w, r, ps)
+			CheckStatusCode(t, w, tt.want.code)
+			CheckContentType(t, w, tt.want.typ)
+			CheckBody(t, w, tt.want.body)
+		})
+	}
 }
 
 func TestControllerHandleVote(t *testing.T) {

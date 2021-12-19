@@ -20,7 +20,7 @@ controller:
   maxNumberOfFiles: 100
   maxFileSize: 5242880 # 5 MB
 service:
-  tempLinks: true
+  tempLinks: false
   numberOfWorkersCalc: 8
   numberOfWorkersComp: 8
   accuracy: 0.625

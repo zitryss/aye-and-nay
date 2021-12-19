@@ -59,9 +59,9 @@ paths:
   /api/images/{token}/:
     get:
       description: >
-        Irure quis ad enim deserunt magna anim ut laborum aliqua commodo
-        nisi voluptate fugiat incididunt esse exercitation aliqua in in 
-        voluptate ea deserunt mollit aliqua exercitation ea laborum
+        If the backend is configured to hide an image ID, it will return
+        a temporary link to a file which can be requested under this
+        endpoint.
       parameters:
         - $ref: '#/components/parameters/tokenParam'
       responses:

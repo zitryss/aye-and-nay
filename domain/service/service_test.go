@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
@@ -269,6 +270,74 @@ func TestServicePair(t *testing.T) {
 }
 
 func TestServiceImage(t *testing.T) {
+	viper.Set("service.tempLinks", true)
+	defer viper.Set("service.tempLinks", false)
+	t.Run("Positive", func(t *testing.T) {
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
+				i++
+				return 0xA83F + i, nil
+			}
+		}()
+		fn2 := func(n int, swap func(i int, j int)) {
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		comp := compressor.NewMock()
+		stor := storage.NewMock()
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{}
+		qDel.Monitor(ctx)
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		files := []model.File{Png(), Png()}
+		album, err := serv.Album(ctx, files, 0*time.Millisecond)
+		if err != nil {
+			t.Error(err)
+		}
+		img1, img2, err := serv.Pair(ctx, album)
+		if err != nil {
+			t.Error(err)
+		}
+		f, err := serv.Image(ctx, img1.Token)
+		if err != nil {
+			t.Error(err)
+		}
+		if f.Reader == nil {
+			t.Error("f.Reader == nil")
+		}
+		f, err = serv.Image(ctx, img2.Token)
+		if err != nil {
+			t.Error(err)
+		}
+		if f.Reader == nil {
+			t.Error("f.Reader == nil")
+		}
+	})
+	t.Run("Negative", func(t *testing.T) {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		comp := compressor.NewMock()
+		stor := storage.NewMock()
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{}
+		qDel.Monitor(ctx)
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel)
+		_, err := serv.Image(ctx, 0xE283)
+		if !errors.Is(err, domain.ErrTokenNotFound) {
+			t.Error(err)
+		}
+	})
 }
 
 func TestServiceVote(t *testing.T) {

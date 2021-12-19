@@ -303,8 +303,8 @@ func TestRedisToken(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		token := uint64(0xB41C)
-		album1 := uint64(0xC2E7)
+		token := uint64(0xC2E7)
+		album1 := uint64(0xB41C)
 		image1 := uint64(0x52BD)
 		err = redis.Set(context.Background(), token, album1, image1)
 		if err != nil {
@@ -326,13 +326,14 @@ func TestRedisToken(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		token := uint64(0x1C4A)
+		album := uint64(0xF0EE)
 		image := uint64(0x583C)
-		token := uint64(0xF0EE)
-		err = redis.Set(context.Background(), 0x1C4A, token, image)
+		err = redis.Set(context.Background(), token, album, image)
 		if err != nil {
 			t.Error(err)
 		}
-		err = redis.Set(context.Background(), 0x1C4A, token, image)
+		err = redis.Set(context.Background(), token, album, image)
 		if !errors.Is(err, domain.ErrTokenAlreadyExists) {
 			t.Error(err)
 		}
@@ -342,7 +343,8 @@ func TestRedisToken(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, _, err = redis.Get(context.Background(), 0xC4F8)
+		token := uint64(0xC4F8)
+		_, _, err = redis.Get(context.Background(), token)
 		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
 		}
@@ -352,18 +354,38 @@ func TestRedisToken(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		token := uint64(0xEB96)
+		album := uint64(0xC67F)
 		image := uint64(0x7C45)
-		token := uint64(0xC67F)
-		err = redis.Set(context.Background(), 0xEB96, token, image)
+		err = redis.Set(context.Background(), token, album, image)
 		if err != nil {
 			t.Error(err)
 		}
 		_, _, err = redis.Get(context.Background(), token)
+		if err != nil {
+			t.Error(err)
+		}
+		err = redis.Del(context.Background(), token)
+		if err != nil {
+			t.Error(err)
+		}
+		err = redis.Del(context.Background(), token)
 		if err != nil {
 			t.Error(err)
 		}
 		_, _, err = redis.Get(context.Background(), token)
 		if !errors.Is(err, domain.ErrTokenNotFound) {
+			t.Error(err)
+		}
+	})
+	t.Run("Negative4", func(t *testing.T) {
+		redis, err := NewRedis()
+		if err != nil {
+			t.Fatal(err)
+		}
+		token := uint64(0xD3BF)
+		err = redis.Del(context.Background(), token)
+		if err != nil {
 			t.Error(err)
 		}
 	})

@@ -25,6 +25,7 @@ var (
 	n            int
 	apiAddress   string
 	minioAddress string
+	htmlAddress  string
 	connections  int
 	testdata     string
 	verbose      bool
@@ -36,6 +37,7 @@ func main() {
 	flag.IntVar(&n, "n", 2, "#albums")
 	flag.StringVar(&apiAddress, "api-address", "https://localhost", "")
 	flag.StringVar(&minioAddress, "minio-address", "https://localhost", "")
+	flag.StringVar(&htmlAddress, "html-address", "https://localhost", "")
 	flag.IntVar(&connections, "connections", 2, "")
 	flag.StringVar(&testdata, "testdata", "./testdata", "")
 	flag.BoolVar(&verbose, "verbose", true, "")
@@ -253,10 +255,10 @@ func topMinio(src []string) {
 }
 
 func html(page string) {
-	if apiAddress != minioAddress {
+	if htmlAddress == "" {
 		return
 	}
-	req, err := http.NewRequest("GET", apiAddress+page, nil)
+	req, err := http.NewRequest("GET", htmlAddress+page, nil)
 	if err != nil {
 		return
 	}
@@ -264,6 +266,7 @@ func html(page string) {
 	if err != nil {
 		return
 	}
+	debug.Assert(resp.StatusCode == 200)
 	_, _ = io.Copy(io.Discard, resp.Body)
 	_ = resp.Body.Close()
 }
@@ -280,6 +283,7 @@ func minio(src string) {
 	if err != nil {
 		return
 	}
+	debug.Assert(resp.StatusCode == 200)
 	_, _ = io.Copy(io.Discard, resp.Body)
 	_ = resp.Body.Close()
 }

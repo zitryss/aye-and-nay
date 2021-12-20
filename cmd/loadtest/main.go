@@ -279,7 +279,6 @@ func minio(src string) {
 	if minioAddress == "" && address == "" {
 		return
 	}
-	fmt.Println(address + src)
 	req, err := http.NewRequest("GET", address+src, http.NoBody)
 	if err != nil {
 		return

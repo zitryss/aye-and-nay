@@ -272,10 +272,15 @@ func html(page string) {
 }
 
 func minio(src string) {
-	if minioAddress == "" {
+	address := minioAddress
+	if strings.HasPrefix(src, "/api/images/") {
+		address = apiAddress
+	}
+	if minioAddress == "" && address == "" {
 		return
 	}
-	req, err := http.NewRequest("GET", minioAddress+src, http.NoBody)
+	fmt.Println(address + src)
+	req, err := http.NewRequest("GET", address+src, http.NoBody)
 	if err != nil {
 		return
 	}

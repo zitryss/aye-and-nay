@@ -69,12 +69,12 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 			panic(errors.Wrap(domain.ErrUnknown))
 		}
 	}()
-	buf := pool.GetBuffer()
+	buf := pool.GetBufferN(f.Size)
 	tee := model.File{
 		Reader: io.TeeReader(f.Reader, buf),
 		Size:   f.Size,
 	}
-	body := pool.GetBuffer()
+	body := pool.GetBufferN(f.Size)
 	defer pool.PutBuffer(body)
 	multi := multipart.NewWriter(body)
 	part, err := multi.CreateFormFile("file", "non-empty-field")

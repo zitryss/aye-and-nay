@@ -144,7 +144,11 @@ func (m *Minio) Get(ctx context.Context, album uint64, image uint64) (model.File
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	buf := pool.GetBuffer()
+	info, err := obj.Stat()
+	if err != nil {
+		return model.File{}, errors.Wrap(err)
+	}
+	buf := pool.GetBufferN(info.Size)
 	n, err := io.Copy(buf, obj)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)

@@ -89,7 +89,7 @@ func (sp *Shortpixel) Compress(ctx context.Context, f model.File) (model.File, e
 		}
 	}()
 	if atomic.LoadUint32(&sp.done) != 0 {
-		buf := pool.GetBuffer()
+		buf := pool.GetBufferN(f.Size)
 		n, err := io.Copy(buf, f)
 		if err != nil {
 			return model.File{}, errors.Wrap(err)
@@ -122,7 +122,7 @@ func (sp *Shortpixel) compress(ctx context.Context, f model.File) (model.File, e
 }
 
 func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) {
-	body := pool.GetBuffer()
+	body := pool.GetBufferN(f.Size)
 	defer pool.PutBuffer(body)
 	multi := multipart.NewWriter(body)
 	part, err := multi.CreateFormField("key")
@@ -199,7 +199,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	buf := pool.GetBuffer()
+	buf := pool.GetBufferN(resp.ContentLength)
 	defer pool.PutBuffer(buf)
 	_, err = io.Copy(buf, resp.Body)
 	if err != nil {
@@ -293,7 +293,7 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	buf := pool.GetBuffer()
+	buf := pool.GetBufferN(resp.ContentLength)
 	defer pool.PutBuffer(buf)
 	_, err = io.Copy(buf, resp.Body)
 	if err != nil {
@@ -360,7 +360,7 @@ func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, err
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	buf := pool.GetBuffer()
+	buf := pool.GetBufferN(resp.ContentLength)
 	n, err := io.Copy(buf, resp.Body)
 	if err != nil {
 		_, _ = io.Copy(io.Discard, resp.Body)

@@ -81,7 +81,7 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	n, err := io.Copy(part, tee)
+	n, err := io.Copy(part, tee.Reader)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}

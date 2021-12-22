@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"io"
@@ -40,8 +39,7 @@ func (m *Mock) Put(_ context.Context, album uint64, image uint64, f model.File) 
 	albumB64 := base64.FromUint64(album)
 	imageB64 := base64.FromUint64(image)
 	filename := "albums/" + albumB64 + "/images/" + imageB64
-	buf := bufio.NewReader(f)
-	_, _ = io.Copy(io.Discard, buf)
+	_, _ = io.Copy(io.Discard, f.Reader)
 	src := "/aye-and-nay/" + filename
 	return src, nil
 }
@@ -49,7 +47,7 @@ func (m *Mock) Put(_ context.Context, album uint64, image uint64, f model.File) 
 func (m *Mock) Get(_ context.Context, _ uint64, _ uint64) (model.File, error) {
 	f := Png()
 	buf := pool.GetBufferN(f.Size)
-	n, err := io.Copy(buf, f)
+	n, err := io.Copy(buf, f.Reader)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}

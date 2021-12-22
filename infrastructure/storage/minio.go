@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"io"
@@ -127,8 +126,7 @@ func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.Fil
 	albumB64 := base64.FromUint64(album)
 	imageB64 := base64.FromUint64(image)
 	filename := "albums/" + albumB64 + "/images/" + imageB64
-	buf := bufio.NewReader(f)
-	_, err := m.client.PutObject(ctx, "aye-and-nay", filename, buf, f.Size, minios3.PutObjectOptions{})
+	_, err := m.client.PutObject(ctx, "aye-and-nay", filename, f.Reader, f.Size, minios3.PutObjectOptions{})
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -144,6 +142,7 @@ func (m *Minio) Get(ctx context.Context, album uint64, image uint64) (model.File
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
+	defer obj.Close()
 	info, err := obj.Stat()
 	if err != nil {
 		return model.File{}, errors.Wrap(err)

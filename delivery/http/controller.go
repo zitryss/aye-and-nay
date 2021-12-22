@@ -274,7 +274,7 @@ func (c *controller) handleImage() httprouter.Handle {
 				panic(errors.Wrap(domain.ErrUnknown))
 			}
 		}()
-		_, err := io.Copy(w, resp.f)
+		_, err := io.Copy(w, resp.f.Reader)
 		if err != nil {
 			return errors.Wrap(err)
 		}

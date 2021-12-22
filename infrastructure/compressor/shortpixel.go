@@ -1,13 +1,11 @@
 package compressor
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"sync/atomic"
 	"time"
 
@@ -75,19 +73,7 @@ func (sp *Shortpixel) Monitor() {
 }
 
 func (sp *Shortpixel) Compress(ctx context.Context, f model.File) (model.File, error) {
-	defer func() {
-		switch v := f.Reader.(type) {
-		case *os.File:
-			_ = v.Close()
-			_ = os.Remove(v.Name())
-		case multipart.File:
-			_ = v.Close()
-		case *bytes.Buffer:
-			pool.PutBuffer(v)
-		default:
-			panic(errors.Wrap(domain.ErrUnknown))
-		}
-	}()
+	defer f.Close()
 	if atomic.LoadUint32(&sp.done) != 0 {
 		buf := pool.GetBufferN(f.Size)
 		n, err := io.Copy(buf, f.Reader)
@@ -371,5 +357,9 @@ func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, err
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	return model.File{Reader: buf, Size: n}, nil
+	closeFn := func() error {
+		pool.PutBuffer(buf)
+		return nil
+	}
+	return model.NewFile(buf, closeFn, n), nil
 }

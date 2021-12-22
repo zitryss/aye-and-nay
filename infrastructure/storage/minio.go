@@ -1,17 +1,13 @@
 package storage
 
 import (
-	"bytes"
 	"context"
 	"io"
-	"mime/multipart"
 	"net/http"
-	"os"
 
 	minios3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
-	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -110,19 +106,7 @@ type Minio struct {
 }
 
 func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.File) (string, error) {
-	defer func() {
-		switch v := f.Reader.(type) {
-		case *os.File:
-			_ = v.Close()
-			_ = os.Remove(v.Name())
-		case multipart.File:
-			_ = v.Close()
-		case *bytes.Buffer:
-			pool.PutBuffer(v)
-		default:
-			panic(errors.Wrap(domain.ErrUnknown))
-		}
-	}()
+	defer f.Close()
 	albumB64 := base64.FromUint64(album)
 	imageB64 := base64.FromUint64(image)
 	filename := "albums/" + albumB64 + "/images/" + imageB64
@@ -152,7 +136,11 @@ func (m *Minio) Get(ctx context.Context, album uint64, image uint64) (model.File
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	return model.File{Reader: buf, Size: n}, nil
+	closeFn := func() error {
+		pool.PutBuffer(buf)
+		return nil
+	}
+	return model.NewFile(buf, closeFn, n), nil
 }
 
 func (m *Minio) Remove(ctx context.Context, album uint64, image uint64) error {

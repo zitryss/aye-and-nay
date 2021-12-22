@@ -1,13 +1,9 @@
 package storage
 
 import (
-	"bytes"
 	"context"
 	"io"
-	"mime/multipart"
-	"os"
 
-	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
@@ -23,19 +19,7 @@ type Mock struct {
 }
 
 func (m *Mock) Put(_ context.Context, album uint64, image uint64, f model.File) (string, error) {
-	defer func() {
-		switch v := f.Reader.(type) {
-		case *os.File:
-			_ = v.Close()
-			_ = os.Remove(v.Name())
-		case multipart.File:
-			_ = v.Close()
-		case *bytes.Buffer:
-			pool.PutBuffer(v)
-		default:
-			panic(errors.Wrap(domain.ErrUnknown))
-		}
-	}()
+	defer f.Close()
 	albumB64 := base64.FromUint64(album)
 	imageB64 := base64.FromUint64(image)
 	filename := "albums/" + albumB64 + "/images/" + imageB64
@@ -51,7 +35,11 @@ func (m *Mock) Get(_ context.Context, _ uint64, _ uint64) (model.File, error) {
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	return model.File{Reader: buf, Size: n}, nil
+	closeFn := func() error {
+		pool.PutBuffer(buf)
+		return nil
+	}
+	return model.NewFile(buf, closeFn, n), nil
 }
 
 func (m *Mock) Remove(_ context.Context, _ uint64, _ uint64) error {

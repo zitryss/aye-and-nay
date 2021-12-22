@@ -1,7 +1,6 @@
 package http
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -17,7 +16,6 @@ import (
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
-	"github.com/zitryss/aye-and-nay/pkg/pool"
 )
 
 func newController(
@@ -57,7 +55,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		req := albumRequest{ff: make([]model.File, 0, len(fhs)), multi: r.MultipartForm}
 		defer func() {
 			for _, f := range req.ff {
-				_ = f.Reader.(io.Closer).Close()
+				_ = f.Close()
 			}
 			_ = req.multi.RemoveAll()
 		}()
@@ -85,7 +83,19 @@ func (c *controller) handleAlbum() httprouter.Handle {
 				_ = f.Close()
 				return nil, albumRequest{}, errors.Wrap(domain.ErrNotImage)
 			}
-			req.ff = append(req.ff, model.File{Reader: f, Size: fh.Size})
+			closeFn := func() error {
+				switch v := f.(type) {
+				case *os.File:
+					_ = v.Close()
+					_ = os.Remove(v.Name())
+				case multipart.File:
+					_ = v.Close()
+				default:
+					panic(errors.Wrap(domain.ErrUnknown))
+				}
+				return nil
+			}
+			req.ff = append(req.ff, model.NewFile(f, closeFn, fh.Size))
 		}
 		vals := r.MultipartForm.Value["duration"]
 		if len(vals) == 0 {
@@ -101,7 +111,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 	process := func(ctx context.Context, req albumRequest) (albumResponse, error) {
 		defer func() {
 			for _, f := range req.ff {
-				_ = f.Reader.(io.Closer).Close()
+				_ = f.Close()
 			}
 			_ = req.multi.RemoveAll()
 		}()
@@ -261,19 +271,7 @@ func (c *controller) handleImage() httprouter.Handle {
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp imageResponse) error {
-		defer func() {
-			switch v := resp.f.Reader.(type) {
-			case *os.File:
-				_ = v.Close()
-				_ = os.Remove(v.Name())
-			case multipart.File:
-				_ = v.Close()
-			case *bytes.Buffer:
-				pool.PutBuffer(v)
-			default:
-				panic(errors.Wrap(domain.ErrUnknown))
-			}
-		}()
+		defer resp.f.Close()
 		_, err := io.Copy(w, resp.f.Reader)
 		if err != nil {
 			return errors.Wrap(err)

@@ -1,12 +1,10 @@
 package compressor
 
 import (
-	"bytes"
 	"context"
 	"io"
 	"mime/multipart"
 	"net/http"
-	"os"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -56,19 +54,7 @@ type Imaginary struct {
 }
 
 func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, error) {
-	defer func() {
-		switch v := f.Reader.(type) {
-		case *os.File:
-			_ = v.Close()
-			_ = os.Remove(v.Name())
-		case multipart.File:
-			_ = v.Close()
-		case *bytes.Buffer:
-			pool.PutBuffer(v)
-		default:
-			panic(errors.Wrap(domain.ErrUnknown))
-		}
-	}()
+	defer f.Close()
 	buf := pool.GetBufferN(f.Size)
 	tee := model.File{
 		Reader: io.TeeReader(f.Reader, buf),
@@ -131,5 +117,9 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	return model.File{Reader: buf, Size: n}, nil
+	closeFn := func() error {
+		pool.PutBuffer(buf)
+		return nil
+	}
+	return model.NewFile(buf, closeFn, n), nil
 }

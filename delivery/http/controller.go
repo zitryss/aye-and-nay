@@ -404,3 +404,15 @@ func (c *controller) handleTop() httprouter.Handle {
 		},
 	)
 }
+
+func (c *controller) handleHealth() httprouter.Handle {
+	return handleHttpRouterError(
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+			_, err := c.serv.Health(r.Context())
+			if err != nil {
+				return errors.Wrap(err)
+			}
+			return nil
+		},
+	)
+}

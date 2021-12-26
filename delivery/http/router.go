@@ -14,5 +14,6 @@ func newRouter(contr controller) http.Handler {
 	router.GET("/api/images/:token/", contr.handleImage())
 	router.PATCH("/api/albums/:album/vote/", contr.handleVote())
 	router.GET("/api/albums/:album/top/", contr.handleTop())
+	router.GET("/api/health/", contr.handleHealth())
 	return router
 }

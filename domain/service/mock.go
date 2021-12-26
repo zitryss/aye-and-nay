@@ -71,3 +71,7 @@ func (m *Mock) Top(_ context.Context, _ uint64) ([]model.Image, error) {
 	imgs := []model.Image{img1, img2}
 	return imgs, nil
 }
+
+func (m *Mock) Health(_ context.Context) (bool, error) {
+	return true, nil
+}

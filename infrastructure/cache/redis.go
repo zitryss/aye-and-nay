@@ -17,10 +17,11 @@ import (
 func NewRedis() (*Redis, error) {
 	conf := newRedisConfig()
 	client := redisdb.NewClient(&redisdb.Options{Addr: conf.host + ":" + conf.port})
+	r := &Redis{conf, client}
 	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
 	defer cancel()
 	err := retry.Do(conf.times, conf.pause, func() error {
-		err := client.Ping(ctx).Err()
+		_, err := r.Health(ctx)
 		if err != nil {
 			return errors.Wrap(err)
 		}
@@ -29,7 +30,7 @@ func NewRedis() (*Redis, error) {
 	if err != nil {
 		return &Redis{}, errors.Wrap(err)
 	}
-	return &Redis{conf, client}, nil
+	return r, nil
 }
 
 type Redis struct {
@@ -254,6 +255,14 @@ func (r *Redis) Del(ctx context.Context, token uint64) error {
 		return errors.Wrap(err)
 	}
 	return nil
+}
+
+func (r *Redis) Health(ctx context.Context) (bool, error) {
+	err := r.client.Ping(ctx).Err()
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthCache, "%s", err)
+	}
+	return true, nil
 }
 
 func (r *Redis) Close() error {

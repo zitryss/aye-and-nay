@@ -14,16 +14,19 @@ type Servicer interface {
 	Vote(ctx context.Context, album uint64, tokenFrom uint64, tokenTo uint64) error
 	Top(ctx context.Context, album uint64) ([]model.Image, error)
 	Progress(ctx context.Context, album uint64) (float64, error)
+	Checker
 }
 
 type Compresser interface {
 	Compress(ctx context.Context, f model.File) (model.File, error)
+	Checker
 }
 
 type Storager interface {
 	Put(ctx context.Context, album uint64, image uint64, f model.File) (string, error)
 	Get(ctx context.Context, album uint64, image uint64) (model.File, error)
 	Remove(ctx context.Context, album uint64, image uint64) error
+	Checker
 }
 
 type Databaser interface {
@@ -39,6 +42,7 @@ type Databaser interface {
 	GetImagesOrdered(ctx context.Context, album uint64) ([]model.Image, error)
 	DeleteAlbum(ctx context.Context, album uint64) error
 	AlbumsToBeDeleted(ctx context.Context) ([]model.Album, error)
+	Checker
 }
 
 type Cacher interface {
@@ -47,6 +51,7 @@ type Cacher interface {
 	PQueuer
 	Stacker
 	Tokener
+	Checker
 }
 
 type Limiter interface {
@@ -74,4 +79,8 @@ type Tokener interface {
 	Set(ctx context.Context, token uint64, album uint64, image uint64) error
 	Get(ctx context.Context, token uint64) (uint64, uint64, error)
 	Del(ctx context.Context, token uint64) error
+}
+
+type Checker interface {
+	Health(ctx context.Context) (bool, error)
 }

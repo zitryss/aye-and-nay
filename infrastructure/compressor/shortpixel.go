@@ -46,8 +46,8 @@ type Shortpixel struct {
 	}
 }
 
-func (sp *Shortpixel) Ping() error {
-	ctx, cancel := context.WithTimeout(context.Background(), sp.conf.timeout)
+func (sp *Shortpixel) Ping(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, sp.conf.timeout)
 	defer cancel()
 	_, err := sp.upload(ctx, Png())
 	if err != nil {
@@ -362,4 +362,12 @@ func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, err
 		return nil
 	}
 	return model.NewFile(buf, closeFn, n), nil
+}
+
+func (sp *Shortpixel) Health(ctx context.Context) (bool, error) {
+	err := sp.Ping(ctx)
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", err)
+	}
+	return true, nil
 }

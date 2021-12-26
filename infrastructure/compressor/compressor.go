@@ -1,6 +1,8 @@
 package compressor
 
 import (
+	"context"
+
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
@@ -13,7 +15,7 @@ func New(s string) (domain.Compresser, error) {
 	case "shortpixel":
 		log.Info("connecting to compressor")
 		sp := NewShortPixel()
-		err := sp.Ping()
+		err := sp.Ping(context.Background())
 		if err != nil {
 			return nil, err
 		}

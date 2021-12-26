@@ -8,6 +8,7 @@ import (
 	minios3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -24,56 +25,11 @@ func NewMinio() (*Minio, error) {
 	if err != nil {
 		return &Minio{}, errors.Wrap(err)
 	}
+	m := &Minio{conf, client}
 	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
 	defer cancel()
 	err = retry.Do(conf.times, conf.pause, func() error {
-		c := http.Client{}
-		url := "http://" + conf.host + ":" + conf.port + "/minio/health/live"
-		body := io.Reader(nil)
-		req, err := http.NewRequestWithContext(ctx, "GET", url, body)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		resp, err := c.Do(req)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		_, err = io.Copy(io.Discard, resp.Body)
-		if err != nil {
-			_ = resp.Body.Close()
-			return errors.Wrap(err)
-		}
-		err = resp.Body.Close()
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		if resp.StatusCode < 200 || resp.StatusCode > 299 {
-			return errors.Wrap(errors.New("no connection to minio"))
-		}
-		c = http.Client{}
-		url = "http://" + conf.host + ":" + conf.port + "/minio/health/ready"
-		body = io.Reader(nil)
-		req, err = http.NewRequestWithContext(ctx, "GET", url, body)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		resp, err = c.Do(req)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		_, err = io.Copy(io.Discard, resp.Body)
-		if err != nil {
-			_ = resp.Body.Close()
-			return errors.Wrap(err)
-		}
-		err = resp.Body.Close()
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		if resp.StatusCode < 200 || resp.StatusCode > 299 {
-			return errors.Wrap(errors.New("minio is not ready"))
-		}
-		_, err = client.ListBuckets(ctx)
+		_, err := m.Health(ctx)
 		if err != nil {
 			return errors.Wrap(err)
 		}
@@ -97,7 +53,7 @@ func NewMinio() (*Minio, error) {
 			return &Minio{}, errors.Wrap(err)
 		}
 	}
-	return &Minio{conf, client}, nil
+	return m, nil
 }
 
 type Minio struct {
@@ -152,4 +108,58 @@ func (m *Minio) Remove(ctx context.Context, album uint64, image uint64) error {
 		return errors.Wrap(err)
 	}
 	return nil
+}
+
+func (m *Minio) Health(ctx context.Context) (bool, error) {
+	url := "http://" + m.conf.host + ":" + m.conf.port + "/minio/health/live"
+	body := io.Reader(nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, body)
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
+	}
+	c := http.Client{Timeout: m.conf.timeout}
+	resp, err := c.Do(req)
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
+	}
+	_, err = io.Copy(io.Discard, resp.Body)
+	if err != nil {
+		_ = resp.Body.Close()
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
+	}
+	err = resp.Body.Close()
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", "no connection to minio")
+	}
+	url = "http://" + m.conf.host + ":" + m.conf.port + "/minio/health/ready"
+	body = io.Reader(nil)
+	req, err = http.NewRequestWithContext(ctx, http.MethodGet, url, body)
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
+	}
+	c = http.Client{Timeout: m.conf.timeout}
+	resp, err = c.Do(req)
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
+	}
+	_, err = io.Copy(io.Discard, resp.Body)
+	if err != nil {
+		_ = resp.Body.Close()
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
+	}
+	err = resp.Body.Close()
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", "minio is not ready")
+	}
+	_, err = m.client.ListBuckets(ctx)
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
+	}
+	return true, nil
 }

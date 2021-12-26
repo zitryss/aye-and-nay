@@ -345,6 +345,10 @@ func (b *Badger) lruAdd(album uint64) error {
 	return nil
 }
 
+func (b *Badger) Health(_ context.Context) (bool, error) {
+	return true, nil
+}
+
 func (b *Badger) Close() error {
 	err := b.db.Close()
 	if err != nil {

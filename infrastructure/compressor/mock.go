@@ -29,3 +29,7 @@ func (m *Mock) Compress(_ context.Context, f model.File) (model.File, error) {
 	}
 	return model.NewFile(buf, closeFn, n), nil
 }
+
+func (m *Mock) Health(_ context.Context) (bool, error) {
+	return true, nil
+}

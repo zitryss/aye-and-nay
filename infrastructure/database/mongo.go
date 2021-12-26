@@ -44,8 +44,16 @@ func NewMongo() (*Mongo, error) {
 	if err != nil {
 		return &Mongo{}, errors.Wrap(err)
 	}
+	db := client.Database("aye-and-nay")
+	images := db.Collection("images")
+	edges := db.Collection("edges")
+	cache, err := lru.New(conf.lru)
+	if err != nil {
+		return &Mongo{}, errors.Wrap(err)
+	}
+	m := &Mongo{conf, client, db, images, edges, cache}
 	err = retry.Do(conf.times, conf.pause, func() error {
-		err := client.Ping(ctx, readpref.Primary())
+		_, err := m.Health(ctx)
 		if err != nil {
 			return errors.Wrap(err)
 		}
@@ -54,14 +62,7 @@ func NewMongo() (*Mongo, error) {
 	if err != nil {
 		return &Mongo{}, errors.Wrap(err)
 	}
-	db := client.Database("aye-and-nay")
-	images := db.Collection("images")
-	edges := db.Collection("edges")
-	cache, err := lru.New(conf.lru)
-	if err != nil {
-		return &Mongo{}, errors.Wrap(err)
-	}
-	return &Mongo{conf, client, db, images, edges, cache}, nil
+	return m, nil
 }
 
 type Mongo struct {
@@ -339,6 +340,14 @@ func (m *Mongo) lruAdd(ctx context.Context, album uint64) error {
 	}
 	m.cache.Add(album, albLru)
 	return nil
+}
+
+func (m *Mongo) Health(ctx context.Context) (bool, error) {
+	err := m.client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthDatabase, "%s", err)
+	}
+	return true, err
 }
 
 func (m *Mongo) Close() error {

@@ -15,38 +15,20 @@ import (
 
 func NewImaginary() (*Imaginary, error) {
 	conf := newImaginaryConfig()
+	im := &Imaginary{conf}
 	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
 	defer cancel()
 	err := retry.Do(conf.times, conf.pause, func() error {
-		url := "http://" + conf.host + ":" + conf.port + "/health"
-		body := io.Reader(nil)
-		req, err := http.NewRequestWithContext(ctx, "GET", url, body)
+		_, err := im.Health(ctx)
 		if err != nil {
 			return errors.Wrap(err)
-		}
-		c := http.Client{}
-		resp, err := c.Do(req)
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		_, err = io.Copy(io.Discard, resp.Body)
-		if err != nil {
-			_ = resp.Body.Close()
-			return errors.Wrap(err)
-		}
-		err = resp.Body.Close()
-		if err != nil {
-			return errors.Wrap(err)
-		}
-		if resp.StatusCode < 200 || resp.StatusCode > 299 {
-			return errors.Wrap(errors.New("no connection to imaginary"))
 		}
 		return nil
 	})
 	if err != nil {
 		return &Imaginary{}, errors.Wrap(err)
 	}
-	return &Imaginary{conf}, nil
+	return im, nil
 }
 
 type Imaginary struct {
@@ -122,4 +104,31 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 		return nil
 	}
 	return model.NewFile(buf, closeFn, n), nil
+}
+
+func (im *Imaginary) Health(ctx context.Context) (bool, error) {
+	url := "http://" + im.conf.host + ":" + im.conf.port + "/health"
+	body := io.Reader(nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, body)
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", err)
+	}
+	c := http.Client{Timeout: im.conf.timeout}
+	resp, err := c.Do(req)
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", err)
+	}
+	_, err = io.Copy(io.Discard, resp.Body)
+	if err != nil {
+		_ = resp.Body.Close()
+		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", err)
+	}
+	err = resp.Body.Close()
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", err)
+	}
+	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", "no connection to imaginary")
+	}
+	return true, nil
 }

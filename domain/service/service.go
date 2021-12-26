@@ -30,6 +30,7 @@ func New(
 		pers:  pers,
 		pair:  temp,
 		token: temp,
+		cache: temp,
 		queue: struct {
 			calc *QueueCalc
 			comp *QueueComp
@@ -116,6 +117,7 @@ type Service struct {
 	pers  domain.Databaser
 	pair  domain.Stacker
 	token domain.Tokener
+	cache domain.Checker
 	queue struct {
 		calc *QueueCalc
 		comp *QueueComp
@@ -311,6 +313,26 @@ func (s *Service) Top(ctx context.Context, album uint64) ([]model.Image, error) 
 		return nil, errors.Wrap(err)
 	}
 	return imgs, nil
+}
+
+func (s *Service) Health(ctx context.Context) (bool, error) {
+	_, err := s.comp.Health(ctx)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	_, err = s.stor.Health(ctx)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	_, err = s.pers.Health(ctx)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	_, err = s.cache.Health(ctx)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	return true, nil
 }
 
 func (s *Service) CleanUp(ctx context.Context) error {

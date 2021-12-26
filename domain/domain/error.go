@@ -198,7 +198,51 @@ var (
 		},
 		innerError: innerError{
 			Level:  lcritical,
-			DevMsg: "third party unavailable",
+			DevMsg: "third party is unavailable",
+		},
+	}
+	ErrBadHealthCompressor = &domainError{
+		outerError: outerError{
+			StatusCode: http.StatusInternalServerError,
+			AppCode:    0x11,
+			UserMsg:    "internal server error",
+		},
+		innerError: innerError{
+			Level:  lcritical,
+			DevMsg: "compressor is unavailable",
+		},
+	}
+	ErrBadHealthStorage = &domainError{
+		outerError: outerError{
+			StatusCode: http.StatusInternalServerError,
+			AppCode:    0x12,
+			UserMsg:    "internal server error",
+		},
+		innerError: innerError{
+			Level:  lcritical,
+			DevMsg: "storage is unavailable",
+		},
+	}
+	ErrBadHealthDatabase = &domainError{
+		outerError: outerError{
+			StatusCode: http.StatusInternalServerError,
+			AppCode:    0x13,
+			UserMsg:    "internal server error",
+		},
+		innerError: innerError{
+			Level:  lcritical,
+			DevMsg: "database is unavailable",
+		},
+	}
+	ErrBadHealthCache = &domainError{
+		outerError: outerError{
+			StatusCode: http.StatusInternalServerError,
+			AppCode:    0x14,
+			UserMsg:    "internal server error",
+		},
+		innerError: innerError{
+			Level:  lcritical,
+			DevMsg: "cache is unavailable",
 		},
 	}
 	ErrUnknown = &domainError{

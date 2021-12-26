@@ -321,3 +321,7 @@ func (m *Mem) Del(_ context.Context, token uint64) error {
 	delete(m.tokens, token)
 	return nil
 }
+
+func (m *Mem) Health(_ context.Context) (bool, error) {
+	return true, nil
+}

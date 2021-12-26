@@ -215,3 +215,7 @@ func (m *Mem) AlbumsToBeDeleted(_ context.Context) ([]model.Album, error) {
 	}
 	return albs, nil
 }
+
+func (m *Mem) Health(_ context.Context) (bool, error) {
+	return true, nil
+}

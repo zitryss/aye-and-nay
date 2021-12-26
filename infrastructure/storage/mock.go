@@ -45,3 +45,7 @@ func (m *Mock) Get(_ context.Context, _ uint64, _ uint64) (model.File, error) {
 func (m *Mock) Remove(_ context.Context, _ uint64, _ uint64) error {
 	return nil
 }
+
+func (m *Mock) Health(_ context.Context) (bool, error) {
+	return true, nil
+}

@@ -164,7 +164,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 		return "", errors.Wrap(err)
 	}
 	c := http.Client{Timeout: sp.conf.uploadTimeout}
-	req, err := http.NewRequestWithContext(ctx, "POST", sp.conf.url, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, sp.conf.url, body)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -259,7 +259,7 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 		return "", errors.Wrap(err)
 	}
 	c := http.Client{Timeout: sp.conf.uploadTimeout}
-	req, err := http.NewRequestWithContext(ctx, "POST", sp.conf.url2, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, sp.conf.url2, body)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -326,7 +326,7 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, error) {
 	c := http.Client{Timeout: sp.conf.downloadTimeout}
 	body := io.Reader(nil)
-	req, err := http.NewRequestWithContext(ctx, "GET", src, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, body)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}

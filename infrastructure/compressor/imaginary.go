@@ -58,7 +58,7 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 		return model.File{}, errors.Wrap(err)
 	}
 	url := "http://" + im.conf.host + ":" + im.conf.port + "/convert?type=png&compression=9"
-	req, err := http.NewRequestWithContext(ctx, "POST", url, body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}

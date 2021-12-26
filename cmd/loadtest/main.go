@@ -115,7 +115,7 @@ func albumHtml() {
 
 func albumApi() string {
 	body := bytes.NewReader(b)
-	req, err := http.NewRequest("POST", apiAddress+"/api/albums/", body)
+	req, err := http.NewRequest(http.MethodPost, apiAddress+"/api/albums/", body)
 	debug.Check(err)
 	req.Header.Set("Content-Type", sep)
 
@@ -139,7 +139,7 @@ func albumApi() string {
 }
 
 func readyApi(album string) {
-	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/ready/", http.NoBody)
+	req, err := http.NewRequest(http.MethodGet, apiAddress+"/api/albums/"+album+"/ready/", http.NoBody)
 	debug.Check(err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -164,7 +164,7 @@ func pairHtml() {
 }
 
 func pairApi(album string) (string, string, string, string) {
-	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/pair/", http.NoBody)
+	req, err := http.NewRequest(http.MethodGet, apiAddress+"/api/albums/"+album+"/pair/", http.NoBody)
 	debug.Check(err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -200,7 +200,7 @@ func pairMinio(src1 string, src2 string) {
 
 func voteApi(album string, token1 string, token2 string) {
 	body := strings.NewReader("{\"album\":{\"imgFrom\":{\"token\":\"" + token1 + "\"},\"imgTo\":{\"token\":\"" + token2 + "\"}}}")
-	req, err := http.NewRequest("PATCH", apiAddress+"/api/albums/"+album+"/vote/", body)
+	req, err := http.NewRequest(http.MethodPatch, apiAddress+"/api/albums/"+album+"/vote/", body)
 	debug.Check(err)
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 
@@ -218,7 +218,7 @@ func topHtml() {
 }
 
 func topApi(album string) []string {
-	req, err := http.NewRequest("GET", apiAddress+"/api/albums/"+album+"/top/", http.NoBody)
+	req, err := http.NewRequest(http.MethodGet, apiAddress+"/api/albums/"+album+"/top/", http.NoBody)
 	debug.Check(err)
 
 	resp, err := http.DefaultClient.Do(req)
@@ -258,7 +258,7 @@ func html(page string) {
 	if htmlAddress == "" {
 		return
 	}
-	req, err := http.NewRequest("GET", htmlAddress+page, http.NoBody)
+	req, err := http.NewRequest(http.MethodGet, htmlAddress+page, http.NoBody)
 	if err != nil {
 		return
 	}
@@ -279,7 +279,7 @@ func minio(src string) {
 	if minioAddress == "" && address == "" {
 		return
 	}
-	req, err := http.NewRequest("GET", address+src, http.NoBody)
+	req, err := http.NewRequest(http.MethodGet, address+src, http.NoBody)
 	if err != nil {
 		return
 	}

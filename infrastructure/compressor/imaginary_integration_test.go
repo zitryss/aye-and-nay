@@ -78,3 +78,14 @@ func TestImaginaryNegative(t *testing.T) {
 		t.Error("f1.Size != f2.Size")
 	}
 }
+
+func TestImaginaryHealth(t *testing.T) {
+	im, err := NewImaginary()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = im.Health(context.Background())
+	if err != nil {
+		t.Error(err)
+	}
+}

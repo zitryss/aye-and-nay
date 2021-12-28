@@ -1267,3 +1267,83 @@ func TestControllerHandleTop(t *testing.T) {
 		})
 	}
 }
+
+func TestControllerHandleHealth(t *testing.T) {
+	type give struct {
+		err error
+	}
+	type want struct {
+		code int
+		typ  string
+		body string
+	}
+	tests := []struct {
+		give
+		want
+	}{
+		{
+			give: give{
+				err: nil,
+			},
+			want: want{
+				code: 200,
+				typ:  "",
+				body: ``,
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrBadHealthCompressor,
+			},
+			want: want{
+				code: 500,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrBadHealthStorage,
+			},
+			want: want{
+				code: 500,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":18,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrBadHealthDatabase,
+			},
+			want: want{
+				code: 500,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":19,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrBadHealthCache,
+			},
+			want: want{
+				code: 500,
+				typ:  "application/json; charset=utf-8",
+				body: `{"error":{"code":20,"msg":"internal server error"}}` + "\n",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run("", func(t *testing.T) {
+			serv := service.NewMock(tt.give.err)
+			contr := newController(serv)
+			fn := contr.handleHealth()
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest(http.MethodGet, "/api/health/", http.NoBody)
+			ps := httprouter.Params{}
+			fn(w, r, ps)
+			CheckStatusCode(t, w, tt.want.code)
+			CheckContentType(t, w, tt.want.typ)
+			CheckBody(t, w, tt.want.body)
+		})
+	}
+}

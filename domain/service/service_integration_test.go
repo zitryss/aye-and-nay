@@ -835,3 +835,35 @@ func TestServiceIntegrationDelete(t *testing.T) {
 		}
 	})
 }
+
+func TestServiceIntegrationHealth(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	imaginary, err := compressor.NewImaginary()
+	if err != nil {
+		t.Fatal(err)
+	}
+	minio, err := storage.NewMinio()
+	if err != nil {
+		t.Fatal(err)
+	}
+	mongo, err := database.NewMongo()
+	if err != nil {
+		t.Fatal(err)
+	}
+	redis, err := cache.NewRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	qCalc := &QueueCalc{}
+	qCalc.Monitor(ctx)
+	qComp := &QueueComp{}
+	qComp.Monitor(ctx)
+	qDel := &QueueDel{}
+	qDel.Monitor(ctx)
+	serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
+	_, err = serv.Health(ctx)
+	if err != nil {
+		t.Error(err)
+	}
+}

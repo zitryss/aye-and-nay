@@ -86,3 +86,14 @@ func TestMinio(t *testing.T) {
 		}
 	})
 }
+
+func TestMinioHealth(t *testing.T) {
+	minio, err := NewMinio()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = minio.Health(context.Background())
+	if err != nil {
+		t.Error(err)
+	}
+}

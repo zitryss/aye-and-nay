@@ -642,3 +642,23 @@ func TestServiceDelete(t *testing.T) {
 		}
 	})
 }
+
+func TestServiceHealth(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	comp := compressor.NewMock()
+	stor := storage.NewMock()
+	mDb := database.NewMem()
+	mCache := cache.NewMem()
+	qCalc := &QueueCalc{}
+	qCalc.Monitor(ctx)
+	qComp := &QueueComp{}
+	qComp.Monitor(ctx)
+	qDel := &QueueDel{}
+	qDel.Monitor(ctx)
+	serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel)
+	_, err := serv.Health(ctx)
+	if err != nil {
+		t.Error(err)
+	}
+}

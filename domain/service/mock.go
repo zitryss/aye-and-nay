@@ -73,5 +73,8 @@ func (m *Mock) Top(_ context.Context, _ uint64) ([]model.Image, error) {
 }
 
 func (m *Mock) Health(_ context.Context) (bool, error) {
+	if m.err != nil {
+		return false, m.err
+	}
 	return true, nil
 }

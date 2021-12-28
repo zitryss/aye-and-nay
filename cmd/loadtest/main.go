@@ -76,6 +76,7 @@ func main() {
 				bar.Increment()
 				topMinio(src)
 			}
+			healthApi()
 		}()
 	}
 	for i := 0; i < connections; i++ {
@@ -252,6 +253,18 @@ func topMinio(src []string) {
 	for _, s := range src {
 		minio(s)
 	}
+}
+
+func healthApi() {
+	req, err := http.NewRequest(http.MethodGet, apiAddress+"/api/health/", http.NoBody)
+	debug.Check(err)
+	resp, err := http.DefaultClient.Do(req)
+	debug.Check(err)
+	debug.Assert(resp.StatusCode == 200)
+	_, err = io.Copy(io.Discard, resp.Body)
+	debug.Check(err)
+	err = resp.Body.Close()
+	debug.Check(err)
 }
 
 func html(page string) {

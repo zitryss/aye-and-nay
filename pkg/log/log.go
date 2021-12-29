@@ -32,7 +32,9 @@ func SetOutput(w io.Writer) {
 }
 
 func SetPrefix(prefix string) {
-	l.SetPrefix(prefix + ": ")
+	if len(prefix) > 0 {
+		l.SetPrefix(prefix + ": ")
+	}
 }
 
 func SetFlags(flag int) {

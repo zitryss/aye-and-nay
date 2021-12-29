@@ -171,7 +171,7 @@ func TestServiceAlbum(t *testing.T) {
 }
 
 func TestServicePair(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
+	t.Run("Positive1", func(t *testing.T) {
 		fn1 := func() func() (uint64, error) {
 			i := uint64(0)
 			return func() (uint64, error) {
@@ -203,8 +203,8 @@ func TestServicePair(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img1 := model.Image{Id: 0x3BC7, Token: 0x3BC9, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/xzsAAAAAAAA"}
-		img2 := model.Image{Id: 0x3BC8, Token: 0x3BCA, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/yDsAAAAAAAA"}
+		img1 := model.Image{Id: 0x3BC7, Token: 0x3BC9, Src: "/api/images/yTsAAAAAAAA"}
+		img2 := model.Image{Id: 0x3BC8, Token: 0x3BCA, Src: "/api/images/yjsAAAAAAAA"}
 		imgs1 := []model.Image{img1, img2}
 		if reflect.DeepEqual(img7, img8) {
 			t.Error("img7 == img8")
@@ -219,8 +219,8 @@ func TestServicePair(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img3 := model.Image{Id: 0x3BC8, Token: 0x3BCB, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/yDsAAAAAAAA"}
-		img4 := model.Image{Id: 0x3BC7, Token: 0x3BCC, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/xzsAAAAAAAA"}
+		img3 := model.Image{Id: 0x3BC8, Token: 0x3BCB, Src: "/api/images/yzsAAAAAAAA"}
+		img4 := model.Image{Id: 0x3BC7, Token: 0x3BCC, Src: "/api/images/zDsAAAAAAAA"}
 		imgs2 := []model.Image{img3, img4}
 		if reflect.DeepEqual(img9, img10) {
 			t.Error("img9 == img10")
@@ -235,8 +235,87 @@ func TestServicePair(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img5 := model.Image{Id: 0x3BC7, Token: 0x3BCD, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/xzsAAAAAAAA"}
-		img6 := model.Image{Id: 0x3BC8, Token: 0x3BCE, Src: "/aye-and-nay/albums/xjsAAAAAAAA/images/yDsAAAAAAAA"}
+		img5 := model.Image{Id: 0x3BC7, Token: 0x3BCD, Src: "/api/images/zTsAAAAAAAA"}
+		img6 := model.Image{Id: 0x3BC8, Token: 0x3BCE, Src: "/api/images/zjsAAAAAAAA"}
+		imgs3 := []model.Image{img5, img6}
+		if reflect.DeepEqual(img11, img12) {
+			t.Error("img11 == img12")
+		}
+		if !IsIn(img11, imgs3) {
+			t.Error("img11 is not in imgs")
+		}
+		if !IsIn(img12, imgs3) {
+			t.Error("img12 is not in imgs")
+		}
+	})
+	t.Run("Positive2", func(t *testing.T) {
+		viper.Set("service.tempLinks", false)
+		defer viper.Set("service.tempLinks", true)
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
+				i++
+				return 0xFAFD + i, nil
+			}
+		}()
+		fn2 := func(n int, swap func(i int, j int)) {
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		comp := compressor.NewMock()
+		stor := storage.NewMock()
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{}
+		qDel.Monitor(ctx)
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		files := []model.File{Png(), Png()}
+		album, err := serv.Album(ctx, files, 0*time.Millisecond)
+		if err != nil {
+			t.Error(err)
+		}
+		img7, img8, err := serv.Pair(ctx, album)
+		if err != nil {
+			t.Error(err)
+		}
+		img1 := model.Image{Id: 0xFAFF, Token: 0xFAFF, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/__oAAAAAAAA"}
+		img2 := model.Image{Id: 0xFB00, Token: 0xFB00, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/APsAAAAAAAA"}
+		imgs1 := []model.Image{img1, img2}
+		if reflect.DeepEqual(img7, img8) {
+			t.Error("img7 == img8")
+		}
+		if !IsIn(img7, imgs1) {
+			t.Error("img7 is not in imgs")
+		}
+		if !IsIn(img8, imgs1) {
+			t.Error("img8 is not in imgs")
+		}
+		img9, img10, err := serv.Pair(ctx, album)
+		if err != nil {
+			t.Error(err)
+		}
+		img3 := model.Image{Id: 0xFB00, Token: 0xFB00, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/APsAAAAAAAA"}
+		img4 := model.Image{Id: 0xFAFF, Token: 0xFAFF, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/__oAAAAAAAA"}
+		imgs2 := []model.Image{img3, img4}
+		if reflect.DeepEqual(img9, img10) {
+			t.Error("img9 == img10")
+		}
+		if !IsIn(img9, imgs2) {
+			t.Error("img9 is not in imgs")
+		}
+		if !IsIn(img10, imgs2) {
+			t.Error("img10 is not in imgs")
+		}
+		img11, img12, err := serv.Pair(ctx, album)
+		if err != nil {
+			t.Error(err)
+		}
+		img5 := model.Image{Id: 0xFAFF, Token: 0xFAFF, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/__oAAAAAAAA"}
+		img6 := model.Image{Id: 0xFB00, Token: 0xFB00, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/APsAAAAAAAA"}
 		imgs3 := []model.Image{img5, img6}
 		if reflect.DeepEqual(img11, img12) {
 			t.Error("img11 == img12")
@@ -270,8 +349,6 @@ func TestServicePair(t *testing.T) {
 }
 
 func TestServiceImage(t *testing.T) {
-	viper.Set("service.tempLinks", true)
-	defer viper.Set("service.tempLinks", false)
 	t.Run("Positive", func(t *testing.T) {
 		fn1 := func() func() (uint64, error) {
 			i := uint64(0)
@@ -341,12 +418,51 @@ func TestServiceImage(t *testing.T) {
 }
 
 func TestServiceVote(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
+	t.Run("Positive1", func(t *testing.T) {
 		fn1 := func() func() (uint64, error) {
 			i := uint64(0)
 			return func() (uint64, error) {
 				i++
 				return 0xC389 + i, nil
+			}
+		}()
+		fn2 := func(n int, swap func(i int, j int)) {
+		}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+		comp := compressor.NewMock()
+		stor := storage.NewMock()
+		mDb := database.NewMem()
+		mCache := cache.NewMem()
+		qCalc := &QueueCalc{}
+		qCalc.Monitor(ctx)
+		qComp := &QueueComp{}
+		qComp.Monitor(ctx)
+		qDel := &QueueDel{}
+		qDel.Monitor(ctx)
+		serv := New(comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		files := []model.File{Png(), Png()}
+		album, err := serv.Album(ctx, files, 0*time.Millisecond)
+		if err != nil {
+			t.Error(err)
+		}
+		img1, img2, err := serv.Pair(ctx, album)
+		if err != nil {
+			t.Error(err)
+		}
+		err = serv.Vote(ctx, album, img1.Token, img2.Token)
+		if err != nil {
+			t.Error(err)
+		}
+	})
+	t.Run("Positive2", func(t *testing.T) {
+		viper.Set("service.tempLinks", false)
+		defer viper.Set("service.tempLinks", true)
+		fn1 := func() func() (uint64, error) {
+			i := uint64(0)
+			return func() (uint64, error) {
+				i++
+				return 0x1E58 + i, nil
 			}
 		}()
 		fn2 := func(n int, swap func(i int, j int)) {

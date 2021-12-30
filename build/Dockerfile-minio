@@ -1,3 +1,8 @@
 FROM minio/minio:RELEASE.2021-11-24T23-19-33Z
 ENV MINIO_ROOT_USER=12345678 MINIO_ROOT_PASSWORD=qwertyui
 CMD ["server", "/data", "--console-address", ":9090"]
+HEALTHCHECK \
+    --interval=1m \
+    --timeout=30s \
+    --retries=3 \
+    CMD curl -f http://localhost:9000/minio/health/live || exit 1

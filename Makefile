@@ -1,4 +1,4 @@
-.PHONY: gen compile test-unit test-int test-unit-ci test-int-ci dev-up dev-down prod-loadtest prod-up prod-down embed-loadtest embed-up embed-down
+.PHONY: gen compile compile-health test-unit test-int test-unit-ci test-int-ci dev-up dev-down prod-loadtest prod-up prod-down embed-loadtest embed-up embed-down
 
 gen:
 	go install github.com/mailru/easyjson/easyjson@latest
@@ -7,6 +7,9 @@ gen:
 
 compile: gen
 	CGO_ENABLED=0 go build -ldflags="-s -w"
+
+compile-health:
+	CGO_ENABLED=0 go build -ldflags="-s -w" -o healthcheck ./cmd/healthcheck/main.go
 
 test-unit: gen
 	go test -v -race -shuffle=on -count=1 -short -tags=unit -cover ./...

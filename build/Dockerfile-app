@@ -5,11 +5,18 @@ WORKDIR /app/
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN make compile
+RUN make compile compile-health
 
 FROM scratch
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/
 COPY --from=builder /app/aye-and-nay /
+COPY --from=builder /app/config.yml /
+COPY --from=builder /app/healthcheck /
 USER appuser
 ENTRYPOINT ["/aye-and-nay"]
+HEALTHCHECK \
+    --interval=1m \
+    --timeout=30s \
+    --retries=3 \
+    CMD ["/healthcheck"]

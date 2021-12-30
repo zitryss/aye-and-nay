@@ -1,2 +1,8 @@
 FROM redis:6-alpine
+COPY ./build/redis.conf /usr/local/etc/redis/redis.conf
 CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]
+HEALTHCHECK \
+    --interval=1m \
+    --timeout=30s \
+    --retries=3 \
+    CMD test $(redis-cli ping) = "PONG" || exit 1

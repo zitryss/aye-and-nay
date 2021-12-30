@@ -15,8 +15,8 @@ services:
 
   minio:
     build:
-      context: .
-      dockerfile: Dockerfile-minio
+      context: ./../
+      dockerfile: ./build/Dockerfile-minio
     container_name: embed-minio
     volumes:
       - "./minio/data/:/data/"

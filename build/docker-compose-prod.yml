@@ -2,8 +2,8 @@ services:
 
   caddy:
     build:
-      context: .
-      dockerfile: Dockerfile-caddy
+      context: ./../
+      dockerfile: ./build/Dockerfile-caddy
     container_name: prod-caddy
     ports:
       - "80:80"
@@ -31,22 +31,22 @@ services:
 
   redis:
     build:
-      context: .
-      dockerfile: Dockerfile-redis
+      context: ./../
+      dockerfile: ./build/Dockerfile-redis
     container_name: prod-redis
     volumes:
       - "./redis.conf:/usr/local/etc/redis/redis.conf"
 
   imaginary:
     build:
-      context: .
-      dockerfile: Dockerfile-imaginary
+      context: ./../
+      dockerfile: ./build/Dockerfile-imaginary
     container_name: prod-imaginary
 
   mongo:
     build:
-      context: .
-      dockerfile: Dockerfile-mongo
+      context: ./../
+      dockerfile: ./build/Dockerfile-mongo
     container_name: prod-mongo
     volumes:
       - "./mongo.js:/docker-entrypoint-initdb.d/mongo.js"
@@ -62,8 +62,8 @@ services:
 
   minio:
     build:
-      context: .
-      dockerfile: Dockerfile-minio
+      context: ./../
+      dockerfile: ./build/Dockerfile-minio
     container_name: prod-minio
     volumes:
       - "./minio/data/:/data/"

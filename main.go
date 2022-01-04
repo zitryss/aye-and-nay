@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/delivery/http"
@@ -17,6 +16,7 @@ import (
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
+	"github.com/zitryss/aye-and-nay/internal/config"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
@@ -26,148 +26,171 @@ var (
 )
 
 func main() {
-	conf := ""
-	flag.StringVar(&conf, "config", "./config.yml", "relative filepath to a config file")
+	path := ""
+	flag.StringVar(&path, "config", "./config.env", "filepath to a config file")
 	flag.Parse()
-	viper.SetConfigFile(conf)
-	err := viper.ReadInConfig()
-	if err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "critical:", err)
-		os.Exit(1)
-	}
 
-	ballast = make([]byte, viper.GetInt64("app.ballast"))
+	reload := true
+	for reload {
+		reload = false
 
-	p := viper.GetString("app.name")
-	l := viper.GetString("app.log")
-	log.SetOutput(os.Stderr)
-	log.SetPrefix(p)
-	log.SetLevel(l)
-	log.Info("logging initialized")
+		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
+		conf, err := config.New(path)
+		if err != nil {
+			_, _ = fmt.Fprintln(os.Stderr, "critical:", err)
+			reload = true
+			stop()
+			continue
+		}
 
-	cach, err := cache.New(viper.GetString("cache.use"))
-	if err != nil {
-		log.Critical(err)
-		os.Exit(1)
-	}
+		config.OnChange(func() {
+			reload = true
+			stop()
+		})
 
-	comp, err := compressor.New(viper.GetString("compressor.use"))
-	if err != nil {
-		log.Critical(err)
-		os.Exit(1)
-	}
+		ballast = make([]byte, conf.App.Ballast)
 
-	data, err := database.New(viper.GetString("database.use"))
-	if err != nil {
-		log.Critical(err)
-		os.Exit(1)
-	}
+		log.SetOutput(os.Stderr)
+		log.SetPrefix(conf.App.Name)
+		log.SetLevel(conf.App.Log)
+		log.Info("logging initialized:", "log level:", conf.App.Log)
 
-	stor, err := storage.New(viper.GetString("storage.use"))
-	if err != nil {
-		log.Critical(err)
-		os.Exit(1)
-	}
+		cach, err := cache.New(ctx, conf.Cache)
+		if err != nil {
+			log.Critical(err)
+			reload = true
+			stop()
+			continue
+		}
 
-	qCalc := service.NewQueueCalc(cach)
-	qCalc.Monitor(ctx)
+		comp, err := compressor.New(ctx, conf.Compressor)
+		if err != nil {
+			log.Critical(err)
+			reload = true
+			stop()
+			continue
+		}
 
-	qComp := &service.QueueComp{}
-	if viper.GetString("compressor.use") != "mock" {
-		qComp = service.NewQueueComp(cach)
-		qComp.Monitor(ctx)
-	}
+		data, err := database.New(ctx, conf.Database)
+		if err != nil {
+			log.Critical(err)
+			reload = true
+			stop()
+			continue
+		}
 
-	qDel := service.NewQueueDel(cach)
-	qDel.Monitor(ctx)
+		stor, err := storage.New(ctx, conf.Storage)
+		if err != nil {
+			log.Critical(err)
+			reload = true
+			stop()
+			continue
+		}
 
-	serv := service.New(comp, stor, data, cach, qCalc, qComp, qDel)
-	err = serv.CleanUp(ctx)
-	if err != nil {
-		log.Critical(err)
-		os.Exit(1)
-	}
+		qCalc := service.NewQueueCalc(cach)
+		qCalc.Monitor(ctx)
 
-	gCalc, ctxCalc := errgroup.WithContext(ctx)
-	log.Info("starting calculation worker pool")
-	serv.StartWorkingPoolCalc(ctxCalc, gCalc)
+		qComp := &service.QueueComp{}
+		if conf.Compressor.IsMock() {
+			qComp = service.NewQueueComp(cach)
+			qComp.Monitor(ctx)
+		}
 
-	gComp := (*errgroup.Group)(nil)
-	ctxComp := context.Context(nil)
-	if viper.GetString("compressor.use") != "mock" {
-		gComp, ctxComp = errgroup.WithContext(ctx)
-		log.Info("starting compression worker pool")
-		serv.StartWorkingPoolComp(ctxComp, gComp)
-	}
+		qDel := service.NewQueueDel(cach)
+		qDel.Monitor(ctx)
 
-	gDel, ctxDel := errgroup.WithContext(ctx)
-	log.Info("starting deletion worker pool")
-	serv.StartWorkingPoolDel(ctxDel, gDel)
+		serv := service.New(conf.Service, comp, stor, data, cach, qCalc, qComp, qDel)
+		err = serv.CleanUp(ctx)
+		if err != nil {
+			log.Critical(err)
+			reload = true
+			stop()
+			continue
+		}
 
-	middle := http.NewMiddleware(cach)
-	srvWait := make(chan error, 1)
-	srv, err := http.NewServer(middle.Chain, serv, srvWait)
-	if err != nil {
-		log.Critical(err)
-		os.Exit(1)
-	}
-	srv.Monitor(ctx)
-	log.Info("starting web server")
-	err = srv.Start()
+		gCalc, ctxCalc := errgroup.WithContext(ctx)
+		log.Info("starting calculation worker pool")
+		serv.StartWorkingPoolCalc(ctxCalc, gCalc)
 
-	log.Info("stopping web server")
-	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Error(err)
-	}
-	err = <-srvWait
-	if err != nil {
-		log.Error(err)
-	}
+		gComp := (*errgroup.Group)(nil)
+		ctxComp := context.Context(nil)
+		if conf.Compressor.IsMock() {
+			gComp, ctxComp = errgroup.WithContext(ctx)
+			log.Info("starting compression worker pool")
+			serv.StartWorkingPoolComp(ctxComp, gComp)
+		}
 
-	log.Info("stopping deletion worker pool")
-	err = gDel.Wait()
-	if err != nil {
-		log.Error(err)
-	}
+		gDel, ctxDel := errgroup.WithContext(ctx)
+		log.Info("starting deletion worker pool")
+		serv.StartWorkingPoolDel(ctxDel, gDel)
 
-	if viper.GetString("compressor.use") != "mock" {
-		log.Info("stopping compression worker pool")
-		err = gComp.Wait()
+		middle := http.NewMiddleware(conf.Middleware, cach)
+		srvWait := make(chan error, 1)
+		srv, err := http.NewServer(conf.Server, middle.Chain, serv, srvWait)
+		if err != nil {
+			log.Critical(err)
+			reload = true
+			stop()
+			continue
+		}
+		srv.Monitor(ctx)
+		log.Info("starting web server")
+		err = srv.Start()
+
+		log.Info("stopping web server")
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Error(err)
+		}
+		err = <-srvWait
 		if err != nil {
 			log.Error(err)
 		}
-	}
 
-	log.Info("stopping calculation worker pool")
-	err = gCalc.Wait()
-	if err != nil {
-		log.Error(err)
-	}
-
-	r, ok := cach.(*cache.Redis)
-	if ok {
-		err = r.Close()
+		log.Info("stopping deletion worker pool")
+		err = gDel.Wait()
 		if err != nil {
 			log.Error(err)
 		}
-	}
 
-	m, ok := data.(*database.Mongo)
-	if ok {
-		err = m.Close()
+		if conf.Compressor.IsMock() {
+			log.Info("stopping compression worker pool")
+			err = gComp.Wait()
+			if err != nil {
+				log.Error(err)
+			}
+		}
+
+		log.Info("stopping calculation worker pool")
+		err = gCalc.Wait()
 		if err != nil {
 			log.Error(err)
 		}
-	}
 
-	b, ok := data.(*database.Badger)
-	if ok {
-		err = b.Close()
-		if err != nil {
-			log.Error(err)
+		r, ok := cach.(*cache.Redis)
+		if ok {
+			err = r.Close(ctx)
+			if err != nil {
+				log.Error(err)
+			}
 		}
+
+		m, ok := data.(*database.Mongo)
+		if ok {
+			err = m.Close(ctx)
+			if err != nil {
+				log.Error(err)
+			}
+		}
+
+		b, ok := data.(*database.Badger)
+		if ok {
+			err = b.Close(ctx)
+			if err != nil {
+				log.Error(err)
+			}
+		}
+
+		stop()
 	}
 }

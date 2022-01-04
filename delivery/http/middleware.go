@@ -11,19 +11,21 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMiddleware(lim domain.Limiter) *Middleware {
-	conf := newMiddlewareConfig()
+func NewMiddleware(
+	conf MiddlewareConfig,
+	lim domain.Limiter,
+) *Middleware {
 	return &Middleware{conf, lim}
 }
 
 type Middleware struct {
-	conf middlewareConfig
+	conf MiddlewareConfig
 	lim  domain.Limiter
 }
 
 func (m *Middleware) Chain(h http.Handler) http.Handler {
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{m.conf.corsAllowOrigin},
+		AllowedOrigins: []string{m.conf.CorsAllowOrigin},
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch},
 	})
 	return c.Handler(m.recover(m.limit(h)))

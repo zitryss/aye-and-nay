@@ -18,7 +18,9 @@ func TestMain(m *testing.M) {
 		log.SetOutput(os.Stderr)
 		log.SetLevel(log.CRITICAL)
 		docker := dockertest.New()
-		docker.RunRedis()
+		host := &DefaultRedisConfig.Host
+		port := &DefaultRedisConfig.Port
+		docker.RunRedis(host, port)
 		log.SetOutput(io.Discard)
 		code := m.Run()
 		docker.Purge()

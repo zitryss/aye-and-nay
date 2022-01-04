@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
@@ -17,11 +16,11 @@ func TestRedisAllow(t *testing.T) {
 		if testing.Short() {
 			t.Skip("short flag is set")
 		}
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		rpm := redis.conf.limiterRequestsPerMinute
+		rpm := redis.conf.LimiterRequestsPerMinute
 		for j := 0; j < rpm; j++ {
 			allowed, err := redis.Allow(context.Background(), 0xDEAD)
 			if err != nil {
@@ -43,11 +42,11 @@ func TestRedisAllow(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		rps := redis.conf.limiterRequestsPerMinute
+		rps := redis.conf.LimiterRequestsPerMinute
 		for i := 0; i < rps; i++ {
 			allowed, err := redis.Allow(context.Background(), 0xBEEF)
 			if err != nil {
@@ -68,7 +67,7 @@ func TestRedisAllow(t *testing.T) {
 }
 
 func TestRedisQueue(t *testing.T) {
-	redis, err := NewRedis()
+	redis, err := NewRedis(DefaultRedisConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +161,7 @@ func TestRedisQueue(t *testing.T) {
 }
 
 func TestRedisPQueue(t *testing.T) {
-	redis, err := NewRedis()
+	redis, err := NewRedis(DefaultRedisConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -244,7 +243,7 @@ func TestRedisPQueue(t *testing.T) {
 
 func TestRedisPair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -266,7 +265,7 @@ func TestRedisPair(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -276,7 +275,7 @@ func TestRedisPair(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -299,7 +298,7 @@ func TestRedisPair(t *testing.T) {
 
 func TestRedisToken(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -322,7 +321,7 @@ func TestRedisToken(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -339,7 +338,7 @@ func TestRedisToken(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -350,7 +349,7 @@ func TestRedisToken(t *testing.T) {
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -379,7 +378,7 @@ func TestRedisToken(t *testing.T) {
 		}
 	})
 	t.Run("Negative4", func(t *testing.T) {
-		redis, err := NewRedis()
+		redis, err := NewRedis(DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}

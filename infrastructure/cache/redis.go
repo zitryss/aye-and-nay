@@ -14,13 +14,12 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewRedis() (*Redis, error) {
-	conf := newRedisConfig()
-	client := redisdb.NewClient(&redisdb.Options{Addr: conf.host + ":" + conf.port})
+func NewRedis(ctx context.Context, conf RedisConfig) (*Redis, error) {
+	client := redisdb.NewClient(&redisdb.Options{Addr: conf.Host + ":" + conf.Port})
 	r := &Redis{conf, client}
-	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
+	ctx, cancel := context.WithTimeout(ctx, conf.Timeout)
 	defer cancel()
-	err := retry.Do(conf.times, conf.pause, func() error {
+	err := retry.Do(conf.RetryTimes, conf.RetryPause, func() error {
 		_, err := r.Health(ctx)
 		if err != nil {
 			return errors.Wrap(err)
@@ -34,7 +33,7 @@ func NewRedis() (*Redis, error) {
 }
 
 type Redis struct {
-	conf   redisConfig
+	conf   RedisConfig
 	client *redisdb.Client
 }
 
@@ -52,11 +51,11 @@ func (r *Redis) Allow(ctx context.Context, ip uint64) (bool, error) {
 	if err != nil {
 		return false, errors.Wrap(err)
 	}
-	if count >= r.conf.limiterRequestsPerMinute {
+	if count >= r.conf.LimiterRequestsPerMinute {
 		return false, nil
 	}
 	pipe := r.client.Pipeline()
-	pipe.IncrBy(ctx, key, r.conf.limiterBurst)
+	pipe.IncrBy(ctx, key, r.conf.LimiterBurst)
 	pipe.Expire(ctx, key, 59*time.Second)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
@@ -165,7 +164,7 @@ func (r *Redis) Push(ctx context.Context, album uint64, pairs [][2]uint64) error
 		image1B64 := base64.FromUint64(images[1])
 		pipe.RPush(ctx, key, image0B64+":"+image1B64)
 	}
-	pipe.Expire(ctx, key, r.conf.timeToLive)
+	pipe.Expire(ctx, key, r.conf.TimeToLive)
 	_, err := pipe.Exec(ctx)
 	if err != nil {
 		return errors.Wrap(err)
@@ -187,7 +186,7 @@ func (r *Redis) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 	if err != nil {
 		return 0x0, 0x0, errors.Wrap(err)
 	}
-	_ = r.client.Expire(ctx, key, r.conf.timeToLive)
+	_ = r.client.Expire(ctx, key, r.conf.TimeToLive)
 	imagesB64 := strings.Split(val, ":")
 	if len(imagesB64) != 2 {
 		return 0x0, 0x0, errors.Wrap(domain.ErrUnknown)
@@ -215,7 +214,7 @@ func (r *Redis) Set(ctx context.Context, token uint64, album uint64, image uint6
 	if n == 1 {
 		return errors.Wrap(domain.ErrTokenAlreadyExists)
 	}
-	err = r.client.Set(ctx, key, albumB64+":"+imageB64, r.conf.timeToLive).Err()
+	err = r.client.Set(ctx, key, albumB64+":"+imageB64, r.conf.TimeToLive).Err()
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -265,7 +264,7 @@ func (r *Redis) Health(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (r *Redis) Close() error {
+func (r *Redis) Close(_ context.Context) error {
 	err := r.client.Close()
 	if err != nil {
 		return errors.Wrap(err)

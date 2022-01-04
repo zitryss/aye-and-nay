@@ -17,7 +17,6 @@ import (
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/service"
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
@@ -326,7 +325,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(serv)
+			contr := newController(DefaultControllerConfig, serv)
 			fn := contr.handleAlbum()
 			w := httptest.NewRecorder()
 			body := bytes.Buffer{}
@@ -532,7 +531,7 @@ func TestControllerHandleReady(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(serv)
+			contr := newController(DefaultControllerConfig, serv)
 			fn := contr.handleReady()
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/api/albums/rRsAAAAAAAA/ready", http.NoBody)
@@ -712,7 +711,7 @@ func TestControllerHandlePair(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(serv)
+			contr := newController(DefaultControllerConfig, serv)
 			fn := contr.handlePair()
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/api/albums/nkUAAAAAAAA/", http.NoBody)
@@ -893,7 +892,7 @@ func TestControllerHandleImage(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(serv)
+			contr := newController(DefaultControllerConfig, serv)
 			fn := contr.handleImage()
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/api/images/8v7AAAAAAAA/", http.NoBody)
@@ -1073,7 +1072,7 @@ func TestControllerHandleVote(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(serv)
+			contr := newController(DefaultControllerConfig, serv)
 			fn := contr.handleVote()
 			w := httptest.NewRecorder()
 			json := strings.NewReader(`{"album":{"imgFrom":{"token":"fYIAAAAAAAA"},"imgTo":{"token":"foIAAAAAAAA"}}}`)
@@ -1255,7 +1254,7 @@ func TestControllerHandleTop(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(serv)
+			contr := newController(DefaultControllerConfig, serv)
 			fn := contr.handleTop()
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/api/albums/byYAAAAAAAA/top/", http.NoBody)
@@ -1335,7 +1334,7 @@ func TestControllerHandleHealth(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
-			contr := newController(serv)
+			contr := newController(DefaultControllerConfig, serv)
 			fn := contr.handleHealth()
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/api/health/", http.NoBody)

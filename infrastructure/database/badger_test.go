@@ -11,14 +11,13 @@ import (
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
 func TestBadgerAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -36,7 +35,7 @@ func TestBadgerAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -52,7 +51,7 @@ func TestBadgerAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -62,7 +61,7 @@ func TestBadgerAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -75,7 +74,7 @@ func TestBadgerAlbum(t *testing.T) {
 
 func TestBadgerCount(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -129,7 +128,7 @@ func TestBadgerCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -155,7 +154,7 @@ func TestBadgerCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -165,7 +164,7 @@ func TestBadgerCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -175,7 +174,7 @@ func TestBadgerCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative4", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -185,7 +184,7 @@ func TestBadgerCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative5", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -203,7 +202,7 @@ func TestBadgerCount(t *testing.T) {
 
 func TestBadgerImage(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -221,7 +220,7 @@ func TestBadgerImage(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -231,7 +230,7 @@ func TestBadgerImage(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -249,7 +248,7 @@ func TestBadgerImage(t *testing.T) {
 
 func TestBadgerVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -275,7 +274,7 @@ func TestBadgerVote(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -288,7 +287,7 @@ func TestBadgerVote(t *testing.T) {
 
 func TestBadgerSort(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -312,7 +311,7 @@ func TestBadgerSort(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -325,7 +324,7 @@ func TestBadgerSort(t *testing.T) {
 
 func TestBadgerRatings(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -360,7 +359,7 @@ func TestBadgerRatings(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -384,7 +383,7 @@ func TestBadgerRatings(t *testing.T) {
 
 func TestBadgerDelete(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -421,7 +420,7 @@ func TestBadgerDelete(t *testing.T) {
 		}
 	})
 	t.Run("Positive2", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -448,7 +447,7 @@ func TestBadgerDelete(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		badger, err := NewBadger(inMemory)
+		badger, err := NewBadger(DefaultBadgerConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -465,7 +464,7 @@ func TestBadgerDelete(t *testing.T) {
 }
 
 func TestBadgerLru(t *testing.T) {
-	badger, err := NewBadger(inMemory)
+	badger, err := NewBadger(DefaultBadgerConfig)
 	if err != nil {
 		t.Fatal(err)
 	}

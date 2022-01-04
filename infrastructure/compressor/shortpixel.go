@@ -17,8 +17,7 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewShortPixel(opts ...options) *Shortpixel {
-	conf := newShortPixelConfig()
+func NewShortpixel(conf ShortpixelConfig, opts ...options) *Shortpixel {
 	sp := &Shortpixel{
 		conf: conf,
 		ch:   make(chan struct{}, 1),
@@ -38,7 +37,7 @@ func WithHeartbeatRestart(ch chan<- interface{}) options {
 }
 
 type Shortpixel struct {
-	conf      shortPixelConfig
+	conf      ShortpixelConfig
 	done      uint32
 	ch        chan struct{}
 	heartbeat struct {
@@ -47,7 +46,7 @@ type Shortpixel struct {
 }
 
 func (sp *Shortpixel) Ping(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, sp.conf.timeout)
+	ctx, cancel := context.WithTimeout(ctx, sp.conf.Timeout)
 	defer cancel()
 	_, err := sp.upload(ctx, Png())
 	if err != nil {
@@ -63,7 +62,7 @@ func (sp *Shortpixel) Monitor() {
 			if sp.heartbeat.restart != nil {
 				sp.heartbeat.restart <- struct{}{}
 			}
-			time.Sleep(sp.conf.restartIn)
+			time.Sleep(sp.conf.RestartIn)
 			atomic.StoreUint32(&sp.done, 0)
 			if sp.heartbeat.restart != nil {
 				sp.heartbeat.restart <- struct{}{}
@@ -115,7 +114,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	_, err = io.WriteString(part, sp.conf.apiKey)
+	_, err = io.WriteString(part, sp.conf.ApiKey)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -131,7 +130,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	_, err = io.WriteString(part, sp.conf.wait)
+	_, err = io.WriteString(part, sp.conf.Wait)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -163,14 +162,14 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	c := http.Client{Timeout: sp.conf.uploadTimeout}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, sp.conf.url, body)
+	c := http.Client{Timeout: sp.conf.UploadTimeout}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, sp.conf.Url, body)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
 	req.Header.Set("Content-Type", multi.FormDataContentType())
 	resp := (*http.Response)(nil)
-	err = retry.Do(sp.conf.times, sp.conf.pause, func() error {
+	err = retry.Do(sp.conf.RetryTimes, sp.conf.RetryPause, func() error {
 		resp, err = c.Do(req)
 		if err != nil {
 			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)
@@ -238,7 +237,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 }
 
 func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
-	time.Sleep(sp.conf.repeatIn)
+	time.Sleep(sp.conf.RepeatIn)
 	body := pool.GetBuffer()
 	defer pool.PutBuffer(body)
 	request := struct {
@@ -248,9 +247,9 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 		Convertto string   `json:"convertto"`
 		Urllist   []string `json:"urllist"`
 	}{
-		Key:       sp.conf.apiKey,
+		Key:       sp.conf.ApiKey,
 		Lossy:     "1",
-		Wait:      sp.conf.wait,
+		Wait:      sp.conf.Wait,
 		Convertto: "png",
 		Urllist:   []string{src},
 	}
@@ -258,13 +257,13 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	c := http.Client{Timeout: sp.conf.uploadTimeout}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, sp.conf.url2, body)
+	c := http.Client{Timeout: sp.conf.UploadTimeout}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, sp.conf.Url2, body)
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
 	resp := (*http.Response)(nil)
-	err = retry.Do(sp.conf.times, sp.conf.pause, func() error {
+	err = retry.Do(sp.conf.RetryTimes, sp.conf.RetryPause, func() error {
 		resp, err = c.Do(req)
 		if err != nil {
 			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)
@@ -324,14 +323,14 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 }
 
 func (sp *Shortpixel) download(ctx context.Context, src string) (model.File, error) {
-	c := http.Client{Timeout: sp.conf.downloadTimeout}
+	c := http.Client{Timeout: sp.conf.DownloadTimeout}
 	body := io.Reader(nil)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, src, body)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
 	resp := (*http.Response)(nil)
-	err = retry.Do(sp.conf.times, sp.conf.pause, func() error {
+	err = retry.Do(sp.conf.RetryTimes, sp.conf.RetryPause, func() error {
 		resp, err = c.Do(req)
 		if err != nil {
 			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)

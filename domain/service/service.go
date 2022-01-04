@@ -13,6 +13,7 @@ import (
 )
 
 func New(
+	conf ServiceConfig,
 	comp domain.Compresser,
 	stor domain.Storager,
 	pers domain.Databaser,
@@ -22,7 +23,6 @@ func New(
 	qDel *QueueDel,
 	opts ...options,
 ) *Service {
-	conf := newServiceConfig()
 	s := &Service{
 		conf:  conf,
 		comp:  comp,
@@ -111,7 +111,7 @@ func WithHeartbeatDel(ch chan<- interface{}) options {
 }
 
 type Service struct {
-	conf  serviceConfig
+	conf  ServiceConfig
 	comp  domain.Compresser
 	stor  domain.Storager
 	pers  domain.Databaser
@@ -205,7 +205,7 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 	src2 := ""
 	token1 := image1
 	token2 := image2
-	if s.conf.tempLinks {
+	if s.conf.TempLinks {
 		token1, err = s.rand.id()
 		if err != nil {
 			return model.Image{}, model.Image{}, errors.Wrap(err)
@@ -278,7 +278,7 @@ func (s *Service) Vote(ctx context.Context, album uint64, tokenFrom uint64, toke
 	imageFrom := tokenFrom
 	imageTo := tokenTo
 	err := error(nil)
-	if s.conf.tempLinks {
+	if s.conf.TempLinks {
 		_, imageFrom, err = s.token.Get(ctx, tokenFrom)
 		if err != nil {
 			return errors.Wrap(err)

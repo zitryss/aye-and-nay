@@ -8,14 +8,13 @@ import (
 
 	minios3 "github.com/minio/minio-go/v7"
 
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
 func TestMinio(t *testing.T) {
 	t.Run("", func(t *testing.T) {
-		minio, err := NewMinio()
+		minio, err := NewMinio(DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -55,7 +54,7 @@ func TestMinio(t *testing.T) {
 		}
 	})
 	t.Run("", func(t *testing.T) {
-		minio, err := NewMinio()
+		minio, err := NewMinio(DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -88,7 +87,7 @@ func TestMinio(t *testing.T) {
 }
 
 func TestMinioHealth(t *testing.T) {
-	minio, err := NewMinio()
+	minio, err := NewMinio(DefaultMinioConfig)
 	if err != nil {
 		t.Fatal(err)
 	}

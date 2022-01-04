@@ -11,14 +11,14 @@ import (
 
 func main() {
 	conf := ""
-	flag.StringVar(&conf, "config", "./config.yml", "relative filepath to a config file")
+	flag.StringVar(&conf, "config", "./config.env", "relative filepath to a config file")
 	flag.Parse()
 	viper.SetConfigFile(conf)
 	err := viper.ReadInConfig()
 	if err != nil {
 		os.Exit(1)
 	}
-	port := viper.GetString("server.port")
+	port := viper.GetString("server_port")
 	req, err := http.NewRequest(http.MethodGet, "http://localhost:"+port+"/api/health/", http.NoBody)
 	if err != nil {
 		os.Exit(1)

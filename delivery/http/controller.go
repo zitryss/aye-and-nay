@@ -19,14 +19,14 @@ import (
 )
 
 func newController(
+	conf ControllerConfig,
 	serv domain.Servicer,
 ) controller {
-	conf := newContrConfig()
 	return controller{conf, serv}
 }
 
 type controller struct {
-	conf contrConfig
+	conf ControllerConfig
 	serv domain.Servicer
 }
 
@@ -37,7 +37,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		if !strings.HasPrefix(ct, "multipart/form-data") {
 			return nil, albumRequest{}, errors.Wrap(domain.ErrWrongContentType)
 		}
-		maxBodySize := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
+		maxBodySize := int64(c.conf.MaxNumberOfFiles) * c.conf.MaxFileSize
 		if r.ContentLength > maxBodySize {
 			return nil, albumRequest{}, errors.Wrap(domain.ErrBodyTooLarge)
 		}
@@ -49,7 +49,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		if len(fhs) < 2 {
 			return nil, albumRequest{}, errors.Wrap(domain.ErrNotEnoughImages)
 		}
-		if len(fhs) > c.conf.maxNumberOfFiles {
+		if len(fhs) > c.conf.MaxNumberOfFiles {
 			return nil, albumRequest{}, errors.Wrap(domain.ErrTooManyImages)
 		}
 		req := albumRequest{ff: make([]model.File, 0, len(fhs)), multi: r.MultipartForm}
@@ -60,7 +60,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 			_ = req.multi.RemoveAll()
 		}()
 		for _, fh := range fhs {
-			if fh.Size > c.conf.maxFileSize {
+			if fh.Size > c.conf.MaxFileSize {
 				return nil, albumRequest{}, errors.Wrap(domain.ErrImageTooLarge)
 			}
 			f, err := fh.Open()

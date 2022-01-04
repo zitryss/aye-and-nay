@@ -12,7 +12,7 @@ import (
 
 func (s *Service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 	go func() {
-		sem := make(chan struct{}, s.conf.numberOfWorkersCalc)
+		sem := make(chan struct{}, s.conf.NumberOfWorkersCalc)
 		for {
 			select {
 			case sem <- struct{}{}:
@@ -58,7 +58,7 @@ func (s *Service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 						e = err
 						continue
 					}
-					vect := linalg.PageRank(edgs, s.conf.accuracy)
+					vect := linalg.PageRank(edgs, s.conf.Accuracy)
 					err = s.pers.UpdateRatings(ctx, album, vect)
 					if err != nil {
 						err = errors.Wrap(err)
@@ -77,7 +77,7 @@ func (s *Service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 
 func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 	go func() {
-		sem := make(chan struct{}, s.conf.numberOfWorkersComp)
+		sem := make(chan struct{}, s.conf.NumberOfWorkersComp)
 		for {
 			select {
 			case sem <- struct{}{}:

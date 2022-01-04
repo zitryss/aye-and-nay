@@ -7,6 +7,7 @@ require (
 	github.com/cheggaaa/pb/v3 v3.0.8
 	github.com/dgraph-io/badger/v3 v3.2103.2
 	github.com/emirpasic/gods v1.12.0
+	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redis/redis/v8 v8.11.4
 	github.com/hashicorp/golang-lru v0.5.4
 	github.com/julienschmidt/httprouter v1.3.0
@@ -38,6 +39,8 @@ require (
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/fatih/color v1.12.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
+	github.com/go-playground/locales v0.12.1 // indirect
+	github.com/go-playground/universal-translator v0.16.0 // indirect
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
@@ -52,6 +55,7 @@ require (
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/kr/text v0.2.0 // indirect
+	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/lib/pq v1.8.0 // indirect
 	github.com/libdns/libdns v0.2.1 // indirect
 	github.com/magiconair/properties v1.8.5 // indirect

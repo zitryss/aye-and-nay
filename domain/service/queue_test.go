@@ -11,7 +11,7 @@ import (
 )
 
 func TestPQueue(t *testing.T) {
-	mem := cache.NewMem()
+	mem := cache.NewMem(cache.DefaultMemConfig)
 	pq := newPQueue(0xFE28, mem)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

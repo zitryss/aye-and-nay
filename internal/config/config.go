@@ -1,49 +1,95 @@
 package config
 
 import (
+	"reflect"
+	"strings"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/go-playground/validator"
 	"github.com/spf13/viper"
 
-	"github.com/zitryss/aye-and-nay/pkg/unit"
+	"github.com/zitryss/aye-and-nay/delivery/http"
+	"github.com/zitryss/aye-and-nay/domain/service"
+	"github.com/zitryss/aye-and-nay/infrastructure/cache"
+	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
+	"github.com/zitryss/aye-and-nay/infrastructure/database"
+	"github.com/zitryss/aye-and-nay/infrastructure/storage"
+	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func init() {
-	viper.Set("middleware.limiter.requestsPerSecond", 100)
-	viper.Set("middleware.limiter.burst", 1)
-	viper.Set("controller.maxNumberOfFiles", 3)
-	viper.Set("controller.maxFileSize", 512*unit.KB)
-	viper.Set("service.numberOfWorkersCalc", 2)
-	viper.Set("service.tempLinks", true)
-	viper.Set("service.numberOfWorkersComp", 2)
-	viper.Set("service.accuracy", 0.625)
-	viper.Set("cache.redis.host", "localhost")
-	viper.Set("cache.redis.port", 6379)
-	viper.Set("cache.redis.retry.times", 4)
-	viper.Set("cache.redis.retry.pause", "5s")
-	viper.Set("cache.redis.retry.timeout", "30s")
-	viper.Set("cache.redis.timeToLive", "1s")
-	viper.Set("compressor.use", "notamock")
-	viper.Set("compressor.imaginary.host", "localhost")
-	viper.Set("compressor.imaginary.port", 9001)
-	viper.Set("compressor.imaginary.retry.times", 4)
-	viper.Set("compressor.imaginary.retry.pause", "5s")
-	viper.Set("compressor.imaginary.retry.timeout", "30s")
-	viper.Set("compressor.shortpixel.uploadTimeout", "250ms")
-	viper.Set("compressor.shortpixel.downloadTimeout", "250ms")
-	viper.Set("database.mongo.host", "localhost")
-	viper.Set("database.mongo.port", 27017)
-	viper.Set("database.mongo.retry.times", 4)
-	viper.Set("database.mongo.retry.pause", "5s")
-	viper.Set("database.mongo.retry.timeout", "30s")
-	viper.Set("database.mongo.lru", 1)
-	viper.Set("database.badger.lru", 1)
-	viper.Set("storage.minio.host", "localhost")
-	viper.Set("storage.minio.port", 9000)
-	viper.Set("storage.minio.accessKey", "12345678")
-	viper.Set("storage.minio.secretKey", "qwertyui")
-	viper.Set("storage.minio.token", "")
-	viper.Set("storage.minio.secure", false)
-	viper.Set("storage.minio.retry.times", 4)
-	viper.Set("storage.minio.retry.pause", "5s")
-	viper.Set("storage.minio.retry.timeout", "30s")
-	viper.Set("storage.minio.location", "eu-central-1")
+func New(path string) (Config, error) {
+	viper.Reset()
+	conf := Config{}
+	err := readConfig(path, &conf)
+	if err != nil {
+		return Config{}, errors.Wrap(err)
+	}
+	fillGaps(&conf)
+	err = validator.New().Struct(conf)
+	if err != nil {
+		return Config{}, errors.Wrap(err)
+	}
+	return conf, nil
+}
+
+func OnChange(run func()) {
+	viper.OnConfigChange(func(_ fsnotify.Event) {
+		run()
+	})
+	viper.WatchConfig()
+}
+
+type Config struct {
+	App        AppConfig                   `mapstructure:",squash"`
+	Server     http.ServerConfig           `mapstructure:",squash"`
+	Middleware http.MiddlewareConfig       `mapstructure:",squash"`
+	Service    service.ServiceConfig       `mapstructure:",squash"`
+	Cache      cache.CacheConfig           `mapstructure:",squash"`
+	Compressor compressor.CompressorConfig `mapstructure:",squash"`
+	Database   database.DatabaseConfig     `mapstructure:",squash"`
+	Storage    storage.StorageConfig       `mapstructure:",squash"`
+}
+
+type AppConfig struct {
+	Name    string `mapstructure:"APP_NAME"    validate:"required"`
+	Ballast int64  `mapstructure:"APP_BALLAST"`
+	Log     string `mapstructure:"APP_LOG"     validate:"required"`
+}
+
+func readConfig(path string, conf *Config) error {
+	viper.SetConfigFile(path)
+	viper.AutomaticEnv()
+	_ = viper.ReadInConfig()
+	if len(viper.AllSettings()) == 0 {
+		bindEnv(reflect.TypeOf(*conf))
+	}
+	if len(viper.AllSettings()) == 0 {
+		return errors.Wrap(errors.New("no configuration is provided"))
+	}
+	err := viper.Unmarshal(conf)
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	return nil
+}
+
+func bindEnv(t reflect.Type) {
+	if t.Kind() != reflect.Struct {
+		return
+	}
+	for _, field := range reflect.VisibleFields(t) {
+		bindEnv(field.Type)
+		tag := field.Tag.Get("mapstructure")
+		if field.IsExported() && tag != "" && tag != ",squash" {
+			_ = viper.BindEnv(strings.ToLower(tag), tag)
+		}
+	}
+}
+
+func fillGaps(conf *Config) {
+	if conf.Compressor.IsMock() {
+		conf.Database.Mem.Compressed = true
+		conf.Database.Mongo.Compressed = true
+		conf.Database.Badger.Compressed = true
+	}
 }

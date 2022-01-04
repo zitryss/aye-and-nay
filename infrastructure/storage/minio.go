@@ -16,19 +16,18 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewMinio() (*Minio, error) {
-	conf := newMinioConfig()
-	client, err := minios3.New(conf.host+":"+conf.port, &minios3.Options{
-		Creds:  credentials.NewStaticV4(conf.accessKey, conf.secretKey, conf.token),
-		Secure: conf.secure,
+func NewMinio(ctx context.Context, conf MinioConfig) (*Minio, error) {
+	client, err := minios3.New(conf.Host+":"+conf.Port, &minios3.Options{
+		Creds:  credentials.NewStaticV4(conf.AccessKey, conf.SecretKey, conf.Token),
+		Secure: conf.Secure,
 	})
 	if err != nil {
 		return &Minio{}, errors.Wrap(err)
 	}
 	m := &Minio{conf, client}
-	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
+	ctx, cancel := context.WithTimeout(ctx, conf.Timeout)
 	defer cancel()
-	err = retry.Do(conf.times, conf.pause, func() error {
+	err = retry.Do(conf.RetryTimes, conf.RetryPause, func() error {
 		_, err := m.Health(ctx)
 		if err != nil {
 			return errors.Wrap(err)
@@ -43,7 +42,7 @@ func NewMinio() (*Minio, error) {
 		return &Minio{}, errors.Wrap(err)
 	}
 	if !found {
-		err = client.MakeBucket(ctx, "aye-and-nay", minios3.MakeBucketOptions{Region: conf.location})
+		err = client.MakeBucket(ctx, "aye-and-nay", minios3.MakeBucketOptions{Region: conf.Location})
 		if err != nil {
 			return &Minio{}, errors.Wrap(err)
 		}
@@ -57,7 +56,7 @@ func NewMinio() (*Minio, error) {
 }
 
 type Minio struct {
-	conf   minioConfig
+	conf   MinioConfig
 	client *minios3.Client
 }
 
@@ -70,7 +69,7 @@ func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.Fil
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
-	src := m.conf.prefix + "/aye-and-nay/" + filename
+	src := m.conf.Prefix + "/aye-and-nay/" + filename
 	return src, nil
 }
 
@@ -111,13 +110,13 @@ func (m *Minio) Remove(ctx context.Context, album uint64, image uint64) error {
 }
 
 func (m *Minio) Health(ctx context.Context) (bool, error) {
-	url := "http://" + m.conf.host + ":" + m.conf.port + "/minio/health/live"
+	url := "http://" + m.conf.Host + ":" + m.conf.Port + "/minio/health/live"
 	body := io.Reader(nil)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, body)
 	if err != nil {
 		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
 	}
-	c := http.Client{Timeout: m.conf.timeout}
+	c := http.Client{Timeout: m.conf.Timeout}
 	resp, err := c.Do(req)
 	if err != nil {
 		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
@@ -134,13 +133,13 @@ func (m *Minio) Health(ctx context.Context) (bool, error) {
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
 		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", "no connection to minio")
 	}
-	url = "http://" + m.conf.host + ":" + m.conf.port + "/minio/health/ready"
+	url = "http://" + m.conf.Host + ":" + m.conf.Port + "/minio/health/ready"
 	body = io.Reader(nil)
 	req, err = http.NewRequestWithContext(ctx, http.MethodGet, url, body)
 	if err != nil {
 		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
 	}
-	c = http.Client{Timeout: m.conf.timeout}
+	c = http.Client{Timeout: m.conf.Timeout}
 	resp, err = c.Do(req)
 	if err != nil {
 		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)

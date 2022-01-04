@@ -10,8 +10,7 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMem() *Mem {
-	conf := newMemConfig()
+func NewMem(conf MemConfig) *Mem {
 	return &Mem{
 		conf:       conf,
 		syncAlbums: syncAlbums{albums: map[uint64]model.Album{}},
@@ -19,7 +18,7 @@ func NewMem() *Mem {
 }
 
 type Mem struct {
-	conf memConfig
+	conf MemConfig
 	syncAlbums
 }
 
@@ -38,7 +37,7 @@ func (m *Mem) SaveAlbum(_ context.Context, alb model.Album) error {
 	edgs := make(map[uint64]map[uint64]int, len(alb.Images))
 	for i := range alb.Images {
 		img := &alb.Images[i]
-		img.Compressed = m.conf.compressed
+		img.Compressed = m.conf.Compressed
 		edgs[img.Id] = make(map[uint64]int, len(alb.Images))
 	}
 	alb.Edges = edgs

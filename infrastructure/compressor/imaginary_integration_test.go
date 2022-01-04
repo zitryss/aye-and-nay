@@ -9,8 +9,6 @@ import (
 	"testing"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
-
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 )
 
 func TestImaginaryPositive(t *testing.T) {
@@ -32,7 +30,7 @@ func TestImaginaryPositive(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			im, err := NewImaginary()
+			im, err := NewImaginary(DefaultImaginaryConfig)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -57,7 +55,7 @@ func TestImaginaryNegative(t *testing.T) {
 	if testing.Short() {
 		t.Skip("short flag is set")
 	}
-	im, err := NewImaginary()
+	im, err := NewImaginary(DefaultImaginaryConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +78,7 @@ func TestImaginaryNegative(t *testing.T) {
 }
 
 func TestImaginaryHealth(t *testing.T) {
-	im, err := NewImaginary()
+	im, err := NewImaginary(DefaultImaginaryConfig)
 	if err != nil {
 		t.Fatal(err)
 	}

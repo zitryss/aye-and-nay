@@ -22,7 +22,7 @@ services:
       dockerfile: ./build/Dockerfile-app
     container_name: prod-app
     volumes:
-      - "./config-prod.yml:/config.yml"
+      - "./config-prod.env:/config.env"
     depends_on:
       - redis
       - imaginary

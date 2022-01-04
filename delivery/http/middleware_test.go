@@ -9,7 +9,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
@@ -33,7 +32,7 @@ func TestMiddlewareRecover(t *testing.T) {
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}
 		lim := limiterMockPos{}
-		middle := NewMiddleware(lim)
+		middle := NewMiddleware(DefaultMiddlewareConfig, lim)
 		handler := middle.recover(http.HandlerFunc(fn))
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
@@ -47,7 +46,7 @@ func TestMiddlewareRecover(t *testing.T) {
 			panic("don't")
 		}
 		lim := limiterMockPos{}
-		middle := NewMiddleware(lim)
+		middle := NewMiddleware(DefaultMiddlewareConfig, lim)
 		handler := middle.recover(http.HandlerFunc(fn))
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
@@ -66,7 +65,7 @@ func TestMiddlewareLimit(t *testing.T) {
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}
 		lim := limiterMockPos{}
-		middle := NewMiddleware(lim)
+		middle := NewMiddleware(DefaultMiddlewareConfig, lim)
 		handler := middle.limit(http.HandlerFunc(fn))
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
@@ -82,7 +81,7 @@ func TestMiddlewareLimit(t *testing.T) {
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}
 		lim := limiterMockNeg{}
-		middle := NewMiddleware(lim)
+		middle := NewMiddleware(DefaultMiddlewareConfig, lim)
 		handler := middle.limit(http.HandlerFunc(fn))
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)

@@ -11,14 +11,13 @@ import (
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
 func TestMemAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumEmptyFactory(0x6CC4)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -33,7 +32,7 @@ func TestMemAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumFullFactory(0xA566)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -46,14 +45,14 @@ func TestMemAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		_, err := mem.GetImagesIds(context.Background(), 0xA9B4)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		_, err := mem.GetEdges(context.Background(), 0x3F1E)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
@@ -63,7 +62,7 @@ func TestMemAlbum(t *testing.T) {
 
 func TestMemCount(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumEmptyFactory(0x746C)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -114,7 +113,7 @@ func TestMemCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumEmptyFactory(0x99DF)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -137,28 +136,28 @@ func TestMemCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		_, err := mem.CountImages(context.Background(), 0xF256)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		_, err := mem.CountImagesCompressed(context.Background(), 0xC52A)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative4", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		err := mem.UpdateCompressionStatus(context.Background(), 0xF73E, 0x3E3D)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative5", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumEmptyFactory(0xDF75)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -173,7 +172,7 @@ func TestMemCount(t *testing.T) {
 
 func TestMemImage(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumEmptyFactory(0xB0C4)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -188,14 +187,14 @@ func TestMemImage(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		_, err := mem.GetImageSrc(context.Background(), 0x12EE, 0x51DE)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumEmptyFactory(0xD585)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -210,7 +209,7 @@ func TestMemImage(t *testing.T) {
 
 func TestMemVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumFullFactory(0x4D76)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -233,7 +232,7 @@ func TestMemVote(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		err := mem.SaveVote(context.Background(), 0x1FAD, 0x84E6, 0x308E)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
@@ -243,7 +242,7 @@ func TestMemVote(t *testing.T) {
 
 func TestMemSort(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumFullFactory(0x5A96)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -264,7 +263,7 @@ func TestMemSort(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		_, err := mem.GetImagesOrdered(context.Background(), 0x66BE)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
@@ -274,7 +273,7 @@ func TestMemSort(t *testing.T) {
 
 func TestMemRatings(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumFullFactory(0x4E54)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {
@@ -306,7 +305,7 @@ func TestMemRatings(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		img1 := model.Image{Id: 0x3E3D, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/PT4AAAAAAAA", Rating: 0.54412788}
 		img2 := model.Image{Id: 0xB399, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/mbMAAAAAAAA", Rating: 0.32537162}
 		img3 := model.Image{Id: 0xDA2A, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/KtoAAAAAAAA", Rating: 0.43185491}
@@ -327,7 +326,7 @@ func TestMemRatings(t *testing.T) {
 
 func TestMemDelete(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumEmptyFactory(0x748C)
 		_, err := mem.CountImages(context.Background(), 0x748C)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
@@ -361,7 +360,7 @@ func TestMemDelete(t *testing.T) {
 		}
 	})
 	t.Run("Positive2", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumEmptyFactory(0x7B43)
 		alb.Expires = time.Now().Add(-1 * time.Hour)
 		err := mem.SaveAlbum(context.Background(), alb)
@@ -385,7 +384,7 @@ func TestMemDelete(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		mem := NewMem()
+		mem := NewMem(DefaultMemConfig)
 		alb := AlbumEmptyFactory(0x608C)
 		err := mem.SaveAlbum(context.Background(), alb)
 		if err != nil {

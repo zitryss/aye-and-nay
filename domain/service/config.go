@@ -1,21 +1,17 @@
 package service
 
-import (
-	"github.com/spf13/viper"
-)
+type ServiceConfig struct {
+	TempLinks           bool    `mapstructure:"SERVICE_TEMP_LINKS"`
+	NumberOfWorkersCalc int     `mapstructure:"SERVICE_NUMBER_OF_WORKERS_CALC" validate:"required"`
+	NumberOfWorkersComp int     `mapstructure:"SERVICE_NUMBER_OF_WORKERS_COMP" validate:"required"`
+	Accuracy            float64 `mapstructure:"SERVICE_ACCURACY"               validate:"required"`
+}
 
-func newServiceConfig() serviceConfig {
-	return serviceConfig{
-		tempLinks:           viper.GetBool("service.tempLinks"),
-		numberOfWorkersCalc: viper.GetInt("service.numberOfWorkersCalc"),
-		numberOfWorkersComp: viper.GetInt("service.numberOfWorkersComp"),
-		accuracy:            viper.GetFloat64("service.accuracy"),
+var (
+	DefaultServiceConfig = ServiceConfig{
+		TempLinks:           true,
+		NumberOfWorkersCalc: 2,
+		NumberOfWorkersComp: 2,
+		Accuracy:            0.625,
 	}
-}
-
-type serviceConfig struct {
-	tempLinks           bool
-	numberOfWorkersCalc int
-	numberOfWorkersComp int
-	accuracy            float64
-}
+)

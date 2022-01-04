@@ -13,8 +13,7 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMem(opts ...options) *Mem {
-	conf := newMemConfig()
+func NewMem(conf MemConfig, opts ...options) *Mem {
 	m := &Mem{
 		conf:         conf,
 		syncVisitors: syncVisitors{visitors: map[uint64]*visitorTime{}},
@@ -44,7 +43,7 @@ func WithHeartbeatToken(ch chan<- interface{}) options {
 }
 
 type Mem struct {
-	conf memConfig
+	conf MemConfig
 	syncVisitors
 	syncQueues
 	syncPQueues
@@ -121,12 +120,12 @@ func (m *Mem) Monitor() {
 			now := time.Now()
 			m.syncVisitors.Lock()
 			for k, v := range m.visitors {
-				if now.Sub(v.seen) >= m.conf.timeToLive {
+				if now.Sub(v.seen) >= m.conf.TimeToLive {
 					delete(m.visitors, k)
 				}
 			}
 			m.syncVisitors.Unlock()
-			time.Sleep(m.conf.cleanupInterval)
+			time.Sleep(m.conf.CleanupInterval)
 		}
 	}()
 	go func() {
@@ -137,12 +136,12 @@ func (m *Mem) Monitor() {
 			now := time.Now()
 			m.syncPairs.Lock()
 			for k, v := range m.pairs {
-				if now.Sub(v.seen) >= m.conf.timeToLive {
+				if now.Sub(v.seen) >= m.conf.TimeToLive {
 					delete(m.pairs, k)
 				}
 			}
 			m.syncPairs.Unlock()
-			time.Sleep(m.conf.cleanupInterval)
+			time.Sleep(m.conf.CleanupInterval)
 			if m.heartbeat.pair != nil {
 				m.heartbeat.pair <- struct{}{}
 			}
@@ -156,12 +155,12 @@ func (m *Mem) Monitor() {
 			now := time.Now()
 			m.syncTokens.Lock()
 			for k, v := range m.tokens {
-				if now.Sub(v.seen) >= m.conf.timeToLive {
+				if now.Sub(v.seen) >= m.conf.TimeToLive {
 					delete(m.tokens, k)
 				}
 			}
 			m.syncTokens.Unlock()
-			time.Sleep(m.conf.cleanupInterval)
+			time.Sleep(m.conf.CleanupInterval)
 			if m.heartbeat.token != nil {
 				m.heartbeat.token <- struct{}{}
 			}
@@ -174,7 +173,7 @@ func (m *Mem) Allow(_ context.Context, ip uint64) (bool, error) {
 	defer m.syncVisitors.Unlock()
 	v, ok := m.visitors[ip]
 	if !ok {
-		l := rate.NewLimiter(rate.Limit(m.conf.limiterRequestsPerSecond), m.conf.limiterBurst)
+		l := rate.NewLimiter(rate.Limit(m.conf.LimiterRequestsPerSecond), m.conf.LimiterBurst)
 		v = &visitorTime{limiter: l}
 		m.visitors[ip] = v
 	}

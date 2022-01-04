@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/ory/dockertest/v3"
-	"github.com/spf13/viper"
 
 	"github.com/zitryss/aye-and-nay/pkg/env"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -40,58 +39,56 @@ type docker struct {
 	resources []*dockertest.Resource
 }
 
-func (d *docker) RunRedis() {
+func (d *docker) RunRedis(host *string, hPort *string) {
 	repository := "redis"
 	tag := "6-alpine"
 	env := []string(nil)
 	cmd := []string(nil)
-	port := "6379/tcp"
+	cPort := "6379/tcp"
 	conf := func(port string) {
-		viper.Set("cache.redis.host", d.host)
-		viper.Set("cache.redis.port", port)
+		*host = d.host
+		*hPort = port
 	}
-	d.run(repository, tag, env, cmd, port, conf)
+	d.run(repository, tag, env, cmd, cPort, conf)
 }
 
-func (d *docker) RunImaginary() {
+func (d *docker) RunImaginary(host *string, hPort *string) {
 	repository := "h2non/imaginary"
 	tag := "1"
 	env := []string(nil)
 	cmd := []string(nil)
-	port := "9000/tcp"
+	cPort := "9000/tcp"
 	conf := func(port string) {
-		viper.Set("compressor.imaginary.host", d.host)
-		viper.Set("compressor.imaginary.port", port)
+		*host = d.host
+		*hPort = port
 	}
-	d.run(repository, tag, env, cmd, port, conf)
+	d.run(repository, tag, env, cmd, cPort, conf)
 }
 
-func (d *docker) RunMongo() {
+func (d *docker) RunMongo(host *string, hPort *string) {
 	repository := "mongo"
 	tag := "5"
 	env := []string(nil)
 	cmd := []string(nil)
-	port := "27017/tcp"
+	cPort := "27017/tcp"
 	conf := func(port string) {
-		viper.Set("database.mongo.host", d.host)
-		viper.Set("database.mongo.port", port)
+		*host = d.host
+		*hPort = port
 	}
-	d.run(repository, tag, env, cmd, port, conf)
+	d.run(repository, tag, env, cmd, cPort, conf)
 }
 
-func (d *docker) RunMinio() {
+func (d *docker) RunMinio(host *string, hPort *string, accessKey string, secretKey string) {
 	repository := "minio/minio"
 	tag := "RELEASE.2021-11-24T23-19-33Z"
-	accessKey := viper.GetString("storage.minio.accessKey")
-	secretKey := viper.GetString("storage.minio.secretKey")
 	env := []string{"MINIO_ACCESS_KEY=" + accessKey, "MINIO_SECRET_KEY=" + secretKey}
 	cmd := []string{"server", "/data"}
-	port := "9000/tcp"
+	cPort := "9000/tcp"
 	conf := func(port string) {
-		viper.Set("storage.minio.host", d.host)
-		viper.Set("storage.minio.port", port)
+		*host = d.host
+		*hPort = port
 	}
-	d.run(repository, tag, env, cmd, port, conf)
+	d.run(repository, tag, env, cmd, cPort, conf)
 }
 
 func (d *docker) run(repository string, tag string, env []string, cmd []string, containerPort string, conf func(string)) {

@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spf13/viper"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
@@ -19,7 +18,6 @@ import (
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 	"github.com/zitryss/aye-and-nay/internal/dockertest"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/env"
@@ -33,10 +31,20 @@ func TestMain(m *testing.M) {
 		log.SetOutput(os.Stderr)
 		log.SetLevel(log.CRITICAL)
 		docker := dockertest.New()
-		docker.RunRedis()
-		docker.RunImaginary()
-		docker.RunMongo()
-		docker.RunMinio()
+		host := &cache.DefaultRedisConfig.Host
+		port := &cache.DefaultRedisConfig.Port
+		docker.RunRedis(host, port)
+		host = &compressor.DefaultImaginaryConfig.Host
+		port = &compressor.DefaultImaginaryConfig.Port
+		docker.RunImaginary(host, port)
+		host = &database.DefaultMongoConfig.Host
+		port = &database.DefaultMongoConfig.Port
+		docker.RunMongo(host, port)
+		host = &storage.DefaultMinioConfig.Host
+		port = &storage.DefaultMinioConfig.Port
+		accessKey := storage.DefaultMinioConfig.AccessKey
+		secretKey := storage.DefaultMinioConfig.SecretKey
+		docker.RunMinio(host, port, accessKey, secretKey)
 		log.SetOutput(io.Discard)
 		code := m.Run()
 		docker.Purge()
@@ -57,19 +65,19 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -80,7 +88,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		heartbeatComp := make(chan interface{})
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		gComp, ctxComp := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctxComp, gComp)
 		files := []model.File{Png(), Png()}
@@ -116,17 +124,17 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		heartbeatRestart := make(chan interface{})
-		comp := compressor.NewShortPixel(compressor.WithHeartbeatRestart(heartbeatRestart))
+		comp := compressor.NewShortpixel(compressor.DefaultShortpixelConfig, compressor.WithHeartbeatRestart(heartbeatRestart))
 		comp.Monitor()
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -137,7 +145,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		heartbeatComp := make(chan interface{})
-		serv := New(comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := New(DefaultServiceConfig, comp, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
 		gComp, ctxComp := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctxComp, gComp)
 		files := []model.File{Png(), Png()}
@@ -228,19 +236,19 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -250,7 +258,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -306,8 +314,6 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 	})
 	t.Run("Positive2", func(t *testing.T) {
-		viper.Set("service.tempLinks", false)
-		defer viper.Set("service.tempLinks", true)
 		fn1 := func() func() (uint64, error) {
 			i := uint64(0)
 			return func() (uint64, error) {
@@ -319,19 +325,19 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -341,7 +347,9 @@ func TestServiceIntegrationPair(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		conf := DefaultServiceConfig
+		conf.TempLinks = false
+		serv := New(conf, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -399,19 +407,19 @@ func TestServiceIntegrationPair(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -421,7 +429,7 @@ func TestServiceIntegrationPair(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel)
 		_, _, err = serv.Pair(ctx, 0xEB46)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
@@ -442,19 +450,19 @@ func TestServiceIntegrationImage(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -464,7 +472,7 @@ func TestServiceIntegrationImage(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -492,19 +500,19 @@ func TestServiceIntegrationImage(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -514,7 +522,7 @@ func TestServiceIntegrationImage(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel)
 		_, err = serv.Image(ctx, 0xE283)
 		if !errors.Is(err, domain.ErrTokenNotFound) {
 			t.Error(err)
@@ -535,19 +543,19 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -557,7 +565,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -573,8 +581,6 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 	})
 	t.Run("Positive2", func(t *testing.T) {
-		viper.Set("service.tempLinks", false)
-		defer viper.Set("service.tempLinks", true)
 		fn1 := func() func() (uint64, error) {
 			i := uint64(0)
 			return func() (uint64, error) {
@@ -586,19 +592,19 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -608,7 +614,9 @@ func TestServiceIntegrationVote(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		conf := DefaultServiceConfig
+		conf.TempLinks = false
+		serv := New(conf, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -635,19 +643,19 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -657,7 +665,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -684,19 +692,19 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -706,7 +714,7 @@ func TestServiceIntegrationVote(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		if err != nil {
@@ -736,19 +744,19 @@ func TestServiceIntegrationTop(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -759,7 +767,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		heartbeatCalc := make(chan interface{})
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc))
 		gCalc, ctxCalc := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctxCalc, gCalc)
 		files := []model.File{Png(), Png()}
@@ -799,19 +807,19 @@ func TestServiceIntegrationTop(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -821,7 +829,7 @@ func TestServiceIntegrationTop(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel)
 		_, err = serv.Top(ctx, 0x83CD)
 		if !errors.Is(err, domain.ErrAlbumNotFound) {
 			t.Error(err)
@@ -833,19 +841,19 @@ func TestServiceIntegrationDelete(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -868,7 +876,7 @@ func TestServiceIntegrationDelete(t *testing.T) {
 			t.Error(err)
 		}
 		heartbeatDel := make(chan interface{})
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
 		err = serv.CleanUp(ctx)
 		if err != nil {
 			t.Error(err)
@@ -891,19 +899,19 @@ func TestServiceIntegrationDelete(t *testing.T) {
 	t.Run("Positive2", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -914,7 +922,7 @@ func TestServiceIntegrationDelete(t *testing.T) {
 		qDel := &QueueDel{newPQueue(0xEF3F, redis)}
 		qDel.Monitor(ctx)
 		heartbeatDel := make(chan interface{})
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
 		gDel, ctxDel := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolDel(ctxDel, gDel)
 		files := []model.File{Png(), Png()}
@@ -932,19 +940,19 @@ func TestServiceIntegrationDelete(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary()
+		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio()
+		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo()
+		mongo, err := database.NewMongo(database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis()
+		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -955,7 +963,7 @@ func TestServiceIntegrationDelete(t *testing.T) {
 		qDel := &QueueDel{newPQueue(0xEF3F, redis)}
 		qDel.Monitor(ctx)
 		heartbeatDel := make(chan interface{})
-		serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
+		serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
 		gDel, ctxDel := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolDel(ctxDel, gDel)
 		files := []model.File{Png(), Png()}
@@ -979,19 +987,19 @@ func TestServiceIntegrationDelete(t *testing.T) {
 func TestServiceIntegrationHealth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	imaginary, err := compressor.NewImaginary()
+	imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	minio, err := storage.NewMinio()
+	minio, err := storage.NewMinio(storage.DefaultMinioConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	mongo, err := database.NewMongo()
+	mongo, err := database.NewMongo(database.DefaultMongoConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	redis, err := cache.NewRedis()
+	redis, err := cache.NewRedis(cache.DefaultRedisConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1001,7 +1009,7 @@ func TestServiceIntegrationHealth(t *testing.T) {
 	qComp.Monitor(ctx)
 	qDel := &QueueDel{}
 	qDel.Monitor(ctx)
-	serv := New(imaginary, minio, mongo, redis, qCalc, qComp, qDel)
+	serv := New(DefaultServiceConfig, imaginary, minio, mongo, redis, qCalc, qComp, qDel)
 	_, err = serv.Health(ctx)
 	if err != nil {
 		t.Error(err)

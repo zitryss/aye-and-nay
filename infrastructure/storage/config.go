@@ -2,36 +2,39 @@ package storage
 
 import (
 	"time"
-
-	"github.com/spf13/viper"
 )
 
-func newMinioConfig() minioConfig {
-	return minioConfig{
-		host:      viper.GetString("storage.minio.host"),
-		port:      viper.GetString("storage.minio.port"),
-		accessKey: viper.GetString("storage.minio.accessKey"),
-		secretKey: viper.GetString("storage.minio.secretKey"),
-		token:     viper.GetString("storage.minio.token"),
-		secure:    viper.GetBool("storage.minio.secure"),
-		times:     viper.GetInt("storage.minio.retry.times"),
-		pause:     viper.GetDuration("storage.minio.retry.pause"),
-		timeout:   viper.GetDuration("storage.minio.retry.timeout"),
-		location:  viper.GetString("storage.minio.location"),
-		prefix:    viper.GetString("storage.minio.prefix"),
-	}
+type StorageConfig struct {
+	Storage string      `mapstructure:"STORAGE" validate:"required"`
+	Minio   MinioConfig `mapstructure:",squash"`
 }
 
-type minioConfig struct {
-	host      string
-	port      string
-	accessKey string
-	secretKey string
-	token     string
-	secure    bool
-	times     int
-	pause     time.Duration
-	timeout   time.Duration
-	location  string
-	prefix    string
+type MinioConfig struct {
+	Host       string        `mapstructure:"STORAGE_MINIO_HOST"        validate:"required"`
+	Port       string        `mapstructure:"STORAGE_MINIO_PORT"        validate:"required"`
+	AccessKey  string        `mapstructure:"STORAGE_MINIO_ACCESS_KEY"  validate:"required"`
+	SecretKey  string        `mapstructure:"STORAGE_MINIO_SECRET_KEY"  validate:"required"`
+	Token      string        `mapstructure:"STORAGE_MINIO_TOKEN"`
+	Secure     bool          `mapstructure:"STORAGE_MINIO_SECURE"`
+	RetryTimes int           `mapstructure:"STORAGE_MINIO_RETRY_TIMES" validate:"required"`
+	RetryPause time.Duration `mapstructure:"STORAGE_MINIO_RETRY_PAUSE" validate:"required"`
+	Timeout    time.Duration `mapstructure:"STORAGE_MINIO_TIMEOUT"     validate:"required"`
+	Location   string        `mapstructure:"STORAGE_MINIO_LOCATION"    validate:"required"`
+	Prefix     string        `mapstructure:"STORAGE_MINIO_PREFIX"`
 }
+
+var (
+	DefaultMinioConfig = MinioConfig{
+		Host:       "localhost",
+		Port:       "9000",
+		AccessKey:  "12345678",
+		SecretKey:  "qwertyui",
+		Token:      "",
+		Secure:     false,
+		RetryTimes: 4,
+		RetryPause: 5 * time.Second,
+		Timeout:    30 * time.Second,
+		Location:   "eu-central-1",
+		Prefix:     "",
+	}
+)

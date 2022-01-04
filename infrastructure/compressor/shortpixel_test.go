@@ -11,10 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spf13/viper"
-
 	"github.com/zitryss/aye-and-nay/domain/domain"
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
@@ -42,7 +39,7 @@ type response []struct {
 	LocalPath          string `json:"LocalPath,omitempty"`
 }
 
-func TestShortPixel(t *testing.T) {
+func TestShortpixel(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, Png())
@@ -87,8 +84,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if err != nil {
 			t.Error(err)
@@ -135,8 +133,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if err != nil {
 			t.Error(err)
@@ -147,8 +146,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -194,31 +194,32 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
 	})
 	t.Run("NegativeTimeout1", func(t *testing.T) {
-		d := viper.GetDuration("compressor.shortpixel.uploadTimeout") + viper.GetDuration("compressor.shortpixel.downloadTimeout")
+		conf := DefaultShortpixelConfig
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(2 * d)
+			time.Sleep(2 * (conf.UploadTimeout + conf.DownloadTimeout))
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
 	})
 	t.Run("NegativeTimeout2", func(t *testing.T) {
-		d := viper.GetDuration("compressor.shortpixel.uploadTimeout") + viper.GetDuration("compressor.shortpixel.downloadTimeout")
+		conf := DefaultShortpixelConfig
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(2 * d)
+			time.Sleep(2 * (conf.UploadTimeout + conf.DownloadTimeout))
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -257,8 +258,8 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -270,8 +271,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -318,8 +320,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -357,8 +360,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -384,8 +388,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -411,8 +416,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrNotImage) {
 			t.Error(err)
@@ -438,8 +444,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrNotImage) {
 			t.Error(err)
@@ -511,9 +518,10 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver3 := httptest.NewServer(http.HandlerFunc(fn3))
 		defer mockserver3.Close()
-		viper.Set("compressor.shortpixel.url", mockserver3.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver3.URL
+		conf.Url2 = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if err != nil {
 			t.Error(err)
@@ -579,9 +587,10 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver3 := httptest.NewServer(http.HandlerFunc(fn3))
 		defer mockserver3.Close()
-		viper.Set("compressor.shortpixel.url", mockserver3.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver3.URL
+		conf.Url2 = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if err != nil {
 			t.Error(err)
@@ -614,18 +623,19 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
 		}
 	})
 	t.Run("NegativeRecoveryTimeout", func(t *testing.T) {
-		d := viper.GetDuration("compressor.shortpixel.uploadTimeout") + viper.GetDuration("compressor.shortpixel.downloadTimeout")
+		conf := DefaultShortpixelConfig
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(2 * d)
+			time.Sleep(2 * (conf.UploadTimeout + conf.DownloadTimeout))
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -651,9 +661,9 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -687,9 +697,10 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -749,9 +760,10 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -799,9 +811,10 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)
@@ -852,9 +865,10 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
 		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
 			t.Error(err)

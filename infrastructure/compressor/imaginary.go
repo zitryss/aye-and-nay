@@ -13,12 +13,11 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-func NewImaginary() (*Imaginary, error) {
-	conf := newImaginaryConfig()
+func NewImaginary(ctx context.Context, conf ImaginaryConfig) (*Imaginary, error) {
 	im := &Imaginary{conf}
-	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
+	ctx, cancel := context.WithTimeout(ctx, conf.Timeout)
 	defer cancel()
-	err := retry.Do(conf.times, conf.pause, func() error {
+	err := retry.Do(conf.RetryTimes, conf.RetryPause, func() error {
 		_, err := im.Health(ctx)
 		if err != nil {
 			return errors.Wrap(err)
@@ -32,7 +31,7 @@ func NewImaginary() (*Imaginary, error) {
 }
 
 type Imaginary struct {
-	conf imaginaryConfig
+	conf ImaginaryConfig
 }
 
 func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, error) {
@@ -57,15 +56,15 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	url := "http://" + im.conf.host + ":" + im.conf.port + "/convert?type=png&compression=9"
+	url := "http://" + im.conf.Host + ":" + im.conf.Port + "/convert?type=png&compression=9"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
 	req.Header.Set("Content-Type", multi.FormDataContentType())
-	c := http.Client{Timeout: im.conf.timeout}
+	c := http.Client{Timeout: im.conf.Timeout}
 	resp := (*http.Response)(nil)
-	err = retry.Do(im.conf.times, im.conf.pause, func() error {
+	err = retry.Do(im.conf.RetryTimes, im.conf.RetryPause, func() error {
 		resp, err = c.Do(req)
 		if err != nil {
 			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "%s", err)
@@ -107,13 +106,13 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 }
 
 func (im *Imaginary) Health(ctx context.Context) (bool, error) {
-	url := "http://" + im.conf.host + ":" + im.conf.port + "/health"
+	url := "http://" + im.conf.Host + ":" + im.conf.Port + "/health"
 	body := io.Reader(nil)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, body)
 	if err != nil {
 		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", err)
 	}
-	c := http.Client{Timeout: im.conf.timeout}
+	c := http.Client{Timeout: im.conf.Timeout}
 	resp, err := c.Do(req)
 	if err != nil {
 		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", err)

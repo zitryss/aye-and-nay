@@ -18,7 +18,11 @@ func TestMain(m *testing.M) {
 		log.SetOutput(os.Stderr)
 		log.SetLevel(log.CRITICAL)
 		docker := dockertest.New()
-		docker.RunMinio()
+		host := &DefaultMinioConfig.Host
+		port := &DefaultMinioConfig.Port
+		accessKey := DefaultMinioConfig.AccessKey
+		secretKey := DefaultMinioConfig.SecretKey
+		docker.RunMinio(host, port, accessKey, secretKey)
 		log.SetOutput(io.Discard)
 		code := m.Run()
 		docker.Purge()

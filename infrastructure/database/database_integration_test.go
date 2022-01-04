@@ -18,7 +18,9 @@ func TestMain(m *testing.M) {
 		log.SetOutput(os.Stderr)
 		log.SetLevel(log.CRITICAL)
 		docker := dockertest.New()
-		docker.RunMongo()
+		host := &DefaultMongoConfig.Host
+		port := &DefaultMongoConfig.Port
+		docker.RunMongo(host, port)
 		log.SetOutput(io.Discard)
 		code := m.Run()
 		docker.Purge()

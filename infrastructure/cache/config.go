@@ -23,7 +23,7 @@ type RedisConfig struct {
 	RetryTimes               int           `mapstructure:"CACHE_REDIS_RETRY_TIMES"                validate:"required"`
 	RetryPause               time.Duration `mapstructure:"CACHE_REDIS_RETRY_PAUSE"                validate:"required"`
 	Timeout                  time.Duration `mapstructure:"CACHE_REDIS_TIMEOUT"                    validate:"required"`
-	LimiterRequestsPerMinute int           `mapstructure:"MIDDLEWARE_LIMITER_REQUESTS_PER_SECOND" validate:"required"`
+	LimiterRequestsPerSecond int           `mapstructure:"MIDDLEWARE_LIMITER_REQUESTS_PER_SECOND" validate:"required"`
 	LimiterBurst             int64         `mapstructure:"MIDDLEWARE_LIMITER_BURST"               validate:"required"`
 	TimeToLive               time.Duration `mapstructure:"CACHE_REDIS_TIME_TO_LIVE"               validate:"required"`
 }
@@ -41,7 +41,7 @@ var (
 		RetryTimes:               4,
 		RetryPause:               5 * time.Second,
 		Timeout:                  30 * time.Second,
-		LimiterRequestsPerMinute: 100,
+		LimiterRequestsPerSecond: 100,
 		LimiterBurst:             1,
 		TimeToLive:               1 * time.Second,
 	}

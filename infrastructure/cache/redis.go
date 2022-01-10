@@ -2,11 +2,11 @@ package cache
 
 import (
 	"context"
-	"strconv"
 	"strings"
 	"time"
 
 	redisdb "github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis_rate/v9"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
@@ -16,7 +16,7 @@ import (
 
 func NewRedis(ctx context.Context, conf RedisConfig) (*Redis, error) {
 	client := redisdb.NewClient(&redisdb.Options{Addr: conf.Host + ":" + conf.Port})
-	r := &Redis{conf, client}
+	r := &Redis{conf: conf, client: client}
 	ctx, cancel := context.WithTimeout(ctx, conf.Timeout)
 	defer cancel()
 	err := retry.Do(conf.RetryTimes, conf.RetryPause, func() error {
@@ -29,39 +29,26 @@ func NewRedis(ctx context.Context, conf RedisConfig) (*Redis, error) {
 	if err != nil {
 		return &Redis{}, errors.Wrap(err)
 	}
+	r.limiter = redis_rate.NewLimiter(client)
+	r.limit = redis_rate.PerSecond(conf.LimiterRequestsPerSecond)
 	return r, nil
 }
 
 type Redis struct {
-	conf   RedisConfig
-	client *redisdb.Client
+	conf    RedisConfig
+	client  *redisdb.Client
+	limiter *redis_rate.Limiter
+	limit   redis_rate.Limit
 }
 
 func (r *Redis) Allow(ctx context.Context, ip uint64) (bool, error) {
 	ipB64 := base64.FromUint64(ip)
 	key := "ip:" + ipB64
-	value, err := r.client.Get(ctx, key).Result()
-	if err != nil && !errors.Is(err, redisdb.Nil) {
-		return false, errors.Wrap(err)
-	}
-	if errors.Is(err, redisdb.Nil) {
-		value = "-1"
-	}
-	count, err := strconv.Atoi(value)
+	res, err := r.limiter.Allow(ctx, key, r.limit)
 	if err != nil {
 		return false, errors.Wrap(err)
 	}
-	if count >= r.conf.LimiterRequestsPerMinute {
-		return false, nil
-	}
-	pipe := r.client.Pipeline()
-	pipe.IncrBy(ctx, key, r.conf.LimiterBurst)
-	pipe.Expire(ctx, key, 59*time.Second)
-	_, err = pipe.Exec(ctx)
-	if err != nil {
-		return false, errors.Wrap(err)
-	}
-	return true, nil
+	return res.Allowed > 0, nil
 }
 
 func (r *Redis) Add(ctx context.Context, queue uint64, album uint64) error {

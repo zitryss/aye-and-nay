@@ -20,7 +20,7 @@ func TestRedisAllow(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		rpm := redis.conf.LimiterRequestsPerMinute
+		rpm := redis.conf.LimiterRequestsPerSecond
 		for j := 0; j < rpm; j++ {
 			allowed, err := redis.Allow(context.Background(), 0xDEAD)
 			if err != nil {
@@ -30,7 +30,7 @@ func TestRedisAllow(t *testing.T) {
 				t.Error("!allowed")
 			}
 		}
-		time.Sleep(60 * time.Second)
+		time.Sleep(1 * time.Second)
 		for j := 0; j < rpm; j++ {
 			allowed, err := redis.Allow(context.Background(), 0xDEAD)
 			if err != nil {
@@ -46,7 +46,7 @@ func TestRedisAllow(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		rps := redis.conf.LimiterRequestsPerMinute
+		rps := redis.conf.LimiterRequestsPerSecond
 		for i := 0; i < rps; i++ {
 			allowed, err := redis.Allow(context.Background(), 0xBEEF)
 			if err != nil {

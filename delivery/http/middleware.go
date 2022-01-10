@@ -4,6 +4,7 @@ import (
 	"hash/fnv"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/rs/cors"
 
@@ -56,9 +57,8 @@ func (m *Middleware) limit(h http.Handler) http.Handler {
 	return handleHttpError(
 		func(w http.ResponseWriter, r *http.Request) error {
 			ctx := r.Context()
-			ip := r.RemoteAddr
 			hash := fnv.New64a()
-			_, err := io.WriteString(hash, ip)
+			_, err := io.WriteString(hash, ip(r))
 			if err != nil {
 				return errors.Wrap(err)
 			}
@@ -73,4 +73,12 @@ func (m *Middleware) limit(h http.Handler) http.Handler {
 			return nil
 		},
 	)
+}
+
+func ip(r *http.Request) string {
+	xff := r.Header.Get("X-Forwarded-For")
+	if xff != "" {
+		return strings.Split(xff, ", ")[0]
+	}
+	return strings.Split(r.RemoteAddr, ":")[0]
 }

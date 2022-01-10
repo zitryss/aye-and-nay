@@ -14,7 +14,7 @@ import (
 
 func TestMinio(t *testing.T) {
 	t.Run("", func(t *testing.T) {
-		minio, err := NewMinio(DefaultMinioConfig)
+		minio, err := NewMinio(context.Background(), DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -54,7 +54,7 @@ func TestMinio(t *testing.T) {
 		}
 	})
 	t.Run("", func(t *testing.T) {
-		minio, err := NewMinio(DefaultMinioConfig)
+		minio, err := NewMinio(context.Background(), DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,7 +87,7 @@ func TestMinio(t *testing.T) {
 }
 
 func TestMinioHealth(t *testing.T) {
-	minio, err := NewMinio(DefaultMinioConfig)
+	minio, err := NewMinio(context.Background(), DefaultMinioConfig)
 	if err != nil {
 		t.Fatal(err)
 	}

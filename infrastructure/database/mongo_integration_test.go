@@ -17,7 +17,7 @@ import (
 
 func TestMongoAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -35,7 +35,7 @@ func TestMongoAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -51,7 +51,7 @@ func TestMongoAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -61,7 +61,7 @@ func TestMongoAlbum(t *testing.T) {
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -74,7 +74,7 @@ func TestMongoAlbum(t *testing.T) {
 
 func TestMongoCount(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -128,7 +128,7 @@ func TestMongoCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -154,7 +154,7 @@ func TestMongoCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -164,7 +164,7 @@ func TestMongoCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative3", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -174,7 +174,7 @@ func TestMongoCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative4", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -184,7 +184,7 @@ func TestMongoCount(t *testing.T) {
 		}
 	})
 	t.Run("Negative5", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -202,7 +202,7 @@ func TestMongoCount(t *testing.T) {
 
 func TestMongoImage(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -220,7 +220,7 @@ func TestMongoImage(t *testing.T) {
 		}
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -230,7 +230,7 @@ func TestMongoImage(t *testing.T) {
 		}
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -248,7 +248,7 @@ func TestMongoImage(t *testing.T) {
 
 func TestMongoVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -274,7 +274,7 @@ func TestMongoVote(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -287,7 +287,7 @@ func TestMongoVote(t *testing.T) {
 
 func TestMongoSort(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -311,7 +311,7 @@ func TestMongoSort(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -324,7 +324,7 @@ func TestMongoSort(t *testing.T) {
 
 func TestMongoRatings(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -359,7 +359,7 @@ func TestMongoRatings(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -383,7 +383,7 @@ func TestMongoRatings(t *testing.T) {
 
 func TestMongoDelete(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -420,7 +420,7 @@ func TestMongoDelete(t *testing.T) {
 		}
 	})
 	t.Run("Positive2", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -450,7 +450,7 @@ func TestMongoDelete(t *testing.T) {
 		})
 	})
 	t.Run("Negative", func(t *testing.T) {
-		mongo, err := NewMongo(DefaultMongoConfig)
+		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -467,7 +467,7 @@ func TestMongoDelete(t *testing.T) {
 }
 
 func TestMongoLru(t *testing.T) {
-	mongo, err := NewMongo(DefaultMongoConfig)
+	mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 	if err != nil {
 		t.Fatal(err)
 	}

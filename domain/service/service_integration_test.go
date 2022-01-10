@@ -65,19 +65,19 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		}()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -126,15 +126,15 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		heartbeatRestart := make(chan interface{})
 		comp := compressor.NewShortpixel(compressor.DefaultShortpixelConfig, compressor.WithHeartbeatRestart(heartbeatRestart))
 		comp.Monitor()
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -236,19 +236,19 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -325,19 +325,19 @@ func TestServiceIntegrationPair(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -407,19 +407,19 @@ func TestServiceIntegrationPair(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -450,19 +450,19 @@ func TestServiceIntegrationImage(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -500,19 +500,19 @@ func TestServiceIntegrationImage(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -543,19 +543,19 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -592,19 +592,19 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -643,19 +643,19 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -692,19 +692,19 @@ func TestServiceIntegrationVote(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -744,19 +744,19 @@ func TestServiceIntegrationTop(t *testing.T) {
 		}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -807,19 +807,19 @@ func TestServiceIntegrationTop(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -841,19 +841,19 @@ func TestServiceIntegrationDelete(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -899,19 +899,19 @@ func TestServiceIntegrationDelete(t *testing.T) {
 	t.Run("Positive2", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -940,19 +940,19 @@ func TestServiceIntegrationDelete(t *testing.T) {
 	t.Run("Negative", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
-		imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+		imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		mongo, err := database.NewMongo(database.DefaultMongoConfig)
+		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
-		redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+		redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -987,19 +987,19 @@ func TestServiceIntegrationDelete(t *testing.T) {
 func TestServiceIntegrationHealth(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	imaginary, err := compressor.NewImaginary(compressor.DefaultImaginaryConfig)
+	imaginary, err := compressor.NewImaginary(ctx, compressor.DefaultImaginaryConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	minio, err := storage.NewMinio(storage.DefaultMinioConfig)
+	minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	mongo, err := database.NewMongo(database.DefaultMongoConfig)
+	mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+	redis, err := cache.NewRedis(ctx, cache.DefaultRedisConfig)
 	if err != nil {
 		t.Fatal(err)
 	}

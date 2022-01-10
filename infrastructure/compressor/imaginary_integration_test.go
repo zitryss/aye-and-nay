@@ -30,7 +30,7 @@ func TestImaginaryPositive(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			im, err := NewImaginary(DefaultImaginaryConfig)
+			im, err := NewImaginary(context.Background(), DefaultImaginaryConfig)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -55,7 +55,7 @@ func TestImaginaryNegative(t *testing.T) {
 	if testing.Short() {
 		t.Skip("short flag is set")
 	}
-	im, err := NewImaginary(DefaultImaginaryConfig)
+	im, err := NewImaginary(context.Background(), DefaultImaginaryConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +78,7 @@ func TestImaginaryNegative(t *testing.T) {
 }
 
 func TestImaginaryHealth(t *testing.T) {
-	im, err := NewImaginary(DefaultImaginaryConfig)
+	im, err := NewImaginary(context.Background(), DefaultImaginaryConfig)
 	if err != nil {
 		t.Fatal(err)
 	}

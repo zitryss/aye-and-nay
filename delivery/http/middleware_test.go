@@ -27,7 +27,7 @@ func (l limiterMockNeg) Allow(_ context.Context, _ uint64) (bool, error) {
 func TestMiddlewareRecover(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "text/plain; charset=utf-8")
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			w.WriteHeader(418)
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}
@@ -60,7 +60,7 @@ func TestMiddlewareRecover(t *testing.T) {
 func TestMiddlewareLimit(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "text/plain; charset=utf-8")
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			w.WriteHeader(418)
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}
@@ -76,7 +76,7 @@ func TestMiddlewareLimit(t *testing.T) {
 	})
 	t.Run("Negative", func(t *testing.T) {
 		fn := func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set(http.CanonicalHeaderKey("Content-Type"), "text/plain; charset=utf-8")
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			w.WriteHeader(418)
 			_, _ = io.WriteString(w, "I'm a teapot")
 		}

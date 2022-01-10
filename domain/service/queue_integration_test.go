@@ -11,7 +11,7 @@ import (
 )
 
 func TestPQueueIntegration(t *testing.T) {
-	redis, err := cache.NewRedis(cache.DefaultRedisConfig)
+	redis, err := cache.NewRedis(context.Background(), cache.DefaultRedisConfig)
 	if err != nil {
 		t.Fatal(err)
 	}

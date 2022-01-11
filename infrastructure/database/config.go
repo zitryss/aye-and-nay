@@ -5,7 +5,7 @@ import (
 )
 
 type DatabaseConfig struct {
-	Database string       `mapstructure:"DATABASE" validate:"required"`
+	Database string       `mapstructure:"APP_DATABASE" validate:"required"`
 	Mem      MemConfig    `mapstructure:",squash"`
 	Mongo    MongoConfig  `mapstructure:",squash"`
 	Badger   BadgerConfig `mapstructure:",squash"`

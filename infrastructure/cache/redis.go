@@ -16,7 +16,9 @@ import (
 
 func NewRedis(ctx context.Context, conf RedisConfig) (*Redis, error) {
 	client := redisdb.NewClient(&redisdb.Options{Addr: conf.Host + ":" + conf.Port})
-	r := &Redis{conf: conf, client: client}
+	r := &Redis{}
+	r.conf = conf
+	r.client = client
 	ctx, cancel := context.WithTimeout(ctx, conf.Timeout)
 	defer cancel()
 	err := retry.Do(conf.RetryTimes, conf.RetryPause, func() error {

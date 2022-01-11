@@ -5,7 +5,7 @@ import (
 )
 
 type CacheConfig struct {
-	Cache string      `mapstructure:"CACHE" validate:"required"`
+	Cache string      `mapstructure:"APP_CACHE" validate:"required"`
 	Mem   MemConfig   `mapstructure:",squash"`
 	Redis RedisConfig `mapstructure:",squash"`
 }

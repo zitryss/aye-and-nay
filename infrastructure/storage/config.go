@@ -5,7 +5,7 @@ import (
 )
 
 type StorageConfig struct {
-	Storage string      `mapstructure:"STORAGE" validate:"required"`
+	Storage string      `mapstructure:"APP_STORAGE" validate:"required"`
 	Minio   MinioConfig `mapstructure:",squash"`
 }
 

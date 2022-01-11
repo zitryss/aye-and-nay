@@ -44,10 +44,12 @@ func main() {
 			continue
 		}
 
-		config.OnChange(func() {
-			reload = true
-			stop()
-		})
+		if conf.Reload {
+			conf.OnChange(ctx, func() {
+				reload = true
+				stop()
+			})
+		}
 
 		ballast = make([]byte, conf.App.Ballast)
 

@@ -5,7 +5,7 @@ import (
 )
 
 type CompressorConfig struct {
-	Compressor string           `mapstructure:"COMPRESSOR" validate:"required"`
+	Compressor string           `mapstructure:"APP_COMPRESSOR" validate:"required"`
 	Shortpixel ShortpixelConfig `mapstructure:",squash"`
 	Imaginary  ImaginaryConfig  `mapstructure:",squash"`
 }

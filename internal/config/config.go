@@ -67,8 +67,7 @@ func (c *Config) OnChange(ctx context.Context, fn func()) {
 	go func() {
 		for {
 			select {
-			case event := <-w.Event:
-				log.Debugf("watcher: event: %s\n", event)
+			case <-w.Event:
 				fn()
 			case err := <-w.Error:
 				log.Error(errors.Wrap(err))

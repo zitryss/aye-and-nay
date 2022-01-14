@@ -29,7 +29,7 @@ func (m *Middleware) Chain(h http.Handler) http.Handler {
 		AllowedOrigins: []string{m.conf.CorsAllowOrigin},
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch},
 	})
-	return c.Handler(m.recover(m.limit(h)))
+	return m.recover(m.limit(c.Handler(m.headers(h))))
 }
 
 func (m *Middleware) recover(h http.Handler) http.Handler {
@@ -71,6 +71,15 @@ func (m *Middleware) limit(h http.Handler) http.Handler {
 			}
 			h.ServeHTTP(w, r)
 			return nil
+		},
+	)
+}
+
+func (m *Middleware) headers(h http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			h.ServeHTTP(w, r)
+			w.Header().Set("X-Content-Type-Options", "nosniff")
 		},
 	)
 }

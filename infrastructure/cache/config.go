@@ -31,8 +31,8 @@ type RedisConfig struct {
 var (
 	DefaultMemConfig = MemConfig{
 		CleanupInterval:          0,
-		LimiterRequestsPerSecond: 100,
-		LimiterBurst:             1,
+		LimiterRequestsPerSecond: 10000,
+		LimiterBurst:             100,
 		TimeToLive:               0,
 	}
 	DefaultRedisConfig = RedisConfig{
@@ -41,8 +41,8 @@ var (
 		RetryTimes:               4,
 		RetryPause:               5 * time.Second,
 		Timeout:                  30 * time.Second,
-		LimiterRequestsPerSecond: 100,
-		LimiterBurst:             1,
+		LimiterRequestsPerSecond: 10000,
+		LimiterBurst:             100,
 		TimeToLive:               1 * time.Second,
 	}
 )

@@ -28,6 +28,17 @@ type ControllerConfig struct {
 }
 
 var (
+	DefaultServerConfig = ServerConfig{
+		Domain:          "",
+		Host:            "localhost",
+		Port:            "8001",
+		H2C:             false,
+		ReadTimeout:     5 * time.Second,
+		WriteTimeout:    10 * time.Second,
+		IdleTimeout:     10 * time.Second,
+		ShutdownTimeout: 1 * time.Second,
+		Controller:      DefaultControllerConfig,
+	}
 	DefaultMiddlewareConfig = MiddlewareConfig{
 		CorsAllowOrigin: "",
 	}

@@ -215,7 +215,7 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 			return model.Image{}, model.Image{}, errors.Wrap(err)
 		}
 		token1B64 := base64.FromUint64(token1)
-		src1 = "/api/images/" + token1B64
+		src1 = "/api/images/" + token1B64 + "/"
 		token2, err = s.rand.id()
 		if err != nil {
 			return model.Image{}, model.Image{}, errors.Wrap(err)
@@ -225,7 +225,7 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 			return model.Image{}, model.Image{}, errors.Wrap(err)
 		}
 		token2B64 := base64.FromUint64(token2)
-		src2 = "/api/images/" + token2B64
+		src2 = "/api/images/" + token2B64 + "/"
 	} else {
 		src1, err = s.pers.GetImageSrc(ctx, album, image1)
 		if err != nil {

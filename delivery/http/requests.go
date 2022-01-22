@@ -15,7 +15,7 @@ type albumRequest struct {
 	dur   time.Duration
 }
 
-type readyRequest struct {
+type statusRequest struct {
 	album struct {
 		id string
 	}

@@ -150,8 +150,8 @@ func (c *Client) Album() (string, error) {
 	return res.Album.Id, nil
 }
 
-func (c *Client) Ready(album string) error {
-	req, err := http.NewRequest(http.MethodGet, c.apiAddress+"/api/albums/"+album+"/ready/", http.NoBody)
+func (c *Client) Status(album string) error {
+	req, err := http.NewRequest(http.MethodGet, c.apiAddress+"/api/albums/"+album+"/status/", http.NoBody)
 	if err != nil {
 		return errors.Wrap(err)
 	}

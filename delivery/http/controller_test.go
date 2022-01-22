@@ -364,7 +364,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 	}
 }
 
-func TestControllerHandleReady(t *testing.T) {
+func TestControllerHandleStatus(t *testing.T) {
 	type give struct {
 		err error
 	}
@@ -532,9 +532,9 @@ func TestControllerHandleReady(t *testing.T) {
 		t.Run("", func(t *testing.T) {
 			serv := service.NewMock(tt.give.err)
 			contr := newController(DefaultControllerConfig, serv)
-			fn := contr.handleReady()
+			fn := contr.handleStatus()
 			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/api/albums/rRsAAAAAAAA/ready", http.NoBody)
+			r := httptest.NewRequest(http.MethodGet, "/api/albums/rRsAAAAAAAA/status", http.NoBody)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "rRsAAAAAAAA"}}
 			fn(w, r, ps)
 			CheckStatusCode(t, w, tt.want.code)

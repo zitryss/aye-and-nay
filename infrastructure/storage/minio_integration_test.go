@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	minios3 "github.com/minio/minio-go/v7"
+	minioS3 "github.com/minio/minio-go/v7"
 
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
@@ -19,7 +19,7 @@ func TestMinio(t *testing.T) {
 			t.Fatal(err)
 		}
 		f, err := minio.Get(context.Background(), 0x70D8, 0xD5C7)
-		e := (*minios3.ErrorResponse)(nil)
+		e := (*minioS3.ErrorResponse)(nil)
 		if errors.As(err, &e) {
 			t.Error(err)
 		}
@@ -45,7 +45,7 @@ func TestMinio(t *testing.T) {
 			t.Error(err)
 		}
 		f, err = minio.Get(context.Background(), 0x70D8, 0xD5C7)
-		e = (*minios3.ErrorResponse)(nil)
+		e = (*minioS3.ErrorResponse)(nil)
 		if errors.As(err, &e) {
 			t.Error(err)
 		}

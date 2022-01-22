@@ -27,11 +27,11 @@ func (l *loadtest) albumApi() string {
 	return album
 }
 
-func (l *loadtest) readyApi(album string) {
+func (l *loadtest) statusApi(album string) {
 	if l.err != nil {
 		return
 	}
-	err := l.client.Ready(album)
+	err := l.client.Status(album)
 	if err != nil {
 		l.err = errors.Wrap(err)
 		log.Error(l.err)

@@ -42,7 +42,7 @@ func TestServer(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = c.Ready(album)
+	err = c.Status(album)
 	if err != nil {
 		t.Error(err)
 	}

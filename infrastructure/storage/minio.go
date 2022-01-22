@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	minios3 "github.com/minio/minio-go/v7"
+	minioS3 "github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
@@ -17,7 +17,7 @@ import (
 )
 
 func NewMinio(ctx context.Context, conf MinioConfig) (*Minio, error) {
-	client, err := minios3.New(conf.Host+":"+conf.Port, &minios3.Options{
+	client, err := minioS3.New(conf.Host+":"+conf.Port, &minioS3.Options{
 		Creds:  credentials.NewStaticV4(conf.AccessKey, conf.SecretKey, conf.Token),
 		Secure: conf.Secure,
 	})
@@ -42,7 +42,7 @@ func NewMinio(ctx context.Context, conf MinioConfig) (*Minio, error) {
 		return &Minio{}, errors.Wrap(err)
 	}
 	if !found {
-		err = client.MakeBucket(ctx, "aye-and-nay", minios3.MakeBucketOptions{Region: conf.Location})
+		err = client.MakeBucket(ctx, "aye-and-nay", minioS3.MakeBucketOptions{Region: conf.Location})
 		if err != nil {
 			return &Minio{}, errors.Wrap(err)
 		}
@@ -57,7 +57,7 @@ func NewMinio(ctx context.Context, conf MinioConfig) (*Minio, error) {
 
 type Minio struct {
 	conf   MinioConfig
-	client *minios3.Client
+	client *minioS3.Client
 }
 
 func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.File) (string, error) {
@@ -65,7 +65,7 @@ func (m *Minio) Put(ctx context.Context, album uint64, image uint64, f model.Fil
 	albumB64 := base64.FromUint64(album)
 	imageB64 := base64.FromUint64(image)
 	filename := "albums/" + albumB64 + "/images/" + imageB64
-	_, err := m.client.PutObject(ctx, "aye-and-nay", filename, f.Reader, f.Size, minios3.PutObjectOptions{})
+	_, err := m.client.PutObject(ctx, "aye-and-nay", filename, f.Reader, f.Size, minioS3.PutObjectOptions{})
 	if err != nil {
 		return "", errors.Wrap(err)
 	}
@@ -77,7 +77,7 @@ func (m *Minio) Get(ctx context.Context, album uint64, image uint64) (model.File
 	albumB64 := base64.FromUint64(album)
 	imageB64 := base64.FromUint64(image)
 	filename := "albums/" + albumB64 + "/images/" + imageB64
-	obj, err := m.client.GetObject(ctx, "aye-and-nay", filename, minios3.GetObjectOptions{})
+	obj, err := m.client.GetObject(ctx, "aye-and-nay", filename, minioS3.GetObjectOptions{})
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
@@ -102,7 +102,7 @@ func (m *Minio) Remove(ctx context.Context, album uint64, image uint64) error {
 	albumB64 := base64.FromUint64(album)
 	imageB64 := base64.FromUint64(image)
 	filename := "albums/" + albumB64 + "/images/" + imageB64
-	err := m.client.RemoveObject(ctx, "aye-and-nay", filename, minios3.RemoveObjectOptions{})
+	err := m.client.RemoveObject(ctx, "aye-and-nay", filename, minioS3.RemoveObjectOptions{})
 	if err != nil {
 		return errors.Wrap(err)
 	}

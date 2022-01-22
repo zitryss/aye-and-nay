@@ -152,27 +152,27 @@ func (c *controller) handleAlbum() httprouter.Handle {
 	)
 }
 
-func (c *controller) handleReady() httprouter.Handle {
-	input := func(r *http.Request, ps httprouter.Params) (context.Context, readyRequest, error) {
+func (c *controller) handleStatus() httprouter.Handle {
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, statusRequest, error) {
 		ctx := r.Context()
-		req := readyRequest{}
+		req := statusRequest{}
 		req.album.id = ps.ByName("album")
 		return ctx, req, nil
 	}
-	process := func(ctx context.Context, req readyRequest) (readyResponse, error) {
+	process := func(ctx context.Context, req statusRequest) (statusResponse, error) {
 		album, err := base64.ToUint64(req.album.id)
 		if err != nil {
-			return readyResponse{}, errors.Wrap(err)
+			return statusResponse{}, errors.Wrap(err)
 		}
 		p, err := c.serv.Progress(ctx, album)
 		if err != nil {
-			return readyResponse{}, errors.Wrap(err)
+			return statusResponse{}, errors.Wrap(err)
 		}
-		resp := readyResponse{}
+		resp := statusResponse{}
 		resp.Album.Progress = p
 		return resp, nil
 	}
-	output := func(ctx context.Context, w http.ResponseWriter, resp readyResponse) error {
+	output := func(ctx context.Context, w http.ResponseWriter, resp statusResponse) error {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err := json.NewEncoder(w).Encode(resp)
 		if err != nil {

@@ -201,8 +201,8 @@ func TestServicePair(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img1 := model.Image{Id: 0x3BC7, Token: 0x3BC9, Src: "/api/images/yTsAAAAAAAA"}
-		img2 := model.Image{Id: 0x3BC8, Token: 0x3BCA, Src: "/api/images/yjsAAAAAAAA"}
+		img1 := model.Image{Id: 0x3BC7, Token: 0x3BC9, Src: "/api/images/yTsAAAAAAAA/"}
+		img2 := model.Image{Id: 0x3BC8, Token: 0x3BCA, Src: "/api/images/yjsAAAAAAAA/"}
 		imgs1 := []model.Image{img1, img2}
 		if reflect.DeepEqual(img7, img8) {
 			t.Error("img7 == img8")
@@ -217,8 +217,8 @@ func TestServicePair(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img3 := model.Image{Id: 0x3BC8, Token: 0x3BCB, Src: "/api/images/yzsAAAAAAAA"}
-		img4 := model.Image{Id: 0x3BC7, Token: 0x3BCC, Src: "/api/images/zDsAAAAAAAA"}
+		img3 := model.Image{Id: 0x3BC8, Token: 0x3BCB, Src: "/api/images/yzsAAAAAAAA/"}
+		img4 := model.Image{Id: 0x3BC7, Token: 0x3BCC, Src: "/api/images/zDsAAAAAAAA/"}
 		imgs2 := []model.Image{img3, img4}
 		if reflect.DeepEqual(img9, img10) {
 			t.Error("img9 == img10")
@@ -233,8 +233,8 @@ func TestServicePair(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		img5 := model.Image{Id: 0x3BC7, Token: 0x3BCD, Src: "/api/images/zTsAAAAAAAA"}
-		img6 := model.Image{Id: 0x3BC8, Token: 0x3BCE, Src: "/api/images/zjsAAAAAAAA"}
+		img5 := model.Image{Id: 0x3BC7, Token: 0x3BCD, Src: "/api/images/zTsAAAAAAAA/"}
+		img6 := model.Image{Id: 0x3BC8, Token: 0x3BCE, Src: "/api/images/zjsAAAAAAAA/"}
 		imgs3 := []model.Image{img5, img6}
 		if reflect.DeepEqual(img11, img12) {
 			t.Error("img11 == img12")

@@ -83,7 +83,7 @@ func main() {
 				l := loadtest{client: c}
 				l.albumHtml()
 				album := l.albumApi()
-				l.readyApi(album)
+				l.statusApi(album)
 				for j := 0; j < 5; j++ {
 					l.pairHtml()
 					for k := 0; k < 10; k++ {

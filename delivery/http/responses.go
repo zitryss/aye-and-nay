@@ -14,7 +14,7 @@ type albumResponse struct {
 }
 
 //easyjson:json
-type readyResponse struct {
+type statusResponse struct {
 	Album struct {
 		Progress float64 `json:"progress"`
 	} `json:"album"`

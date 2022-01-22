@@ -26,7 +26,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
-  /api/albums/{album}/ready/:
+  /api/albums/{album}/status/:
     get:
       description: >
         Second request in a sequence (optional). It informs about
@@ -37,7 +37,7 @@ paths:
         - $ref: '#/components/parameters/albumParam'
       responses:
         '200':
-          $ref: '#/components/responses/ReadyResponse'
+          $ref: '#/components/responses/StatusResponse'
         '500':
           $ref: '#/components/responses/InternalServerError'
         '503':
@@ -138,7 +138,7 @@ components:
           properties:
             id:
               $ref: '#/components/schemas/Id'
-    ReadyResponse:
+    StatusResponse:
       type: object
       properties:
         album:
@@ -243,12 +243,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/AlbumResponse'
-    ReadyResponse:
+    StatusResponse:
       description: OK
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ReadyResponse'
+            $ref: '#/components/schemas/StatusResponse'
     PairResponse:
       description: OK
       content:

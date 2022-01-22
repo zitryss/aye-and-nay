@@ -169,7 +169,7 @@ func (c *controller) handleStatus() httprouter.Handle {
 			return statusResponse{}, errors.Wrap(err)
 		}
 		resp := statusResponse{}
-		resp.Album.Progress = p
+		resp.Album.Compression.Progress = p
 		return resp, nil
 	}
 	output := func(ctx context.Context, w http.ResponseWriter, resp statusResponse) error {

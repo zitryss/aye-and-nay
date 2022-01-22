@@ -384,7 +384,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 200,
 				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"progress":1}}` + "\n",
+				body: `{"album":{"compression":{"progress":1}}}` + "\n",
 			},
 		},
 		{

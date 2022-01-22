@@ -16,7 +16,9 @@ type albumResponse struct {
 //easyjson:json
 type statusResponse struct {
 	Album struct {
-		Progress float64 `json:"progress"`
+		Compression struct {
+			Progress float64 `json:"progress"`
+		} `json:"compression"`
 	} `json:"album"`
 }
 

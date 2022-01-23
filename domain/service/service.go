@@ -12,6 +12,10 @@ import (
 	myrand "github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
+var (
+	_ domain.Servicer = (*Service)(nil)
+)
+
 func New(
 	conf ServiceConfig,
 	comp domain.Compresser,

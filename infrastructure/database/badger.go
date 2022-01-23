@@ -18,6 +18,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/pool"
 )
 
+var (
+	_ domain.Databaser = (*Badger)(nil)
+)
+
 func NewBadger(conf BadgerConfig) (*Badger, error) {
 	_ = runtime.GOMAXPROCS(128)
 	path := "./badger"

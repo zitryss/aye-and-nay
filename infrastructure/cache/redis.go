@@ -14,6 +14,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
+var (
+	_ domain.Cacher = (*Redis)(nil)
+)
+
 func NewRedis(ctx context.Context, conf RedisConfig) (*Redis, error) {
 	client := redisdb.NewClient(&redisdb.Options{Addr: conf.Host + ":" + conf.Port})
 	r := &Redis{}

@@ -16,6 +16,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
+var (
+	_ domain.Storager = (*Minio)(nil)
+)
+
 func NewMinio(ctx context.Context, conf MinioConfig) (*Minio, error) {
 	client, err := minioS3.New(conf.Host+":"+conf.Port, &minioS3.Options{
 		Creds:  credentials.NewStaticV4(conf.AccessKey, conf.SecretKey, conf.Token),

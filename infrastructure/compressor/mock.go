@@ -4,9 +4,14 @@ import (
 	"context"
 	"io"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/pool"
+)
+
+var (
+	_ domain.Compresser = (*Mock)(nil)
 )
 
 func NewMock() *Mock {

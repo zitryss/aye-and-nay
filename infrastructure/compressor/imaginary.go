@@ -13,6 +13,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
+var (
+	_ domain.Compresser = (*Imaginary)(nil)
+)
+
 func NewImaginary(ctx context.Context, conf ImaginaryConfig) (*Imaginary, error) {
 	im := &Imaginary{conf}
 	ctx, cancel := context.WithTimeout(ctx, conf.Timeout)

@@ -17,6 +17,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
+var (
+	_ domain.Compresser = (*Shortpixel)(nil)
+)
+
 func NewShortpixel(conf ShortpixelConfig, opts ...options) *Shortpixel {
 	sp := &Shortpixel{
 		conf: conf,

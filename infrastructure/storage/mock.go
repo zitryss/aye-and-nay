@@ -4,11 +4,16 @@ import (
 	"context"
 	"io"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/pool"
+)
+
+var (
+	_ domain.Storager = (*Mock)(nil)
 )
 
 func NewMock() *Mock {

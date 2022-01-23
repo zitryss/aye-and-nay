@@ -13,6 +13,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
+var (
+	_ domain.Cacher = (*Mem)(nil)
+)
+
 func NewMem(conf MemConfig, opts ...options) *Mem {
 	m := &Mem{
 		conf:         conf,

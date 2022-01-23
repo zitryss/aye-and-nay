@@ -17,6 +17,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
+var (
+	_ domain.Databaser = (*Mongo)(nil)
+)
+
 type albumLru map[uint64]string
 
 type imageDao struct {

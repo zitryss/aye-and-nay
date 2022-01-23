@@ -10,6 +10,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
+var (
+	_ domain.Databaser = (*Mem)(nil)
+)
+
 func NewMem(conf MemConfig) *Mem {
 	return &Mem{
 		conf:       conf,

@@ -5,10 +5,15 @@ import (
 	"io"
 	"time"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/pool"
+)
+
+var (
+	_ domain.Servicer = (*Mock)(nil)
 )
 
 func NewMock(err error) *Mock {

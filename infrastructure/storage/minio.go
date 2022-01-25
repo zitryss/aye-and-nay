@@ -134,7 +134,7 @@ func (m *Minio) Health(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
 	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+	if resp.StatusCode/100 != 2 {
 		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", "no connection to minio")
 	}
 	url = "http://" + m.conf.Host + ":" + m.conf.Port + "/minio/health/ready"
@@ -157,7 +157,7 @@ func (m *Minio) Health(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", err)
 	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+	if resp.StatusCode/100 != 2 {
 		return false, errors.Wrapf(domain.ErrBadHealthStorage, "%s", "minio is not ready")
 	}
 	_, err = m.client.ListBuckets(ctx)

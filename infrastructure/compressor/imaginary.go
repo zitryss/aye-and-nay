@@ -78,7 +78,7 @@ func (im *Imaginary) Compress(ctx context.Context, f model.File) (model.File, er
 			_ = resp.Body.Close()
 			return errors.Wrap(domain.ErrUnsupportedMediaType)
 		}
-		if resp.StatusCode < 200 || resp.StatusCode > 299 {
+		if resp.StatusCode/100 != 2 {
 			_, _ = io.Copy(io.Discard, resp.Body)
 			_ = resp.Body.Close()
 			return errors.Wrapf(domain.ErrThirdPartyUnavailable, "status code %d", resp.StatusCode)
@@ -130,7 +130,7 @@ func (im *Imaginary) Health(ctx context.Context) (bool, error) {
 	if err != nil {
 		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", err)
 	}
-	if resp.StatusCode < 200 || resp.StatusCode > 299 {
+	if resp.StatusCode/100 != 2 {
 		return false, errors.Wrapf(domain.ErrBadHealthCompressor, "%s", "no connection to imaginary")
 	}
 	return true, nil

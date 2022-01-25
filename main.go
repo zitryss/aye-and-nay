@@ -30,6 +30,12 @@ func main() {
 	flag.StringVar(&path, "config", "./config.env", "filepath to a config file")
 	flag.Parse()
 
+	err := setUlimit()
+	if err != nil {
+		log.Critical(err)
+		os.Exit(1)
+	}
+
 	reload := true
 	for reload {
 		reload = false

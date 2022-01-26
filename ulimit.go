@@ -3,8 +3,19 @@
 package main
 
 import (
+	"os"
 	"syscall"
+
+	"github.com/zitryss/aye-and-nay/pkg/log"
 )
+
+func init() {
+	err := setUlimit()
+	if err != nil {
+		log.Critical(err)
+		os.Exit(1)
+	}
+}
 
 func setUlimit() error {
 	rLimit := syscall.Rlimit{}

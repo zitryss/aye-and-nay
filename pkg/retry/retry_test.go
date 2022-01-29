@@ -3,9 +3,10 @@
 package retry_test
 
 import (
-	"reflect"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
@@ -61,12 +62,8 @@ func TestDo1(t *testing.T) {
 				time.Sleep(tt.busy)
 				return nil
 			})
-			if !reflect.DeepEqual(err, tt.err) {
-				t.Errorf("Do() err = %v, want = %v", err, tt.err)
-			}
-			if c != tt.calls {
-				t.Errorf("Do() calls = %v, want = %v", c, tt.calls)
-			}
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.calls, c)
 		})
 	}
 }
@@ -121,12 +118,8 @@ func TestDo2(t *testing.T) {
 				time.Sleep(tt.busy)
 				return errors.New("no luck")
 			})
-			if !reflect.DeepEqual(err, tt.err) {
-				t.Errorf("Do() err = %v, want = %v", err, tt.err)
-			}
-			if c != tt.calls {
-				t.Errorf("Do() calls = %v, want = %v", c, tt.calls)
-			}
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.calls, c)
 		})
 	}
 }
@@ -184,12 +177,8 @@ func TestDo3(t *testing.T) {
 				}
 				return nil
 			})
-			if !reflect.DeepEqual(err, tt.err) {
-				t.Errorf("Do() err = %v, want = %v", err, tt.err)
-			}
-			if c != tt.calls {
-				t.Errorf("Do() calls = %v, want = %v", c, tt.calls)
-			}
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.calls, c)
 		})
 	}
 }

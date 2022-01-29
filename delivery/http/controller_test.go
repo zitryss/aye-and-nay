@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/service"
@@ -332,34 +333,24 @@ func TestControllerHandleAlbum(t *testing.T) {
 			multi := multipart.NewWriter(&body)
 			for _, filename := range tt.give.filenames {
 				part, err := multi.CreateFormFile("images", filename)
-				if err != nil {
-					t.Error(err)
-				}
+				assert.NoError(t, err)
 				b, err := os.ReadFile("../../testdata/" + filename)
-				if err != nil {
-					t.Error(err)
-				}
+				assert.NoError(t, err)
 				_, err = part.Write(b)
-				if err != nil {
-					t.Error(err)
-				}
+				assert.NoError(t, err)
 			}
 			if tt.give.durationOn {
 				err := multi.WriteField("duration", tt.give.duration)
-				if err != nil {
-					t.Error(err)
-				}
+				assert.NoError(t, err)
 			}
 			err := multi.Close()
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 			r := httptest.NewRequest(http.MethodPost, "/api/albums/", &body)
 			r.Header.Set("Content-Type", multi.FormDataContentType())
 			fn(w, r, nil)
-			CheckStatusCode(t, w, tt.want.code)
-			CheckContentType(t, w, tt.want.typ)
-			CheckBody(t, w, tt.want.body)
+			AssertStatusCode(t, w, tt.want.code)
+			AssertContentType(t, w, tt.want.typ)
+			AssertBody(t, w, tt.want.body)
 		})
 	}
 }
@@ -537,9 +528,9 @@ func TestControllerHandleStatus(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/api/albums/rRsAAAAAAAA/status", http.NoBody)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "rRsAAAAAAAA"}}
 			fn(w, r, ps)
-			CheckStatusCode(t, w, tt.want.code)
-			CheckContentType(t, w, tt.want.typ)
-			CheckBody(t, w, tt.want.body)
+			AssertStatusCode(t, w, tt.want.code)
+			AssertContentType(t, w, tt.want.typ)
+			AssertBody(t, w, tt.want.body)
 		})
 	}
 }
@@ -717,9 +708,9 @@ func TestControllerHandlePair(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/api/albums/nkUAAAAAAAA/", http.NoBody)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "nkUAAAAAAAA"}}
 			fn(w, r, ps)
-			CheckStatusCode(t, w, tt.want.code)
-			CheckContentType(t, w, tt.want.typ)
-			CheckBody(t, w, tt.want.body)
+			AssertStatusCode(t, w, tt.want.code)
+			AssertContentType(t, w, tt.want.typ)
+			AssertBody(t, w, tt.want.body)
 		})
 	}
 }
@@ -898,9 +889,9 @@ func TestControllerHandleImage(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/api/images/8v7AAAAAAAA/", http.NoBody)
 			ps := httprouter.Params{httprouter.Param{Key: "token", Value: "8v7AAAAAAAA"}}
 			fn(w, r, ps)
-			CheckStatusCode(t, w, tt.want.code)
-			CheckContentType(t, w, tt.want.typ)
-			CheckBody(t, w, tt.want.body)
+			AssertStatusCode(t, w, tt.want.code)
+			AssertContentType(t, w, tt.want.typ)
+			AssertBody(t, w, tt.want.body)
 		})
 	}
 }
@@ -1080,9 +1071,9 @@ func TestControllerHandleVote(t *testing.T) {
 			r.Header.Set("Content-Type", "application/json; charset=utf-8")
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "fIIAAAAAAAA"}}
 			fn(w, r, ps)
-			CheckStatusCode(t, w, tt.want.code)
-			CheckContentType(t, w, tt.want.typ)
-			CheckBody(t, w, tt.want.body)
+			AssertStatusCode(t, w, tt.want.code)
+			AssertContentType(t, w, tt.want.typ)
+			AssertBody(t, w, tt.want.body)
 		})
 	}
 }
@@ -1260,9 +1251,9 @@ func TestControllerHandleTop(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/api/albums/byYAAAAAAAA/top/", http.NoBody)
 			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "byYAAAAAAAA"}}
 			fn(w, r, ps)
-			CheckStatusCode(t, w, tt.want.code)
-			CheckContentType(t, w, tt.want.typ)
-			CheckBody(t, w, tt.want.body)
+			AssertStatusCode(t, w, tt.want.code)
+			AssertContentType(t, w, tt.want.typ)
+			AssertBody(t, w, tt.want.body)
 		})
 	}
 }
@@ -1340,9 +1331,9 @@ func TestControllerHandleHealth(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/api/health/", http.NoBody)
 			ps := httprouter.Params{}
 			fn(w, r, ps)
-			CheckStatusCode(t, w, tt.want.code)
-			CheckContentType(t, w, tt.want.typ)
-			CheckBody(t, w, tt.want.body)
+			AssertStatusCode(t, w, tt.want.code)
+			AssertContentType(t, w, tt.want.typ)
+			AssertBody(t, w, tt.want.body)
 		})
 	}
 }

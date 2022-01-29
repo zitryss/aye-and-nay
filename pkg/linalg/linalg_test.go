@@ -7,6 +7,8 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 	"github.com/zitryss/aye-and-nay/pkg/linalg"
 )
@@ -35,9 +37,7 @@ func TestPageRank(t *testing.T) {
 	want[0xFB26] = 0.11761540730647063
 	want[0xF523] = 0.07719901505201851
 	want[0xFC63] = 0.055433125751816706
-	if !EqualMap(got, want) {
-		t.Error("!equalMap(got, want)")
-	}
+	assert.InDeltaMapValues(t, want, got, TOLERANCE)
 }
 
 func BenchmarkPageRank(b *testing.B) {

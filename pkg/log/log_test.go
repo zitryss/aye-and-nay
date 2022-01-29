@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
@@ -63,9 +65,7 @@ func TestLogLevelPositive(t *testing.T) {
 			log.Critical("message7")
 			log.Criticalf("message8: %s %s", "ju", "iv")
 			got := w.String()
-			if got != tt.want {
-				t.Errorf("level = %v; got %v; want %v", tt.level, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }
@@ -105,9 +105,7 @@ func TestLogLevelNegative(t *testing.T) {
 			log.Critical("message7")
 			log.Criticalf("message8: %s %s", "ju", "iv")
 			got := w.String()
-			if got != tt.want {
-				t.Errorf("level = %v; got %v; want %v", log.DEBUG, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

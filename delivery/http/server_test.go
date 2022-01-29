@@ -6,6 +6,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/zitryss/aye-and-nay/domain/service"
 	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
@@ -27,47 +30,27 @@ func TestServer(t *testing.T) {
 	middle := NewMiddleware(DefaultMiddlewareConfig, cach)
 	srvWait := make(chan error, 1)
 	srv, err := NewServer(DefaultServerConfig, middle.Chain, serv, srvWait)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	mockserver := httptest.NewServer(srv.srv.Handler)
 	defer mockserver.Close()
 	c, err := client.New(mockserver.URL, 5*time.Second, client.WithFiles("../../testdata"), client.WithTimes(1))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	album, err := c.Album()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	err = c.Status(album)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	p, err := c.Pair(album)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	err = c.Do(http.MethodGet, mockserver.URL+p.One.Src, http.NoBody)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	err = c.Do(http.MethodGet, mockserver.URL+p.Two.Src, http.NoBody)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	err = c.Vote(album, p.One.Token, p.Two.Token)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	_, err = c.Top(album)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	err = c.Health()
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 }

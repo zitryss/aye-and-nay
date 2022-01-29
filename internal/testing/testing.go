@@ -3,18 +3,19 @@ package testing
 import (
 	"bytes"
 	_ "embed"
-	"math"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 )
 
 const (
-	tolerance = 0.000000000000001
+	TOLERANCE = 0.000000000000001
 )
 
 var (
@@ -22,51 +23,9 @@ var (
 	png []byte
 )
 
-func CheckStatusCode(t *testing.T, w *httptest.ResponseRecorder, code int) {
-	t.Helper()
-	got := w.Code
-	want := code
-	if got != want {
-		t.Errorf("Status Code = %v; want %v", got, want)
-	}
-}
-
-func CheckContentType(t *testing.T, w *httptest.ResponseRecorder, content string) {
-	t.Helper()
-	got := w.Result().Header.Get("Content-Type")
-	want := content
-	if got != want {
-		t.Errorf("Content-Type = %v; want %v", got, want)
-	}
-}
-
-func CheckBody(t *testing.T, w *httptest.ResponseRecorder, body string) {
-	t.Helper()
-	got := w.Body.String()
-	want := body
-	if got != want {
-		t.Errorf("Body = %v; want %v", got, want)
-	}
-}
-
-func CheckChannel(t *testing.T, heartbeat <-chan interface{}) interface{} {
-	t.Helper()
-	v := interface{}(nil)
-	select {
-	case v = <-heartbeat:
-	case <-time.After(1 * time.Second):
-		t.Fatal("<-time.After(1 * time.Second)")
-	}
-	return v
-}
-
-func IsIn(image model.Image, imgs []model.Image) bool {
-	for _, img := range imgs {
-		if reflect.DeepEqual(image, img) {
-			return true
-		}
-	}
-	return false
+func Png() model.File {
+	buf := bytes.NewBuffer(png)
+	return model.File{Reader: buf, Size: int64(buf.Len())}
 }
 
 func AlbumEmptyFactory(id uint64) model.Album {
@@ -108,48 +67,70 @@ func AlbumFullFactory(id uint64) model.Album {
 	return alb
 }
 
-func EqualMap(x, y map[uint64]float64) bool {
-	if len(x) != len(y) {
-		return false
+func AssertStatusCode(t *testing.T, w *httptest.ResponseRecorder, code int) {
+	t.Helper()
+	got := w.Code
+	want := code
+	if got != want {
+		t.Errorf("Status Code = %v; want %v", got, want)
 	}
-	for xk, xv := range x {
-		yv, ok := y[xk]
-		if !ok {
-			return false
+}
+
+func AssertContentType(t *testing.T, w *httptest.ResponseRecorder, content string) {
+	t.Helper()
+	got := w.Result().Header.Get("Content-Type")
+	want := content
+	if got != want {
+		t.Errorf("Content-Type = %v; want %v", got, want)
+	}
+}
+
+func AssertBody(t *testing.T, w *httptest.ResponseRecorder, body string) {
+	t.Helper()
+	got := w.Body.String()
+	want := body
+	if got != want {
+		t.Errorf("Body = %v; want %v", got, want)
+	}
+}
+
+func AssertChannel(t *testing.T, heartbeat <-chan interface{}) interface{} {
+	t.Helper()
+	v := interface{}(nil)
+	select {
+	case v = <-heartbeat:
+	case <-time.After(1 * time.Second):
+		t.Error("<-time.After(1 * time.Second)")
+	}
+	return v
+}
+
+func AssertNotChannel(t *testing.T, heartbeat <-chan interface{}) {
+	t.Helper()
+	select {
+	case <-heartbeat:
+		t.Error("<-heartbeatDel")
+	case <-time.After(1 * time.Second):
+	}
+}
+
+func AssertContains(t *testing.T, imgs []model.Image, image model.Image) {
+	t.Helper()
+	for _, img := range imgs {
+		if reflect.DeepEqual(image, img) {
+			return
 		}
-		if !EqualFloat(xv, yv) {
-			return false
-		}
 	}
-	return true
+	t.Errorf("%#v does not contain %#v", imgs, image)
 }
 
-func EqualFloat(x, y float64) bool {
-	diff := math.Abs(x - y)
-	if diff > tolerance {
-		return false
-	}
-	return true
-}
-
-func Png() model.File {
-	buf := bytes.NewBuffer(png)
-	return model.File{Reader: buf, Size: int64(buf.Len())}
-}
-
-func EqualFile(x, y model.File) bool {
+func AssertEqualFile(t *testing.T, x, y model.File) {
+	t.Helper()
 	bx := make([]byte, x.Size)
 	_, err := x.Read(bx)
-	if err != nil {
-		return false
-	}
+	assert.NoError(t, err)
 	by := make([]byte, y.Size)
 	_, err = y.Read(by)
-	if err != nil {
-		return false
-	}
-	if !reflect.DeepEqual(bx, by) {
-		return false
-	}
-	return true
+	assert.NoError(t, err)
+	assert.Equal(t, bx, by)
 }

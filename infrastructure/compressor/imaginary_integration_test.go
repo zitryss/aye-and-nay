@@ -8,6 +8,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/zitryss/aye-and-nay/domain/model"
 )
 
@@ -31,22 +34,13 @@ func TestImaginaryPositive(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			im, err := NewImaginary(context.Background(), DefaultImaginaryConfig)
-			if err != nil {
-				t.Fatal(err)
-			}
+			require.NoError(t, err)
 			b, err := os.ReadFile("../../testdata/" + tt.filename)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 			buf := bytes.NewBuffer(b)
-			f := model.File{
-				Reader: buf,
-				Size:   int64(buf.Len()),
-			}
+			f := model.File{Reader: buf, Size: int64(buf.Len())}
 			_, err = im.Compress(context.Background(), f)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		})
 	}
 }
@@ -56,34 +50,19 @@ func TestImaginaryNegative(t *testing.T) {
 		t.Skip("short flag is set")
 	}
 	im, err := NewImaginary(context.Background(), DefaultImaginaryConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	b, err := os.ReadFile("../../testdata/john.bmp")
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 	buf := bytes.NewBuffer(b)
-	f1 := model.File{
-		Reader: buf,
-		Size:   int64(buf.Len()),
-	}
+	f1 := model.File{Reader: buf, Size: int64(buf.Len())}
 	f2, err := im.Compress(context.Background(), f1)
-	if err != nil {
-		t.Error(err)
-	}
-	if f1.Size != f2.Size {
-		t.Error("f1.Size != f2.Size")
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, f1.Size, f2.Size)
 }
 
 func TestImaginaryHealth(t *testing.T) {
 	im, err := NewImaginary(context.Background(), DefaultImaginaryConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	_, err = im.Health(context.Background())
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 }

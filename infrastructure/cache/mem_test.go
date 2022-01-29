@@ -7,66 +7,47 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
-	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
 func TestMemPair(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
 		mem := NewMem(DefaultMemConfig)
 		err := mem.Push(context.Background(), 0x23D2, [][2]uint64{{0x3E3D, 0xB399}})
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		image1, image2, err := mem.Pop(context.Background(), 0x23D2)
-		if err != nil {
-			t.Error(err)
-		}
-		if image1 != 0x3E3D {
-			t.Error("image1 != 0x3E3D")
-		}
-		if image2 != 0xB399 {
-			t.Error("image2 != 0xB399")
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, uint64(0x3E3D), image1)
+		assert.Equal(t, uint64(0xB399), image2)
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem(DefaultMemConfig)
 		_, _, err := mem.Pop(context.Background(), 0x73BF)
-		if !errors.Is(err, domain.ErrPairNotFound) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrPairNotFound)
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem(DefaultMemConfig)
 		err := mem.Push(context.Background(), 0x1AE9, [][2]uint64{{0x44DC, 0x721B}})
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		_, _, err = mem.Pop(context.Background(), 0x1AE9)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		_, _, err = mem.Pop(context.Background(), 0x1AE9)
-		if !errors.Is(err, domain.ErrPairNotFound) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrPairNotFound)
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		heartbeatPair := make(chan interface{})
 		mem := NewMem(DefaultMemConfig, WithHeartbeatPair(heartbeatPair))
 		mem.Monitor()
 		err := mem.Push(context.Background(), 0xF51A, [][2]uint64{{0x4BB0, 0x3A87}})
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		time.Sleep(mem.conf.TimeToLive)
-		CheckChannel(t, heartbeatPair)
-		CheckChannel(t, heartbeatPair)
+		AssertChannel(t, heartbeatPair)
+		AssertChannel(t, heartbeatPair)
 		_, _, err = mem.Pop(context.Background(), 0xF51A)
-		if !errors.Is(err, domain.ErrPairNotFound) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrPairNotFound)
 	})
 }
 
@@ -77,19 +58,11 @@ func TestMemToken(t *testing.T) {
 		album1 := uint64(0xB41C)
 		image1 := uint64(0x52BD)
 		err := mem.Set(context.Background(), token, album1, image1)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		album2, image2, err := mem.Get(context.Background(), token)
-		if err != nil {
-			t.Error(err)
-		}
-		if album1 != album2 {
-			t.Error("album1 != album2")
-		}
-		if image1 != image2 {
-			t.Error("image1 != image2")
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, album1, album2)
+		assert.Equal(t, image1, image2)
 	})
 	t.Run("Negative1", func(t *testing.T) {
 		mem := NewMem(DefaultMemConfig)
@@ -97,21 +70,15 @@ func TestMemToken(t *testing.T) {
 		album := uint64(0xF0EE)
 		image := uint64(0x583C)
 		err := mem.Set(context.Background(), token, album, image)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		err = mem.Set(context.Background(), token, album, image)
-		if !errors.Is(err, domain.ErrTokenAlreadyExists) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrTokenAlreadyExists)
 	})
 	t.Run("Negative2", func(t *testing.T) {
 		mem := NewMem(DefaultMemConfig)
 		token := uint64(0xC4F8)
 		_, _, err := mem.Get(context.Background(), token)
-		if !errors.Is(err, domain.ErrTokenNotFound) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
 	t.Run("Negative3", func(t *testing.T) {
 		mem := NewMem(DefaultMemConfig)
@@ -119,33 +86,21 @@ func TestMemToken(t *testing.T) {
 		album := uint64(0xC67F)
 		image := uint64(0x7C45)
 		err := mem.Set(context.Background(), token, album, image)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		_, _, err = mem.Get(context.Background(), token)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		err = mem.Del(context.Background(), token)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		err = mem.Del(context.Background(), token)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		_, _, err = mem.Get(context.Background(), token)
-		if !errors.Is(err, domain.ErrTokenNotFound) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
 	t.Run("Negative4", func(t *testing.T) {
 		mem := NewMem(DefaultMemConfig)
 		token := uint64(0xD3BF)
 		err := mem.Del(context.Background(), token)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 	})
 	t.Run("Negative5", func(t *testing.T) {
 		heartbeatToken := make(chan interface{})
@@ -155,15 +110,11 @@ func TestMemToken(t *testing.T) {
 		album := uint64(0xCF1E)
 		image := uint64(0xDD0A)
 		err := mem.Set(context.Background(), token, album, image)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		time.Sleep(mem.conf.TimeToLive)
-		CheckChannel(t, heartbeatToken)
-		CheckChannel(t, heartbeatToken)
+		AssertChannel(t, heartbeatToken)
+		AssertChannel(t, heartbeatToken)
 		_, _, err = mem.Get(context.Background(), token)
-		if !errors.Is(err, domain.ErrTokenNotFound) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
 }

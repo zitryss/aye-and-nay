@@ -9,6 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
@@ -37,9 +39,9 @@ func TestMiddlewareRecover(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		handler.ServeHTTP(w, r)
-		CheckStatusCode(t, w, 418)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `I'm a teapot`)
+		AssertStatusCode(t, w, 418)
+		AssertContentType(t, w, "text/plain; charset=utf-8")
+		AssertBody(t, w, `I'm a teapot`)
 	})
 	t.Run("Negative", func(t *testing.T) {
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -51,9 +53,9 @@ func TestMiddlewareRecover(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		handler.ServeHTTP(w, r)
-		CheckStatusCode(t, w, 500)
-		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"error":{"code":17,"msg":"internal server error"}}`+"\n")
+		AssertStatusCode(t, w, 500)
+		AssertContentType(t, w, "application/json; charset=utf-8")
+		AssertBody(t, w, `{"error":{"code":17,"msg":"internal server error"}}`+"\n")
 	})
 }
 
@@ -70,9 +72,9 @@ func TestMiddlewareLimit(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		handler.ServeHTTP(w, r)
-		CheckStatusCode(t, w, 418)
-		CheckContentType(t, w, "text/plain; charset=utf-8")
-		CheckBody(t, w, `I'm a teapot`)
+		AssertStatusCode(t, w, 418)
+		AssertContentType(t, w, "text/plain; charset=utf-8")
+		AssertBody(t, w, `I'm a teapot`)
 	})
 	t.Run("Negative", func(t *testing.T) {
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -86,9 +88,9 @@ func TestMiddlewareLimit(t *testing.T) {
 		w := httptest.NewRecorder()
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		handler.ServeHTTP(w, r)
-		CheckStatusCode(t, w, 429)
-		CheckContentType(t, w, "application/json; charset=utf-8")
-		CheckBody(t, w, `{"error":{"code":0,"msg":"too many requests"}}`+"\n")
+		AssertStatusCode(t, w, 429)
+		AssertContentType(t, w, "application/json; charset=utf-8")
+		AssertBody(t, w, `{"error":{"code":0,"msg":"too many requests"}}`+"\n")
 	})
 }
 
@@ -142,9 +144,7 @@ func TestIP(t *testing.T) {
 		r.Header.Set("X-Forwarded-For", tt.args.xff)
 		r.RemoteAddr = tt.args.remoteAddr
 		t.Run("", func(t *testing.T) {
-			if got := ip(r); got != tt.want {
-				t.Errorf("ip() = %v, want %v", got, tt.want)
-			}
+			assert.Equal(t, tt.want, ip(r))
 		})
 	}
 }

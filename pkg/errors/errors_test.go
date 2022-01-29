@@ -4,8 +4,9 @@ package errors_test
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
@@ -59,9 +60,7 @@ func TestCause(t *testing.T) {
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
 			got := errors.Cause(tt.give)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Cause(%v) = %v, want %v", tt.give, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

@@ -7,92 +7,53 @@ import (
 	"testing"
 
 	minioS3 "github.com/minio/minio-go/v7"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "github.com/zitryss/aye-and-nay/internal/testing"
-	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
 func TestMinio(t *testing.T) {
 	t.Run("", func(t *testing.T) {
 		minio, err := NewMinio(context.Background(), DefaultMinioConfig)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		f, err := minio.Get(context.Background(), 0x70D8, 0xD5C7)
-		e := (*minioS3.ErrorResponse)(nil)
-		if errors.As(err, &e) {
-			t.Error(err)
-		}
-		if f.Reader != nil {
-			t.Error("f.Reader != nil")
-		}
+		e := minioS3.ErrorResponse{}
+		assert.ErrorAs(t, err, &e)
+		assert.Nil(t, f.Reader)
 		src, err := minio.Put(context.Background(), 0x70D8, 0xD5C7, Png())
-		if err != nil {
-			t.Error(err)
-		}
-		if src != "/aye-and-nay/albums/2HAAAAAAAAA/images/x9UAAAAAAAA" {
-			t.Error("src != \"/aye-and-nay/albums/2HAAAAAAAAA/images/x9UAAAAAAAA\"")
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, "/aye-and-nay/albums/2HAAAAAAAAA/images/x9UAAAAAAAA", src)
 		f, err = minio.Get(context.Background(), 0x70D8, 0xD5C7)
-		if err != nil {
-			t.Error(err)
-		}
-		if !EqualFile(f, Png()) {
-			t.Error("!EqualFile(f, Png())")
-		}
+		assert.NoError(t, err)
+		AssertEqualFile(t, f, Png())
 		err = minio.Remove(context.Background(), 0x70D8, 0xD5C7)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		f, err = minio.Get(context.Background(), 0x70D8, 0xD5C7)
-		e = (*minioS3.ErrorResponse)(nil)
-		if errors.As(err, &e) {
-			t.Error(err)
-		}
-		if f.Reader != nil {
-			t.Error("f.Reader != nil")
-		}
+		e = minioS3.ErrorResponse{}
+		assert.ErrorAs(t, err, &e)
+		assert.Nil(t, f.Reader)
 	})
 	t.Run("", func(t *testing.T) {
 		minio, err := NewMinio(context.Background(), DefaultMinioConfig)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 		src, err := minio.Put(context.Background(), 0x872D, 0x882D, Png())
-		if err != nil {
-			t.Error(err)
-		}
-		if src != "/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA" {
-			t.Error("src != \"/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA\"")
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, "/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA", src)
 		f, err := minio.Get(context.Background(), 0x872D, 0x882D)
-		if err != nil {
-			t.Error(err)
-		}
-		if !EqualFile(f, Png()) {
-			t.Error("!EqualFile(f, Png())")
-		}
+		assert.NoError(t, err)
+		AssertEqualFile(t, f, Png())
 		err = minio.Remove(context.Background(), 0x872D, 0x882D)
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 		src, err = minio.Put(context.Background(), 0x872D, 0x882D, Png())
-		if err != nil {
-			t.Error(err)
-		}
-		if src != "/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA" {
-			t.Error("src != \"/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA\"")
-		}
+		assert.NoError(t, err)
+		assert.Equal(t, "/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA", src)
 	})
 }
 
 func TestMinioHealth(t *testing.T) {
 	minio, err := NewMinio(context.Background(), DefaultMinioConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	_, err = minio.Health(context.Background())
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 }

@@ -3,16 +3,15 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"syscall"
-
-	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
 func init() {
 	err := setUlimit()
 	if err != nil {
-		log.Critical(err)
+		_, _ = fmt.Fprintln(os.Stderr, "critical:", err)
 		os.Exit(1)
 	}
 }

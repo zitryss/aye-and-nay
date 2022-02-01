@@ -157,24 +157,24 @@ func TestServicePair(t *testing.T) {
 		img2 := model.Image{Id: 0x3BC8, Token: 0x3BCA, Src: "/api/images/yjsAAAAAAAA/"}
 		imgs1 := []model.Image{img1, img2}
 		assert.NotEqual(t, img7, img8)
-		AssertContains(t, imgs1, img7)
-		AssertContains(t, imgs1, img8)
+		assert.Contains(t, imgs1, img7)
+		assert.Contains(t, imgs1, img8)
 		img9, img10, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
 		img3 := model.Image{Id: 0x3BC8, Token: 0x3BCB, Src: "/api/images/yzsAAAAAAAA/"}
 		img4 := model.Image{Id: 0x3BC7, Token: 0x3BCC, Src: "/api/images/zDsAAAAAAAA/"}
 		imgs2 := []model.Image{img3, img4}
 		assert.NotEqual(t, img9, img10)
-		AssertContains(t, imgs2, img9)
-		AssertContains(t, imgs2, img10)
+		assert.Contains(t, imgs2, img9)
+		assert.Contains(t, imgs2, img10)
 		img11, img12, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
 		img5 := model.Image{Id: 0x3BC7, Token: 0x3BCD, Src: "/api/images/zTsAAAAAAAA/"}
 		img6 := model.Image{Id: 0x3BC8, Token: 0x3BCE, Src: "/api/images/zjsAAAAAAAA/"}
 		imgs3 := []model.Image{img5, img6}
 		assert.NotEqual(t, img11, img12)
-		AssertContains(t, imgs3, img11)
-		AssertContains(t, imgs3, img12)
+		assert.Contains(t, imgs3, img11)
+		assert.Contains(t, imgs3, img12)
 	})
 	t.Run("Positive2", func(t *testing.T) {
 		fn1 := func() func() (uint64, error) {
@@ -209,24 +209,24 @@ func TestServicePair(t *testing.T) {
 		img2 := model.Image{Id: 0xFB00, Token: 0xFB00, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/APsAAAAAAAA"}
 		imgs1 := []model.Image{img1, img2}
 		assert.NotEqual(t, img7, img8)
-		AssertContains(t, imgs1, img7)
-		AssertContains(t, imgs1, img8)
+		assert.Contains(t, imgs1, img7)
+		assert.Contains(t, imgs1, img8)
 		img9, img10, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
 		img3 := model.Image{Id: 0xFB00, Token: 0xFB00, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/APsAAAAAAAA"}
 		img4 := model.Image{Id: 0xFAFF, Token: 0xFAFF, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/__oAAAAAAAA"}
 		imgs2 := []model.Image{img3, img4}
 		assert.NotEqual(t, img9, img10)
-		AssertContains(t, imgs2, img9)
-		AssertContains(t, imgs2, img10)
+		assert.Contains(t, imgs2, img9)
+		assert.Contains(t, imgs2, img10)
 		img11, img12, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
 		img5 := model.Image{Id: 0xFAFF, Token: 0xFAFF, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/__oAAAAAAAA"}
 		img6 := model.Image{Id: 0xFB00, Token: 0xFB00, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/APsAAAAAAAA"}
 		imgs3 := []model.Image{img5, img6}
 		assert.NotEqual(t, img11, img12)
-		AssertContains(t, imgs3, img11)
-		AssertContains(t, imgs3, img12)
+		assert.Contains(t, imgs3, img11)
+		assert.Contains(t, imgs3, img12)
 	})
 	t.Run("Negative", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())

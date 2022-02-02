@@ -264,3 +264,11 @@ func (r *Redis) Close(_ context.Context) error {
 	}
 	return nil
 }
+
+func (r *Redis) Reset() error {
+	err := r.client.FlushAll(context.Background()).Err()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	return nil
+}

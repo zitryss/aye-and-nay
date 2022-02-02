@@ -328,3 +328,22 @@ func (m *Mem) Del(_ context.Context, token uint64) error {
 func (m *Mem) Health(_ context.Context) (bool, error) {
 	return true, nil
 }
+
+func (m *Mem) Reset() error {
+	m.syncVisitors.Lock()
+	defer m.syncVisitors.Unlock()
+	m.visitors = map[uint64]*visitorTime{}
+	m.syncQueues.Lock()
+	defer m.syncQueues.Unlock()
+	m.queues = map[uint64]*linkedhashset.Set{}
+	m.syncPQueues.Lock()
+	defer m.syncPQueues.Unlock()
+	m.pqueues = map[uint64]*binaryheap.Heap{}
+	m.syncPairs.Lock()
+	defer m.syncPairs.Unlock()
+	m.pairs = map[uint64]*pairsTime{}
+	m.syncTokens.Lock()
+	defer m.syncTokens.Unlock()
+	m.tokens = map[uint64]*tokenTime{}
+	return nil
+}

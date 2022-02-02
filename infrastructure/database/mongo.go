@@ -362,3 +362,12 @@ func (m *Mongo) Close(ctx context.Context) error {
 	}
 	return nil
 }
+
+func (m *Mongo) Reset() error {
+	err := m.db.Drop(context.Background())
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	m.cache.Purge()
+	return nil
+}

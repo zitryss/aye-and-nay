@@ -352,3 +352,12 @@ func (b *Badger) Close(_ context.Context) error {
 	}
 	return nil
 }
+
+func (b *Badger) Reset() error {
+	err := b.db.DropAll()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	b.cache.Purge()
+	return nil
+}

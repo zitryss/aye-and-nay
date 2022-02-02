@@ -166,3 +166,27 @@ func (m *Minio) Health(ctx context.Context) (bool, error) {
 	}
 	return true, nil
 }
+
+func (m *Minio) Reset() error {
+	bb, err := m.client.ListBuckets(context.Background())
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	for _, b := range bb {
+		for obj := range m.client.ListObjects(context.Background(), b.Name, minioS3.ListObjectsOptions{Recursive: true}) {
+			err := m.client.RemoveObject(context.Background(), b.Name, obj.Key, minioS3.RemoveObjectOptions{ForceDelete: true})
+			if err != nil {
+				return errors.Wrap(err)
+			}
+		}
+		err := m.client.RemoveBucket(context.Background(), b.Name)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+	}
+	err = m.client.MakeBucket(context.Background(), "aye-and-nay", minioS3.MakeBucketOptions{Region: m.conf.Location})
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	return nil
+}

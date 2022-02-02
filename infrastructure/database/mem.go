@@ -222,3 +222,10 @@ func (m *Mem) AlbumsToBeDeleted(_ context.Context) ([]model.Album, error) {
 func (m *Mem) Health(_ context.Context) (bool, error) {
 	return true, nil
 }
+
+func (m *Mem) Reset() error {
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
+	m.albums = map[uint64]model.Album{}
+	return nil
+}

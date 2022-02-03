@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 )
@@ -109,4 +111,15 @@ func AssertNotChannel(t *testing.T, heartbeat <-chan interface{}) {
 		t.Error("<-heartbeatDel")
 	case <-time.After(1 * time.Second):
 	}
+}
+
+func AssertEqualFile(t *testing.T, x, y model.File) {
+	t.Helper()
+	bx := make([]byte, x.Size)
+	_, err := x.Read(bx)
+	assert.NoError(t, err)
+	by := make([]byte, y.Size)
+	_, err = y.Read(by)
+	assert.NoError(t, err)
+	assert.Equal(t, bx, by)
 }

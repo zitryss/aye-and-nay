@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/zitryss/aye-and-nay/domain/model"
-	"github.com/zitryss/aye-and-nay/pkg/base64"
 )
 
 const (
@@ -27,42 +26,47 @@ func Png() model.File {
 	return model.File{Reader: buf, Size: int64(buf.Len())}
 }
 
-func AlbumEmptyFactory(id uint64) model.Album {
-	idB64 := base64.FromUint64(id)
-	img1 := model.Image{Id: 0x3E3D, Src: "/aye-and-nay/albums/" + idB64 + "/images/PT4AAAAAAAA"}
-	img2 := model.Image{Id: 0xB399, Src: "/aye-and-nay/albums/" + idB64 + "/images/mbMAAAAAAAA"}
-	img3 := model.Image{Id: 0xDA2A, Src: "/aye-and-nay/albums/" + idB64 + "/images/KtoAAAAAAAA"}
-	img4 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/" + idB64 + "/images/3lEAAAAAAAA"}
-	img5 := model.Image{Id: 0xDA52, Src: "/aye-and-nay/albums/" + idB64 + "/images/UtoAAAAAAAA"}
+type ids interface {
+	Uint64(i int) uint64
+	Base64(i int) string
+}
+
+func AlbumEmptyFactory(id func() uint64, ids ids) model.Album {
+	album := id()
+	img1 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1)}
+	img2 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2)}
+	img3 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(3)}
+	img4 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4)}
+	img5 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(5)}
 	imgs := []model.Image{img1, img2, img3, img4, img5}
 	edgs := map[uint64]map[uint64]int{}
-	edgs[0x3E3D] = map[uint64]int{}
-	edgs[0xB399] = map[uint64]int{}
-	edgs[0xDA2A] = map[uint64]int{}
-	edgs[0x51DE] = map[uint64]int{}
-	edgs[0xDA52] = map[uint64]int{}
+	edgs[ids.Uint64(1)] = map[uint64]int{}
+	edgs[ids.Uint64(2)] = map[uint64]int{}
+	edgs[ids.Uint64(3)] = map[uint64]int{}
+	edgs[ids.Uint64(4)] = map[uint64]int{}
+	edgs[ids.Uint64(5)] = map[uint64]int{}
 	expires := time.Time{}
-	alb := model.Album{id, imgs, edgs, expires}
+	alb := model.Album{album, imgs, edgs, expires}
 	return alb
 }
 
-func AlbumFullFactory(id uint64) model.Album {
-	alb := AlbumEmptyFactory(id)
+func AlbumFullFactory(id func() uint64, ids ids) model.Album {
+	alb := AlbumEmptyFactory(id, ids)
 	alb.Images[0].Rating = 0.48954984
 	alb.Images[1].Rating = 0.19186324
 	alb.Images[2].Rating = 0.41218211
 	alb.Images[3].Rating = 0.77920413
 	alb.Images[4].Rating = 0.13278389
-	alb.Edges[0x51DE][0xDA2A]++
-	alb.Edges[0x3E3D][0xDA2A]++
-	alb.Edges[0x3E3D][0x51DE]++
-	alb.Edges[0xB399][0xDA2A]++
-	alb.Edges[0xB399][0x51DE]++
-	alb.Edges[0xB399][0x3E3D]++
-	alb.Edges[0xDA52][0xDA2A]++
-	alb.Edges[0xDA52][0x51DE]++
-	alb.Edges[0xDA52][0x3E3D]++
-	alb.Edges[0xDA52][0xB399]++
+	alb.Edges[ids.Uint64(4)][ids.Uint64(3)]++
+	alb.Edges[ids.Uint64(1)][ids.Uint64(3)]++
+	alb.Edges[ids.Uint64(1)][ids.Uint64(4)]++
+	alb.Edges[ids.Uint64(2)][ids.Uint64(3)]++
+	alb.Edges[ids.Uint64(2)][ids.Uint64(4)]++
+	alb.Edges[ids.Uint64(2)][ids.Uint64(1)]++
+	alb.Edges[ids.Uint64(5)][ids.Uint64(3)]++
+	alb.Edges[ids.Uint64(5)][ids.Uint64(4)]++
+	alb.Edges[ids.Uint64(5)][ids.Uint64(1)]++
+	alb.Edges[ids.Uint64(5)][ids.Uint64(2)]++
 	return alb
 }
 

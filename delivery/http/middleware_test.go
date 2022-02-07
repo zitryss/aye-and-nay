@@ -55,7 +55,7 @@ func TestMiddlewareRecover(t *testing.T) {
 		handler.ServeHTTP(w, r)
 		AssertStatusCode(t, w, 500)
 		AssertContentType(t, w, "application/json; charset=utf-8")
-		AssertBody(t, w, `{"error":{"code":17,"msg":"internal server error"}}`+"\n")
+		AssertBody(t, w, `{"error":{"code":22,"msg":"internal server error"}}`+"\n")
 	})
 }
 
@@ -90,7 +90,7 @@ func TestMiddlewareLimit(t *testing.T) {
 		handler.ServeHTTP(w, r)
 		AssertStatusCode(t, w, 429)
 		AssertContentType(t, w, "application/json; charset=utf-8")
-		AssertBody(t, w, `{"error":{"code":0,"msg":"too many requests"}}`+"\n")
+		AssertBody(t, w, `{"error":{"code":1,"msg":"too many requests"}}`+"\n")
 	})
 }
 

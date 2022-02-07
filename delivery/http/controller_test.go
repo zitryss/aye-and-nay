@@ -60,7 +60,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
@@ -73,7 +73,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
@@ -86,7 +86,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
@@ -99,7 +99,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
@@ -112,7 +112,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -124,7 +124,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
@@ -137,7 +137,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
@@ -150,7 +150,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
@@ -163,7 +163,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
@@ -176,7 +176,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -189,7 +189,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
@@ -202,7 +202,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
@@ -215,7 +215,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
@@ -228,7 +228,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -241,7 +241,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
@@ -254,7 +254,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
@@ -267,7 +267,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
+				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
@@ -280,7 +280,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
+				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
@@ -293,7 +293,7 @@ func TestControllerHandleAlbum(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -385,7 +385,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
@@ -395,7 +395,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
@@ -405,7 +405,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -415,7 +415,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
@@ -425,7 +425,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
@@ -435,7 +435,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
@@ -445,7 +445,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -455,7 +455,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
@@ -465,7 +465,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
@@ -475,7 +475,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
+				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
@@ -485,7 +485,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
+				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
@@ -495,7 +495,7 @@ func TestControllerHandleStatus(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -565,7 +565,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
@@ -575,7 +575,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
@@ -585,7 +585,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -595,7 +595,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
@@ -605,7 +605,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
@@ -615,7 +615,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
@@ -625,7 +625,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -635,7 +635,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
@@ -645,7 +645,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
@@ -655,7 +655,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
+				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
@@ -665,7 +665,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
+				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
@@ -675,7 +675,7 @@ func TestControllerHandlePair(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -746,7 +746,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
@@ -756,7 +756,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
@@ -766,7 +766,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -776,7 +776,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
@@ -786,7 +786,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
@@ -796,7 +796,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
@@ -806,7 +806,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -816,7 +816,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
@@ -826,7 +826,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
@@ -836,7 +836,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
+				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
@@ -846,7 +846,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
+				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
@@ -856,7 +856,7 @@ func TestControllerHandleImage(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -926,7 +926,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
@@ -936,7 +936,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
@@ -946,7 +946,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -956,7 +956,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
@@ -966,7 +966,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
@@ -976,7 +976,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
@@ -986,7 +986,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -996,7 +996,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
@@ -1006,7 +1006,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
@@ -1016,7 +1016,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
+				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
@@ -1026,7 +1026,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
+				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
@@ -1036,7 +1036,7 @@ func TestControllerHandleVote(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1108,7 +1108,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 429,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":0,"msg":"too many requests"}}` + "\n",
+				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
@@ -1118,7 +1118,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"body too large"}}` + "\n",
+				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
@@ -1128,7 +1128,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -1138,7 +1138,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"not enough images"}}` + "\n",
+				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
@@ -1148,7 +1148,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"too many images"}}` + "\n",
+				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
@@ -1158,7 +1158,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 413,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"image too large"}}` + "\n",
+				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
@@ -1168,7 +1168,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 415,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"unsupported media type"}}` + "\n",
+				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -1178,7 +1178,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"duration not set"}}` + "\n",
+				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
@@ -1188,7 +1188,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 400,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration invalid"}}` + "\n",
+				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
@@ -1198,7 +1198,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"album not found"}}` + "\n",
+				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
 			},
 		},
 		{
@@ -1208,7 +1208,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 404,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":11,"msg":"token not found"}}` + "\n",
+				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
 			},
 		},
 		{
@@ -1218,7 +1218,7 @@ func TestControllerHandleTop(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":16,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1288,7 +1288,7 @@ func TestControllerHandleHealth(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":18,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1298,7 +1298,7 @@ func TestControllerHandleHealth(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":18,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":19,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1308,7 +1308,7 @@ func TestControllerHandleHealth(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":19,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":20,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1318,7 +1318,7 @@ func TestControllerHandleHealth(t *testing.T) {
 			want: want{
 				code: 500,
 				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":20,"msg":"internal server error"}}` + "\n",
+				body: `{"error":{"code":21,"msg":"internal server error"}}` + "\n",
 			},
 		},
 	}

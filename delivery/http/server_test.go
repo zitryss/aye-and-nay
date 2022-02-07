@@ -43,10 +43,12 @@ func TestServer(t *testing.T) {
 	assert.NoError(t, err)
 	p, err := c.Pair(album)
 	assert.NoError(t, err)
-	err = c.Do(http.MethodGet, mockserver.URL+p.One.Src, http.NoBody)
-	assert.NoError(t, err)
-	err = c.Do(http.MethodGet, mockserver.URL+p.Two.Src, http.NoBody)
-	assert.NoError(t, err)
+	if service.DefaultServiceConfig.TempLinks == true {
+		err = c.Do(http.MethodGet, mockserver.URL+p.One.Src, http.NoBody)
+		assert.NoError(t, err)
+		err = c.Do(http.MethodGet, mockserver.URL+p.Two.Src, http.NoBody)
+		assert.NoError(t, err)
+	}
 	err = c.Vote(album, p.One.Token, p.Two.Token)
 	assert.NoError(t, err)
 	_, err = c.Top(album)

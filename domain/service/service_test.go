@@ -16,16 +16,17 @@ import (
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
+	. "github.com/zitryss/aye-and-nay/internal/generator"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
 func TestServiceAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, _ := GenId()
+		idQ, _ := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0x463E + i, nil
+				return id(), nil
 			}
 		}()
 		ctx, cancel := context.WithCancel(context.Background())
@@ -36,12 +37,12 @@ func TestServiceAlbum(t *testing.T) {
 		mCache := cache.NewMem(cache.DefaultMemConfig)
 		qCalc := &QueueCalc{}
 		qCalc.Monitor(ctx)
-		qComp := &QueueComp{newQueue(0xB273, mCache)}
+		qComp := &QueueComp{newQueue(idQ(), mCache)}
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		heartbeatComp := make(chan interface{})
-		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithHeartbeatComp(heartbeatComp))
 		gComp, ctxComp := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctxComp, gComp)
 		files := []model.File{Png(), Png()}
@@ -57,11 +58,11 @@ func TestServiceAlbum(t *testing.T) {
 		assert.InDelta(t, 1, p, TOLERANCE)
 	})
 	t.Run("Negative", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, _ := GenId()
+		idQ, _ := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0x915C + i, nil
+				return id(), nil
 			}
 		}()
 		ctx, cancel := context.WithCancel(context.Background())
@@ -74,12 +75,12 @@ func TestServiceAlbum(t *testing.T) {
 		mCache := cache.NewMem(cache.DefaultMemConfig)
 		qCalc := &QueueCalc{}
 		qCalc.Monitor(ctx)
-		qComp := &QueueComp{newQueue(0x88AB, mCache)}
+		qComp := &QueueComp{newQueue(idQ(), mCache)}
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		heartbeatComp := make(chan interface{})
-		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithHeartbeatComp(heartbeatComp))
+		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithHeartbeatComp(heartbeatComp))
 		gComp, ctxComp := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolComp(ctxComp, gComp)
 		files := []model.File{Png(), Png()}
@@ -127,14 +128,13 @@ func TestServiceAlbum(t *testing.T) {
 
 func TestServicePair(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, ids := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0x3BC5 + i, nil
+				return id(), nil
 			}
 		}()
-		fn2 := func(n int, swap func(i int, j int)) {}
+		fnS := func(n int, swap func(i int, j int)) {}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -147,44 +147,43 @@ func TestServicePair(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithRandShuffle(fnS))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		assert.NoError(t, err)
 		img7, img8, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
-		img1 := model.Image{Id: 0x3BC7, Token: 0x3BC9, Src: "/api/images/yTsAAAAAAAA/"}
-		img2 := model.Image{Id: 0x3BC8, Token: 0x3BCA, Src: "/api/images/yjsAAAAAAAA/"}
+		img1 := model.Image{Id: ids.Uint64(1), Token: ids.Uint64(3), Src: "/api/images/" + ids.Base64(3) + "/"}
+		img2 := model.Image{Id: ids.Uint64(2), Token: ids.Uint64(4), Src: "/api/images/" + ids.Base64(4) + "/"}
 		imgs1 := []model.Image{img1, img2}
 		assert.NotEqual(t, img7, img8)
 		assert.Contains(t, imgs1, img7)
 		assert.Contains(t, imgs1, img8)
 		img9, img10, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
-		img3 := model.Image{Id: 0x3BC8, Token: 0x3BCB, Src: "/api/images/yzsAAAAAAAA/"}
-		img4 := model.Image{Id: 0x3BC7, Token: 0x3BCC, Src: "/api/images/zDsAAAAAAAA/"}
+		img3 := model.Image{Id: ids.Uint64(2), Token: ids.Uint64(5), Src: "/api/images/" + ids.Base64(5) + "/"}
+		img4 := model.Image{Id: ids.Uint64(1), Token: ids.Uint64(6), Src: "/api/images/" + ids.Base64(6) + "/"}
 		imgs2 := []model.Image{img3, img4}
 		assert.NotEqual(t, img9, img10)
 		assert.Contains(t, imgs2, img9)
 		assert.Contains(t, imgs2, img10)
 		img11, img12, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
-		img5 := model.Image{Id: 0x3BC7, Token: 0x3BCD, Src: "/api/images/zTsAAAAAAAA/"}
-		img6 := model.Image{Id: 0x3BC8, Token: 0x3BCE, Src: "/api/images/zjsAAAAAAAA/"}
+		img5 := model.Image{Id: ids.Uint64(1), Token: ids.Uint64(7), Src: "/api/images/" + ids.Base64(7) + "/"}
+		img6 := model.Image{Id: ids.Uint64(2), Token: ids.Uint64(8), Src: "/api/images/" + ids.Base64(8) + "/"}
 		imgs3 := []model.Image{img5, img6}
 		assert.NotEqual(t, img11, img12)
 		assert.Contains(t, imgs3, img11)
 		assert.Contains(t, imgs3, img12)
 	})
 	t.Run("Positive2", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, ids := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0xFAFD + i, nil
+				return id(), nil
 			}
 		}()
-		fn2 := func(n int, swap func(i int, j int)) {}
+		fnS := func(n int, swap func(i int, j int)) {}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -199,36 +198,37 @@ func TestServicePair(t *testing.T) {
 		qDel.Monitor(ctx)
 		conf := DefaultServiceConfig
 		conf.TempLinks = false
-		serv := New(conf, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(conf, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithRandShuffle(fnS))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		assert.NoError(t, err)
 		img7, img8, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
-		img1 := model.Image{Id: 0xFAFF, Token: 0xFAFF, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/__oAAAAAAAA"}
-		img2 := model.Image{Id: 0xFB00, Token: 0xFB00, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/APsAAAAAAAA"}
+		img1 := model.Image{Id: ids.Uint64(1), Token: ids.Uint64(1), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1)}
+		img2 := model.Image{Id: ids.Uint64(2), Token: ids.Uint64(2), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2)}
 		imgs1 := []model.Image{img1, img2}
 		assert.NotEqual(t, img7, img8)
 		assert.Contains(t, imgs1, img7)
 		assert.Contains(t, imgs1, img8)
 		img9, img10, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
-		img3 := model.Image{Id: 0xFB00, Token: 0xFB00, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/APsAAAAAAAA"}
-		img4 := model.Image{Id: 0xFAFF, Token: 0xFAFF, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/__oAAAAAAAA"}
+		img3 := model.Image{Id: ids.Uint64(2), Token: ids.Uint64(2), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2)}
+		img4 := model.Image{Id: ids.Uint64(1), Token: ids.Uint64(1), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1)}
 		imgs2 := []model.Image{img3, img4}
 		assert.NotEqual(t, img9, img10)
 		assert.Contains(t, imgs2, img9)
 		assert.Contains(t, imgs2, img10)
 		img11, img12, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
-		img5 := model.Image{Id: 0xFAFF, Token: 0xFAFF, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/__oAAAAAAAA"}
-		img6 := model.Image{Id: 0xFB00, Token: 0xFB00, Src: "/aye-and-nay/albums/_voAAAAAAAA/images/APsAAAAAAAA"}
+		img5 := model.Image{Id: ids.Uint64(1), Token: ids.Uint64(1), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1)}
+		img6 := model.Image{Id: ids.Uint64(2), Token: ids.Uint64(2), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2)}
 		imgs3 := []model.Image{img5, img6}
 		assert.NotEqual(t, img11, img12)
 		assert.Contains(t, imgs3, img11)
 		assert.Contains(t, imgs3, img12)
 	})
 	t.Run("Negative", func(t *testing.T) {
+		id, _ := GenId()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -242,21 +242,20 @@ func TestServicePair(t *testing.T) {
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel)
-		_, _, err := serv.Pair(ctx, 0xEB46)
+		_, _, err := serv.Pair(ctx, id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 }
 
 func TestServiceImage(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, _ := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0xA83F + i, nil
+				return id(), nil
 			}
 		}()
-		fn2 := func(n int, swap func(i int, j int)) {}
+		fnS := func(n int, swap func(i int, j int)) {}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -269,7 +268,7 @@ func TestServiceImage(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithRandShuffle(fnS))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		assert.NoError(t, err)
@@ -283,6 +282,7 @@ func TestServiceImage(t *testing.T) {
 		assert.NotNil(t, f.Reader)
 	})
 	t.Run("Negative", func(t *testing.T) {
+		id, _ := GenId()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -296,21 +296,20 @@ func TestServiceImage(t *testing.T) {
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel)
-		_, err := serv.Image(ctx, 0xE283)
+		_, err := serv.Image(ctx, id())
 		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
 }
 
 func TestServiceVote(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, _ := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0xC389 + i, nil
+				return id(), nil
 			}
 		}()
-		fn2 := func(n int, swap func(i int, j int)) {}
+		fnS := func(n int, swap func(i int, j int)) {}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -323,7 +322,7 @@ func TestServiceVote(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithRandShuffle(fnS))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		assert.NoError(t, err)
@@ -333,14 +332,13 @@ func TestServiceVote(t *testing.T) {
 		assert.NoError(t, err)
 	})
 	t.Run("Positive2", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, _ := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0x1E58 + i, nil
+				return id(), nil
 			}
 		}()
-		fn2 := func(n int, swap func(i int, j int)) {}
+		fnS := func(n int, swap func(i int, j int)) {}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -355,7 +353,7 @@ func TestServiceVote(t *testing.T) {
 		qDel.Monitor(ctx)
 		conf := DefaultServiceConfig
 		conf.TempLinks = false
-		serv := New(conf, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(conf, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithRandShuffle(fnS))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		assert.NoError(t, err)
@@ -365,14 +363,13 @@ func TestServiceVote(t *testing.T) {
 		assert.NoError(t, err)
 	})
 	t.Run("Negative1", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, _ := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0xE24F + i, nil
+				return id(), nil
 			}
 		}()
-		fn2 := func(n int, swap func(i int, j int)) {}
+		fnS := func(n int, swap func(i int, j int)) {}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -385,24 +382,23 @@ func TestServiceVote(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithRandShuffle(fnS))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		assert.NoError(t, err)
 		img1, img2, err := serv.Pair(ctx, album)
 		assert.NoError(t, err)
-		err = serv.Vote(ctx, 0x12E6, img1.Token, img2.Token)
+		err = serv.Vote(ctx, id(), img1.Token, img2.Token)
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	t.Run("Negative2", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, _ := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0xBC43 + i, nil
+				return id(), nil
 			}
 		}()
-		fn2 := func(n int, swap func(i int, j int)) {}
+		fnS := func(n int, swap func(i int, j int)) {}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -415,41 +411,41 @@ func TestServiceVote(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
-		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2))
+		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithRandShuffle(fnS))
 		files := []model.File{Png(), Png()}
 		album, err := serv.Album(ctx, files, 0*time.Millisecond)
 		assert.NoError(t, err)
 		_, _, err = serv.Pair(ctx, album)
 		assert.NoError(t, err)
-		err = serv.Vote(ctx, album, 0x1CC1, 0xF83C)
+		err = serv.Vote(ctx, album, id(), id())
 		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
 }
 
 func TestServiceTop(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		fn1 := func() func() (uint64, error) {
-			i := uint64(0)
+		id, ids := GenId()
+		idQ, _ := GenId()
+		fnId := func() func() (uint64, error) {
 			return func() (uint64, error) {
-				i++
-				return 0x4DB8 + i, nil
+				return id(), nil
 			}
 		}()
-		fn2 := func(n int, swap func(i int, j int)) {}
+		fnS := func(n int, swap func(i int, j int)) {}
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
 		stor := storage.NewMock()
 		mDb := database.NewMem(database.DefaultMemConfig)
 		mCache := cache.NewMem(cache.DefaultMemConfig)
-		qCalc := &QueueCalc{newQueue(0x1A01, mCache)}
+		qCalc := &QueueCalc{newQueue(idQ(), mCache)}
 		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		heartbeatCalc := make(chan interface{})
-		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fn1), WithRandShuffle(fn2), WithHeartbeatCalc(heartbeatCalc))
+		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithRandId(fnId), WithRandShuffle(fnS), WithHeartbeatCalc(heartbeatCalc))
 		gCalc, ctxCalc := errgroup.WithContext(ctx)
 		serv.StartWorkingPoolCalc(ctxCalc, gCalc)
 		files := []model.File{Png(), Png()}
@@ -467,12 +463,13 @@ func TestServiceTop(t *testing.T) {
 		AssertChannel(t, heartbeatCalc)
 		imgs1, err := serv.Top(ctx, album)
 		assert.NoError(t, err)
-		img5 := model.Image{Id: 0x4DBA, Src: "/aye-and-nay/albums/uU0AAAAAAAA/images/uk0AAAAAAAA", Rating: 0.5, Compressed: false}
-		img6 := model.Image{Id: 0x4DBB, Src: "/aye-and-nay/albums/uU0AAAAAAAA/images/u00AAAAAAAA", Rating: 0.5, Compressed: false}
+		img5 := model.Image{Id: ids.Uint64(1), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.5, Compressed: false}
+		img6 := model.Image{Id: ids.Uint64(2), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2), Rating: 0.5, Compressed: false}
 		imgs2 := []model.Image{img5, img6}
 		assert.Equal(t, imgs2, imgs1)
 	})
 	t.Run("Negative", func(t *testing.T) {
+		id, _ := GenId()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -486,13 +483,16 @@ func TestServiceTop(t *testing.T) {
 		qDel := &QueueDel{}
 		qDel.Monitor(ctx)
 		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel)
-		_, err := serv.Top(ctx, 0x83CD)
+		_, err := serv.Top(ctx, id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 }
 
 func TestServiceDelete(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
+		id1, ids1 := GenId()
+		id2, ids2 := GenId()
+		idPQ, _ := GenId()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -503,13 +503,13 @@ func TestServiceDelete(t *testing.T) {
 		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
 		qComp.Monitor(ctx)
-		qDel := &QueueDel{newPQueue(0xE3FF, mCache)}
+		qDel := &QueueDel{newPQueue(idPQ(), mCache)}
 		qDel.Monitor(ctx)
-		alb1 := AlbumEmptyFactory(0x101F)
+		alb1 := AlbumEmptyFactory(id1, ids1)
 		alb1.Expires = time.Now().Add(-1 * time.Hour)
 		err := mDb.SaveAlbum(ctx, alb1)
 		assert.NoError(t, err)
-		alb2 := AlbumEmptyFactory(0xFFBB)
+		alb2 := AlbumEmptyFactory(id2, ids2)
 		alb2.Expires = time.Now().Add(1 * time.Hour)
 		err = mDb.SaveAlbum(ctx, alb2)
 		assert.NoError(t, err)
@@ -522,9 +522,10 @@ func TestServiceDelete(t *testing.T) {
 		v := AssertChannel(t, heartbeatDel)
 		album, ok := v.(uint64)
 		assert.True(t, ok)
-		assert.Equal(t, uint64(0x101F), album)
+		assert.Equal(t, ids1.Uint64(0), album)
 	})
 	t.Run("Positive2", func(t *testing.T) {
+		idPQ, _ := GenId()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -535,7 +536,7 @@ func TestServiceDelete(t *testing.T) {
 		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
 		qComp.Monitor(ctx)
-		qDel := &QueueDel{newPQueue(0xEF3F, mCache)}
+		qDel := &QueueDel{newPQueue(idPQ(), mCache)}
 		qDel.Monitor(ctx)
 		heartbeatDel := make(chan interface{})
 		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))
@@ -550,6 +551,7 @@ func TestServiceDelete(t *testing.T) {
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	t.Run("Negative", func(t *testing.T) {
+		idPQ, _ := GenId()
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 		comp := compressor.NewMock()
@@ -560,7 +562,7 @@ func TestServiceDelete(t *testing.T) {
 		qCalc.Monitor(ctx)
 		qComp := &QueueComp{}
 		qComp.Monitor(ctx)
-		qDel := &QueueDel{newPQueue(0xEF3F, mCache)}
+		qDel := &QueueDel{newPQueue(idPQ(), mCache)}
 		qDel.Monitor(ctx)
 		heartbeatDel := make(chan interface{})
 		serv := New(DefaultServiceConfig, comp, stor, mDb, mCache, qCalc, qComp, qDel, WithHeartbeatDel(heartbeatDel))

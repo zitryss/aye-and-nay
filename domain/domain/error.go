@@ -17,7 +17,7 @@ var (
 	ErrTooManyRequests = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusTooManyRequests,
-			AppCode:    0x0,
+			AppCode:    0x1,
 			UserMsg:    "too many requests",
 		},
 		innerError: innerError{
@@ -28,7 +28,7 @@ var (
 	ErrBodyTooLarge = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusRequestEntityTooLarge,
-			AppCode:    0x1,
+			AppCode:    0x2,
 			UserMsg:    "body too large",
 		},
 		innerError: innerError{
@@ -39,7 +39,7 @@ var (
 	ErrWrongContentType = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusUnsupportedMediaType,
-			AppCode:    0x2,
+			AppCode:    0x3,
 			UserMsg:    "unsupported media type",
 		},
 		innerError: innerError{
@@ -50,7 +50,7 @@ var (
 	ErrNotEnoughImages = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusBadRequest,
-			AppCode:    0x3,
+			AppCode:    0x4,
 			UserMsg:    "not enough images",
 		},
 		innerError: innerError{
@@ -61,7 +61,7 @@ var (
 	ErrTooManyImages = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusRequestEntityTooLarge,
-			AppCode:    0x4,
+			AppCode:    0x5,
 			UserMsg:    "too many images",
 		},
 		innerError: innerError{
@@ -72,7 +72,7 @@ var (
 	ErrImageTooLarge = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusRequestEntityTooLarge,
-			AppCode:    0x5,
+			AppCode:    0x6,
 			UserMsg:    "image too large",
 		},
 		innerError: innerError{
@@ -83,7 +83,7 @@ var (
 	ErrNotImage = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusUnsupportedMediaType,
-			AppCode:    0x6,
+			AppCode:    0x7,
 			UserMsg:    "unsupported media type",
 		},
 		innerError: innerError{
@@ -94,7 +94,7 @@ var (
 	ErrDurationNotSet = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusBadRequest,
-			AppCode:    0x7,
+			AppCode:    0x8,
 			UserMsg:    "duration not set",
 		},
 		innerError: innerError{
@@ -105,7 +105,7 @@ var (
 	ErrDurationInvalid = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusBadRequest,
-			AppCode:    0x8,
+			AppCode:    0x9,
 			UserMsg:    "duration invalid",
 		},
 		innerError: innerError{
@@ -116,7 +116,7 @@ var (
 	ErrAlbumNotFound = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusNotFound,
-			AppCode:    0x9,
+			AppCode:    0xA,
 			UserMsg:    "album not found",
 		},
 		innerError: innerError{
@@ -127,7 +127,7 @@ var (
 	ErrPairNotFound = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0xA,
+			AppCode:    0xB,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
@@ -138,7 +138,7 @@ var (
 	ErrTokenNotFound = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusNotFound,
-			AppCode:    0xB,
+			AppCode:    0xC,
 			UserMsg:    "token not found",
 		},
 		innerError: innerError{
@@ -149,7 +149,7 @@ var (
 	ErrImageNotFound = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0xC,
+			AppCode:    0xD,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
@@ -160,7 +160,7 @@ var (
 	ErrAlbumAlreadyExists = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0xD,
+			AppCode:    0xE,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
@@ -171,7 +171,7 @@ var (
 	ErrTokenAlreadyExists = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0xE,
+			AppCode:    0xF,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
@@ -182,7 +182,7 @@ var (
 	ErrUnsupportedMediaType = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusUnsupportedMediaType,
-			AppCode:    0xF,
+			AppCode:    0x10,
 			UserMsg:    "unsupported media type",
 		},
 		innerError: innerError{
@@ -193,7 +193,7 @@ var (
 	ErrThirdPartyUnavailable = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0x10,
+			AppCode:    0x11,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
@@ -204,7 +204,7 @@ var (
 	ErrBadHealthCompressor = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0x11,
+			AppCode:    0x12,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
@@ -215,7 +215,7 @@ var (
 	ErrBadHealthStorage = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0x12,
+			AppCode:    0x13,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
@@ -226,7 +226,7 @@ var (
 	ErrBadHealthDatabase = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0x13,
+			AppCode:    0x14,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
@@ -237,7 +237,7 @@ var (
 	ErrBadHealthCache = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0x14,
+			AppCode:    0x15,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
@@ -248,7 +248,7 @@ var (
 	ErrUnknown = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusInternalServerError,
-			AppCode:    0x11,
+			AppCode:    0x16,
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{

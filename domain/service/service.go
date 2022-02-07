@@ -59,7 +59,7 @@ func New(
 }
 
 func NewQueueCalc(q domain.Queuer) *QueueCalc {
-	return &QueueCalc{newQueue(0x6CF9, q)}
+	return &QueueCalc{newQueue(0x1, q)}
 }
 
 type QueueCalc struct {
@@ -67,7 +67,7 @@ type QueueCalc struct {
 }
 
 func NewQueueComp(q domain.Queuer) *QueueComp {
-	return &QueueComp{newQueue(0xDD66, q)}
+	return &QueueComp{newQueue(0x2, q)}
 }
 
 type QueueComp struct {
@@ -75,7 +75,7 @@ type QueueComp struct {
 }
 
 func NewQueueDel(q domain.PQueuer) *QueueDel {
-	return &QueueDel{newPQueue(0xCDF9, q)}
+	return &QueueDel{newPQueue(0x3, q)}
 }
 
 type QueueDel struct {

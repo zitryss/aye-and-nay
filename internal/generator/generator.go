@@ -1,7 +1,10 @@
 package generator
 
 import (
+	"fmt"
 	"sync"
+
+	"github.com/zitryss/aye-and-nay/pkg/base64"
 )
 
 const (
@@ -45,14 +48,22 @@ type syncLogBook struct {
 	logBook map[int]uint64
 }
 
-func (lb *syncLogBook) Get(i int) uint64 {
-	lb.m.Lock()
-	defer lb.m.Unlock()
-	return lb.logBook[i]
-}
-
 func (lb *syncLogBook) set(i int, id uint64) {
 	lb.m.Lock()
 	defer lb.m.Unlock()
 	lb.logBook[i] = id
+}
+
+func (lb *syncLogBook) Uint64(i int) uint64 {
+	lb.m.Lock()
+	defer lb.m.Unlock()
+	id, ok := lb.logBook[i]
+	if !ok {
+		panic(fmt.Sprintf("id #%d not found", i))
+	}
+	return id
+}
+
+func (lb *syncLogBook) Base64(i int) string {
+	return base64.FromUint64(lb.Uint64(i))
 }

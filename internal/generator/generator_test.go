@@ -12,23 +12,26 @@ func TestGenId(t *testing.T) {
 	id, ids = GenId()
 	wg := sync.WaitGroup{}
 	wg.Add(2)
+	ch := make(chan struct{}, 1)
 	assert.NotPanics(t, func() {
 		go func() {
 			defer wg.Done()
 			for i := 0; i < IDS_SPAN/2; i++ {
-				id()
+				_ = id()
 			}
+			ch <- struct{}{}
 			for i := 0; i < IDS_SPAN/2; i++ {
-				_ = ids.Get(i)
+				_ = ids.Uint64(i)
 			}
 		}()
 		go func() {
 			defer wg.Done()
 			for i := IDS_SPAN / 2; i < IDS_SPAN; i++ {
-				id()
+				_ = id()
 			}
+			<-ch
 			for i := IDS_SPAN / 2; i < IDS_SPAN; i++ {
-				_ = ids.Get(i)
+				_ = ids.Uint64(i)
 			}
 		}()
 	})
@@ -37,4 +40,8 @@ func TestGenId(t *testing.T) {
 	assert.Equal(t, ids.logBook[0], uint64(100))
 	assert.Equal(t, ids.logBook[len(ids.logBook)-1], uint64(199))
 	assert.Panics(t, func() { id() })
+	assert.Panics(t, func() {
+		_, ids := GenId()
+		_ = ids.Base64(0)
+	})
 }

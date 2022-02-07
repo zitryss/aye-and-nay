@@ -13,202 +13,220 @@ import (
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
+	. "github.com/zitryss/aye-and-nay/internal/generator"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
 func TestMongoAlbum(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumEmptyFactory(0x6CC4)
+		alb := AlbumEmptyFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		edgs, err := mongo.GetEdges(context.Background(), 0x6CC4)
+		edgs, err := mongo.GetEdges(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
 		assert.Equal(t, alb.Edges, edgs)
 	})
 	t.Run("Negative1", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumFullFactory(0xA566)
+		alb := AlbumFullFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		alb = AlbumFullFactory(0xA566)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.ErrorIs(t, err, domain.ErrAlbumAlreadyExists)
 	})
 	t.Run("Negative2", func(t *testing.T) {
+		id, _ := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		_, err = mongo.GetImagesIds(context.Background(), 0xA9B4)
+		_, err = mongo.GetImagesIds(context.Background(), id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	t.Run("Negative3", func(t *testing.T) {
+		id, _ := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		_, err = mongo.GetEdges(context.Background(), 0x3F1E)
+		_, err = mongo.GetEdges(context.Background(), id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 }
 
 func TestMongoCount(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumEmptyFactory(0x746C)
+		alb := AlbumEmptyFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		n, err := mongo.CountImages(context.Background(), 0x746C)
+		n, err := mongo.CountImages(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
 		assert.Equal(t, 5, n)
-		n, err = mongo.CountImagesCompressed(context.Background(), 0x746C)
+		n, err = mongo.CountImagesCompressed(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
 		assert.Equal(t, 0, n)
-		err = mongo.UpdateCompressionStatus(context.Background(), 0x746C, 0x3E3D)
+		err = mongo.UpdateCompressionStatus(context.Background(), ids.Uint64(0), ids.Uint64(1))
 		assert.NoError(t, err)
-		n, err = mongo.CountImages(context.Background(), 0x746C)
+		n, err = mongo.CountImages(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
 		assert.Equal(t, 5, n)
-		n, err = mongo.CountImagesCompressed(context.Background(), 0x746C)
+		n, err = mongo.CountImagesCompressed(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
 		assert.Equal(t, 1, n)
-		err = mongo.UpdateCompressionStatus(context.Background(), 0x746C, 0xB399)
+		err = mongo.UpdateCompressionStatus(context.Background(), ids.Uint64(0), ids.Uint64(2))
 		assert.NoError(t, err)
-		n, err = mongo.CountImagesCompressed(context.Background(), 0x746C)
+		n, err = mongo.CountImagesCompressed(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
 		assert.Equal(t, 2, n)
 	})
 	t.Run("Negative1", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumEmptyFactory(0x99DF)
+		alb := AlbumEmptyFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		err = mongo.UpdateCompressionStatus(context.Background(), 0x99DF, 0x3E3D)
+		err = mongo.UpdateCompressionStatus(context.Background(), ids.Uint64(0), ids.Uint64(1))
 		assert.NoError(t, err)
-		err = mongo.UpdateCompressionStatus(context.Background(), 0x99DF, 0x3E3D)
+		err = mongo.UpdateCompressionStatus(context.Background(), ids.Uint64(0), ids.Uint64(1))
 		assert.NoError(t, err)
-		n, err := mongo.CountImagesCompressed(context.Background(), 0x99DF)
+		n, err := mongo.CountImagesCompressed(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
 		assert.Equal(t, 1, n)
 	})
 	t.Run("Negative2", func(t *testing.T) {
+		id, _ := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		_, err = mongo.CountImages(context.Background(), 0xF256)
+		_, err = mongo.CountImages(context.Background(), id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	t.Run("Negative3", func(t *testing.T) {
+		id, _ := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		_, err = mongo.CountImagesCompressed(context.Background(), 0xC52A)
+		_, err = mongo.CountImagesCompressed(context.Background(), id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	t.Run("Negative4", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		err = mongo.UpdateCompressionStatus(context.Background(), 0xF73E, 0x3E3D)
+		err = mongo.UpdateCompressionStatus(context.Background(), id(), ids.Uint64(0))
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	t.Run("Negative5", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumEmptyFactory(0xDF75)
+		alb := AlbumEmptyFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		err = mongo.UpdateCompressionStatus(context.Background(), 0xDF75, 0xE7A4)
+		err = mongo.UpdateCompressionStatus(context.Background(), ids.Uint64(0), id())
 		assert.ErrorIs(t, err, domain.ErrImageNotFound)
 	})
 }
 
 func TestMongoImage(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumEmptyFactory(0xB0C4)
+		alb := AlbumEmptyFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		src, err := mongo.GetImageSrc(context.Background(), 0xB0C4, 0x51DE)
+		src, err := mongo.GetImageSrc(context.Background(), ids.Uint64(0), ids.Uint64(4))
 		assert.NoError(t, err)
-		assert.Equal(t, "/aye-and-nay/albums/xLAAAAAAAAA/images/3lEAAAAAAAA", src)
+		assert.Equal(t, "/aye-and-nay/albums/"+ids.Base64(0)+"/images/"+ids.Base64(4), src)
 	})
 	t.Run("Negative1", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		_, err = mongo.GetImageSrc(context.Background(), 0x12EE, 0x51DE)
+		_, err = mongo.GetImageSrc(context.Background(), id(), ids.Uint64(0))
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	t.Run("Negative2", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumEmptyFactory(0xD585)
+		alb := AlbumEmptyFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		_, err = mongo.GetImageSrc(context.Background(), 0xD585, 0xDA30)
+		_, err = mongo.GetImageSrc(context.Background(), ids.Uint64(0), id())
 		assert.ErrorIs(t, err, domain.ErrImageNotFound)
 	})
 }
 
 func TestMongoVote(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumFullFactory(0x4D76)
+		alb := AlbumFullFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		err = mongo.SaveVote(context.Background(), 0x4D76, 0xDA2A, 0xDA52)
+		err = mongo.SaveVote(context.Background(), ids.Uint64(0), ids.Uint64(3), ids.Uint64(5))
 		assert.NoError(t, err)
-		err = mongo.SaveVote(context.Background(), 0x4D76, 0xDA2A, 0xDA52)
+		err = mongo.SaveVote(context.Background(), ids.Uint64(0), ids.Uint64(3), ids.Uint64(5))
 		assert.NoError(t, err)
-		edgs, err := mongo.GetEdges(context.Background(), 0x4D76)
+		edgs, err := mongo.GetEdges(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
-		assert.Equal(t, 2, edgs[0xDA2A][0xDA52])
+		assert.Equal(t, 2, edgs[ids.Uint64(3)][ids.Uint64(5)])
 	})
 	t.Run("Negative", func(t *testing.T) {
+		id, _ := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		err = mongo.SaveVote(context.Background(), 0x1FAD, 0x84E6, 0x308E)
+		err = mongo.SaveVote(context.Background(), id(), id(), id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 }
 
 func TestMongoSort(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumFullFactory(0x5A96)
+		alb := AlbumFullFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		imgs1, err := mongo.GetImagesOrdered(context.Background(), 0x5A96)
+		imgs1, err := mongo.GetImagesOrdered(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
-		img1 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/3lEAAAAAAAA", Rating: 0.77920413}
-		img2 := model.Image{Id: 0x3E3D, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/PT4AAAAAAAA", Rating: 0.48954984}
-		img3 := model.Image{Id: 0xDA2A, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/KtoAAAAAAAA", Rating: 0.41218211}
-		img4 := model.Image{Id: 0xB399, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/mbMAAAAAAAA", Rating: 0.19186324}
-		img5 := model.Image{Id: 0xDA52, Src: "/aye-and-nay/albums/lloAAAAAAAA/images/UtoAAAAAAAA", Rating: 0.13278389}
+		img1 := model.Image{Id: ids.Uint64(4), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4) + "", Rating: 0.77920413}
+		img2 := model.Image{Id: ids.Uint64(1), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.48954984}
+		img3 := model.Image{Id: ids.Uint64(3), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(3), Rating: 0.41218211}
+		img4 := model.Image{Id: ids.Uint64(2), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2), Rating: 0.19186324}
+		img5 := model.Image{Id: ids.Uint64(5), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(5), Rating: 0.13278389}
 		imgs2 := []model.Image{img1, img2, img3, img4, img5}
 		assert.Equal(t, imgs2, imgs1)
 	})
 	t.Run("Negative", func(t *testing.T) {
+		id, _ := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		_, err = mongo.GetImagesOrdered(context.Background(), 0x66BE)
+		_, err = mongo.GetImagesOrdered(context.Background(), id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 }
 
 func TestMongoRatings(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumFullFactory(0x4E54)
+		alb := AlbumFullFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		img1 := model.Image{Id: 0x3E3D, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/PT4AAAAAAAA", Rating: 0.54412788}
-		img2 := model.Image{Id: 0xB399, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/mbMAAAAAAAA", Rating: 0.32537162}
-		img3 := model.Image{Id: 0xDA2A, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/KtoAAAAAAAA", Rating: 0.43185491}
-		img4 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/3lEAAAAAAAA", Rating: 0.57356209}
-		img5 := model.Image{Id: 0xDA52, Src: "/aye-and-nay/albums/VE4AAAAAAAA/images/UtoAAAAAAAA", Rating: 0.61438023}
+		img1 := model.Image{Id: ids.Uint64(1), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.54412788}
+		img2 := model.Image{Id: ids.Uint64(2), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2), Rating: 0.32537162}
+		img3 := model.Image{Id: ids.Uint64(3), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(3), Rating: 0.43185491}
+		img4 := model.Image{Id: ids.Uint64(4), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4) + "", Rating: 0.57356209}
+		img5 := model.Image{Id: ids.Uint64(5), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(5), Rating: 0.61438023}
 		imgs1 := []model.Image{img1, img2, img3, img4, img5}
 		vector := map[uint64]float64{}
 		vector[img1.Id] = img1.Rating
@@ -216,89 +234,95 @@ func TestMongoRatings(t *testing.T) {
 		vector[img3.Id] = img3.Rating
 		vector[img4.Id] = img4.Rating
 		vector[img5.Id] = img5.Rating
-		err = mongo.UpdateRatings(context.Background(), 0x4E54, vector)
+		err = mongo.UpdateRatings(context.Background(), ids.Uint64(0), vector)
 		assert.NoError(t, err)
-		imgs2, err := mongo.GetImagesOrdered(context.Background(), 0x4E54)
+		imgs2, err := mongo.GetImagesOrdered(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
 		sort.Slice(imgs1, func(i, j int) bool { return imgs1[i].Rating > imgs1[j].Rating })
 		assert.Equal(t, imgs1, imgs2)
 	})
 	t.Run("Negative", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		img1 := model.Image{Id: 0x3E3D, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/PT4AAAAAAAA", Rating: 0.54412788}
-		img2 := model.Image{Id: 0xB399, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/mbMAAAAAAAA", Rating: 0.32537162}
-		img3 := model.Image{Id: 0xDA2A, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/KtoAAAAAAAA", Rating: 0.43185491}
-		img4 := model.Image{Id: 0x51DE, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/3lEAAAAAAAA", Rating: 0.57356209}
-		img5 := model.Image{Id: 0xDA52, Src: "/aye-and-nay/albums/k6IAAAAAAAA/images/UtoAAAAAAAA", Rating: 0.61438023}
+		album := id()
+		img1 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.54412788}
+		img2 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2), Rating: 0.32537162}
+		img3 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(3), Rating: 0.43185491}
+		img4 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4) + "", Rating: 0.57356209}
+		img5 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(5), Rating: 0.61438023}
 		vector := map[uint64]float64{}
 		vector[img1.Id] = img1.Rating
 		vector[img2.Id] = img2.Rating
 		vector[img3.Id] = img3.Rating
 		vector[img4.Id] = img4.Rating
 		vector[img5.Id] = img5.Rating
-		err = mongo.UpdateRatings(context.Background(), 0xA293, vector)
+		err = mongo.UpdateRatings(context.Background(), album, vector)
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 }
 
 func TestMongoDelete(t *testing.T) {
 	t.Run("Positive1", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumEmptyFactory(0x748C)
-		_, err = mongo.CountImages(context.Background(), 0x748C)
+		alb := AlbumEmptyFactory(id, ids)
+		_, err = mongo.CountImages(context.Background(), ids.Uint64(0))
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		n, err := mongo.CountImages(context.Background(), 0x748C)
+		n, err := mongo.CountImages(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
 		assert.Equal(t, 5, n)
 		albums, err := mongo.AlbumsToBeDeleted(context.Background())
 		assert.NoError(t, err)
 		assert.Len(t, albums, 0)
-		err = mongo.DeleteAlbum(context.Background(), 0x748C)
+		err = mongo.DeleteAlbum(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
-		_, err = mongo.CountImages(context.Background(), 0x748C)
+		_, err = mongo.CountImages(context.Background(), ids.Uint64(0))
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	t.Run("Positive2", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumEmptyFactory(0x7B43)
+		alb := AlbumEmptyFactory(id, ids)
 		alb.Expires = time.Now().Add(-1 * time.Hour)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
 		albums, err := mongo.AlbumsToBeDeleted(context.Background())
 		assert.NoError(t, err)
 		assert.True(t, len(albums) == 1 && albums[0].Id == alb.Id && !albums[0].Expires.IsZero())
-		err = mongo.DeleteAlbum(context.Background(), 0x7B43)
+		err = mongo.DeleteAlbum(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
-		_, err = mongo.CountImages(context.Background(), 0x7B43)
+		_, err = mongo.CountImages(context.Background(), ids.Uint64(0))
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
-		t.Cleanup(func() { _ = mongo.DeleteAlbum(context.Background(), 0x7B43) })
+		t.Cleanup(func() { _ = mongo.DeleteAlbum(context.Background(), ids.Uint64(0)) })
 	})
 	t.Run("Negative", func(t *testing.T) {
+		id, ids := GenId()
 		mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 		require.NoError(t, err)
-		alb := AlbumEmptyFactory(0x608C)
+		alb := AlbumEmptyFactory(id, ids)
 		err = mongo.SaveAlbum(context.Background(), alb)
 		assert.NoError(t, err)
-		err = mongo.DeleteAlbum(context.Background(), 0xB7FF)
+		err = mongo.DeleteAlbum(context.Background(), id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 }
 
 func TestMongoLru(t *testing.T) {
+	id, ids := GenId()
 	mongo, err := NewMongo(context.Background(), DefaultMongoConfig)
 	require.NoError(t, err)
-	alb1 := AlbumEmptyFactory(0x36FC)
+	alb1 := AlbumEmptyFactory(id, ids)
 	err = mongo.SaveAlbum(context.Background(), alb1)
 	assert.NoError(t, err)
-	alb2 := AlbumEmptyFactory(0xB020)
+	alb2 := AlbumEmptyFactory(id, ids)
 	err = mongo.SaveAlbum(context.Background(), alb2)
 	assert.NoError(t, err)
-	edgs, err := mongo.GetEdges(context.Background(), 0x36FC)
+	edgs, err := mongo.GetEdges(context.Background(), ids.Uint64(0))
 	assert.NoError(t, err)
 	assert.Equal(t, alb1.Edges, edgs)
 }

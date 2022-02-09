@@ -41,8 +41,8 @@ var (
 		RetryTimes:               4,
 		RetryPause:               5 * time.Second,
 		Timeout:                  30 * time.Second,
-		LimiterRequestsPerSecond: 100,
-		LimiterBurst:             10,
-		TimeToLive:               1 * time.Second,
+		LimiterRequestsPerSecond: 1,
+		LimiterBurst:             1,
+		TimeToLive:               5 * time.Second,
 	}
 )

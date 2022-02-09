@@ -16,9 +16,6 @@ import (
 
 func TestRedisAllow(t *testing.T) {
 	t.Run("Positive", func(t *testing.T) {
-		if testing.Short() {
-			t.Skip("short flag is set")
-		}
 		id, _ := GenId()
 		redis, err := NewRedis(context.Background(), DefaultRedisConfig)
 		require.NoError(t, err)
@@ -37,7 +34,6 @@ func TestRedisAllow(t *testing.T) {
 		}
 	})
 	t.Run("Negative", func(t *testing.T) {
-		t.Skip("flaky test")
 		id, _ := GenId()
 		redis, err := NewRedis(context.Background(), DefaultRedisConfig)
 		require.NoError(t, err)

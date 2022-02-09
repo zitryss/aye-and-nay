@@ -21,709 +21,276 @@ import (
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
-func TestControllerHandleAlbum(t *testing.T) {
+func TestControllerHandle(t *testing.T) {
 	type give struct {
-		err        error
-		filenames  []string
-		durationOn bool
-		duration   string
+		handle  func() httprouter.Handle
+		method  string
+		target  string
+		reqBody io.Reader
+		headers map[string]string
+		params  []httprouter.Param
 	}
 	type want struct {
-		code int
-		typ  string
-		body string
+		code     int
+		typ      string
+		respBody string
 	}
+	contr := controller{}
+	payload := content{}
 	tests := []struct {
 		give
 		want
 	}{
 		{
 			give: give{
-				err:        nil,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
+				handle:  contr.handleAlbum,
+				method:  http.MethodPost,
+				target:  "/api/albums/",
+				reqBody: payload.body(t, []string{"alan.jpg", "john.bmp", "dennis.png"}, true, "1h"),
+				headers: map[string]string{"Content-Type": payload.boundary},
 			},
 			want: want{
-				code: 201,
-				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"id":"rRsAAAAAAAA"}}` + "\n",
+				code:     http.StatusCreated,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"album":{"id":"rRsAAAAAAAA"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        nil,
-				filenames:  []string{"big.jpg", "big.jpg", "big.jpg"},
-				durationOn: true,
-				duration:   "1h",
+				handle:  contr.handleAlbum,
+				method:  http.MethodPost,
+				target:  "/api/albums/",
+				reqBody: payload.body(t, []string{"big.jpg", "big.jpg", "big.jpg"}, true, "1h"),
+				headers: map[string]string{"Content-Type": payload.boundary},
 			},
 			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
+				code:     http.StatusRequestEntityTooLarge,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        nil,
-				filenames:  []string{"alan.jpg"},
-				durationOn: true,
-				duration:   "1h",
+				handle:  contr.handleAlbum,
+				method:  http.MethodPost,
+				target:  "/api/albums/",
+				reqBody: payload.body(t, []string{"alan.jpg"}, true, "1h"),
+				headers: map[string]string{"Content-Type": payload.boundary},
 			},
 			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
+				code:     http.StatusBadRequest,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        nil,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png", "alan.jpg"},
-				durationOn: true,
-				duration:   "1h",
+				handle:  contr.handleAlbum,
+				method:  http.MethodPost,
+				target:  "/api/albums/",
+				reqBody: payload.body(t, []string{"alan.jpg", "john.bmp", "dennis.png", "alan.jpg"}, true, "1h"),
+				headers: map[string]string{"Content-Type": payload.boundary},
 			},
 			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
+				code:     http.StatusRequestEntityTooLarge,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        nil,
-				filenames:  []string{"alan.jpg", "john.bmp", "big.jpg"},
-				durationOn: true,
-				duration:   "1h",
+				handle:  contr.handleAlbum,
+				method:  http.MethodPost,
+				target:  "/api/albums/",
+				reqBody: payload.body(t, []string{"alan.jpg", "john.bmp", "big.jpg"}, true, "1h"),
+				headers: map[string]string{"Content-Type": payload.boundary},
 			},
 			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
+				code:     http.StatusRequestEntityTooLarge,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        nil,
-				filenames:  []string{"alan.jpg", "john.bmp", "audio.ogg"},
-				durationOn: true,
-				duration:   "1h",
+				handle:  contr.handleAlbum,
+				method:  http.MethodPost,
+				target:  "/api/albums/",
+				reqBody: payload.body(t, []string{"alan.jpg", "john.bmp", "audio.ogg"}, true, "1h"),
+				headers: map[string]string{"Content-Type": payload.boundary},
 			},
 			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
+				code:     http.StatusUnsupportedMediaType,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        nil,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: false,
+				handle:  contr.handleAlbum,
+				method:  http.MethodPost,
+				target:  "/api/albums/",
+				reqBody: payload.body(t, []string{"alan.jpg", "john.bmp", "dennis.png"}, false, ""),
+				headers: map[string]string{"Content-Type": payload.boundary},
 			},
 			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
+				code:     http.StatusBadRequest,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        nil,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "",
+				handle:  contr.handleAlbum,
+				method:  http.MethodPost,
+				target:  "/api/albums/",
+				reqBody: payload.body(t, []string{"alan.jpg", "john.bmp", "dennis.png"}, true, ""),
+				headers: map[string]string{"Content-Type": payload.boundary},
 			},
 			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
+				code:     http.StatusBadRequest,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        domain.ErrTooManyRequests,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
+				handle: contr.handleStatus,
+				method: http.MethodGet,
+				target: "/api/albums/rRsAAAAAAAA/status",
+				params: httprouter.Params{httprouter.Param{Key: "album", Value: "rRsAAAAAAAA"}},
 			},
 			want: want{
-				code: 429,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
+				code:     http.StatusOK,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"album":{"compression":{"progress":1}}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        domain.ErrBodyTooLarge,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
+				handle: contr.handlePair,
+				method: http.MethodGet,
+				target: "/api/albums/nkUAAAAAAAA/",
+				params: httprouter.Params{httprouter.Param{Key: "album", Value: "nkUAAAAAAAA"}},
 			},
 			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
+				code:     http.StatusOK,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"album":{"img1":{"token":"f8cAAAAAAAA","src":"/aye-and-nay/albums/nkUAAAAAAAA/images/21EAAAAAAAA"},"img2":{"token":"iakAAAAAAAA","src":"/aye-and-nay/albums/nkUAAAAAAAA/images/K2IAAAAAAAA"}}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        domain.ErrWrongContentType,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
+				handle: contr.handleImage,
+				method: http.MethodGet,
+				target: "/api/images/8v7AAAAAAAA/",
+				params: httprouter.Params{httprouter.Param{Key: "token", Value: "8v7AAAAAAAA"}},
 			},
 			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
+				code:     http.StatusOK,
+				typ:      "image/png",
+				respBody: png(),
 			},
 		},
 		{
 			give: give{
-				err:        domain.ErrNotEnoughImages,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
+				handle:  contr.handleVote,
+				method:  http.MethodPatch,
+				target:  "/api/albums/fIIAAAAAAAA/",
+				reqBody: strings.NewReader(`{"album":{"imgFrom":{"token":"fYIAAAAAAAA"},"imgTo":{"token":"foIAAAAAAAA"}}}`),
+				headers: map[string]string{"Content-Type": "application/json; charset=utf-8"},
+				params:  httprouter.Params{httprouter.Param{Key: "album", Value: "fIIAAAAAAAA"}},
 			},
 			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
+				code:     http.StatusOK,
+				typ:      "",
+				respBody: ``,
 			},
 		},
 		{
 			give: give{
-				err:        domain.ErrTooManyImages,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "11h",
+				handle: contr.handleTop,
+				method: http.MethodGet,
+				target: "/api/albums/byYAAAAAAAA/top/",
+				params: httprouter.Params{httprouter.Param{Key: "album", Value: "byYAAAAAAAA"}},
 			},
 			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
+				code:     http.StatusOK,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"album":{"images":[{"src":"/aye-and-nay/albums/byYAAAAAAAA/images/yFwAAAAAAAA","rating":0.5},{"src":"/aye-and-nay/albums/byYAAAAAAAA/images/jVgAAAAAAAA","rating":0.5}]}}` + "\n",
 			},
 		},
 		{
 			give: give{
-				err:        domain.ErrImageTooLarge,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
+				handle: contr.handleHealth,
+				method: http.MethodGet,
+				target: "/api/health/",
 			},
 			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err:        domain.ErrNotImage,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
-			},
-			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err:        domain.ErrDurationNotSet,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err:        domain.ErrDurationInvalid,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err:        domain.ErrAlbumNotFound,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err:        domain.ErrTokenNotFound,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err:        domain.ErrThirdPartyUnavailable,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err:        context.Canceled,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err:        context.DeadlineExceeded,
-				filenames:  []string{"alan.jpg", "john.bmp", "dennis.png"},
-				durationOn: true,
-				duration:   "1h",
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
+				code:     http.StatusOK,
+				typ:      "",
+				respBody: ``,
 			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run("", func(t *testing.T) {
-			serv := service.NewMock(tt.give.err)
-			contr := newController(DefaultControllerConfig, serv)
-			fn := contr.handleAlbum()
+			err := error(nil)
+			serv := service.NewMock(err)
+			contr = newController(DefaultControllerConfig, serv)
+			fn := tt.give.handle()
 			w := httptest.NewRecorder()
-			body := bytes.Buffer{}
-			multi := multipart.NewWriter(&body)
-			for _, filename := range tt.give.filenames {
-				part, err := multi.CreateFormFile("images", filename)
-				assert.NoError(t, err)
-				b, err := os.ReadFile("../../testdata/" + filename)
-				assert.NoError(t, err)
-				_, err = part.Write(b)
-				assert.NoError(t, err)
+			r := httptest.NewRequest(tt.give.method, tt.give.target, tt.give.reqBody)
+			for k, v := range tt.give.headers {
+				r.Header.Set(k, v)
 			}
-			if tt.give.durationOn {
-				err := multi.WriteField("duration", tt.give.duration)
-				assert.NoError(t, err)
-			}
-			err := multi.Close()
-			assert.NoError(t, err)
-			r := httptest.NewRequest(http.MethodPost, "/api/albums/", &body)
-			r.Header.Set("Content-Type", multi.FormDataContentType())
-			fn(w, r, nil)
+			fn(w, r, tt.give.params)
 			AssertStatusCode(t, w, tt.want.code)
 			AssertContentType(t, w, tt.want.typ)
-			AssertBody(t, w, tt.want.body)
+			AssertBody(t, w, tt.want.respBody)
 		})
 	}
 }
 
-func TestControllerHandleStatus(t *testing.T) {
-	type give struct {
-		err error
-	}
-	type want struct {
-		code int
-		typ  string
-		body string
-	}
-	tests := []struct {
-		give
-		want
-	}{
-		{
-			give: give{
-				err: nil,
-			},
-			want: want{
-				code: 200,
-				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"compression":{"progress":1}}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTooManyRequests,
-			},
-			want: want{
-				code: 429,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrBodyTooLarge,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrWrongContentType,
-			},
-			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrNotEnoughImages,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTooManyImages,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrImageTooLarge,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrNotImage,
-			},
-			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrDurationNotSet,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrDurationInvalid,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrAlbumNotFound,
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTokenNotFound,
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrThirdPartyUnavailable,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.Canceled,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.DeadlineExceeded,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run("", func(t *testing.T) {
-			serv := service.NewMock(tt.give.err)
-			contr := newController(DefaultControllerConfig, serv)
-			fn := contr.handleStatus()
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/api/albums/rRsAAAAAAAA/status", http.NoBody)
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "rRsAAAAAAAA"}}
-			fn(w, r, ps)
-			AssertStatusCode(t, w, tt.want.code)
-			AssertContentType(t, w, tt.want.typ)
-			AssertBody(t, w, tt.want.body)
-		})
-	}
+type content struct {
+	boundary string
 }
 
-func TestControllerHandlePair(t *testing.T) {
-	type give struct {
-		err error
+func (c *content) body(t *testing.T, filenames []string, durationOn bool, duration string) io.Reader {
+	t.Helper()
+	body := bytes.Buffer{}
+	multi := multipart.NewWriter(&body)
+	for _, filename := range filenames {
+		part, err := multi.CreateFormFile("images", filename)
+		assert.NoError(t, err)
+		b, err := os.ReadFile("../../testdata/" + filename)
+		assert.NoError(t, err)
+		_, err = part.Write(b)
+		assert.NoError(t, err)
 	}
-	type want struct {
-		code int
-		typ  string
-		body string
+	if durationOn {
+		err := multi.WriteField("duration", duration)
+		assert.NoError(t, err)
 	}
-	tests := []struct {
-		give
-		want
-	}{
-		{
-			give: give{
-				err: nil,
-			},
-			want: want{
-				code: 200,
-				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"img1":{"token":"f8cAAAAAAAA","src":"/aye-and-nay/albums/nkUAAAAAAAA/images/21EAAAAAAAA"},"img2":{"token":"iakAAAAAAAA","src":"/aye-and-nay/albums/nkUAAAAAAAA/images/K2IAAAAAAAA"}}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTooManyRequests,
-			},
-			want: want{
-				code: 429,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrBodyTooLarge,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrWrongContentType,
-			},
-			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrNotEnoughImages,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTooManyImages,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrImageTooLarge,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrNotImage,
-			},
-			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrDurationNotSet,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrDurationInvalid,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrAlbumNotFound,
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTokenNotFound,
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrThirdPartyUnavailable,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.Canceled,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.DeadlineExceeded,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run("", func(t *testing.T) {
-			serv := service.NewMock(tt.give.err)
-			contr := newController(DefaultControllerConfig, serv)
-			fn := contr.handlePair()
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/api/albums/nkUAAAAAAAA/", http.NoBody)
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "nkUAAAAAAAA"}}
-			fn(w, r, ps)
-			AssertStatusCode(t, w, tt.want.code)
-			AssertContentType(t, w, tt.want.typ)
-			AssertBody(t, w, tt.want.body)
-		})
-	}
+	err := multi.Close()
+	assert.NoError(t, err)
+	c.boundary = multi.FormDataContentType()
+	return &body
 }
 
-func TestControllerHandleImage(t *testing.T) {
+func png() string {
 	body, _ := io.ReadAll(Png())
+	return string(body)
+}
+
+func TestControllerError(t *testing.T) {
 	type give struct {
 		err error
 	}
 	type want struct {
-		code int
-		typ  string
-		body string
+		code     int
+		typ      string
+		respBody string
 	}
 	tests := []struct {
 		give
@@ -731,22 +298,12 @@ func TestControllerHandleImage(t *testing.T) {
 	}{
 		{
 			give: give{
-				err: nil,
-			},
-			want: want{
-				code: 200,
-				typ:  "image/png",
-				body: string(body),
-			},
-		},
-		{
-			give: give{
 				err: domain.ErrTooManyRequests,
 			},
 			want: want{
-				code: 429,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
+				code:     http.StatusTooManyRequests,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
 			},
 		},
 		{
@@ -754,9 +311,9 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrBodyTooLarge,
 			},
 			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
+				code:     http.StatusRequestEntityTooLarge,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
 			},
 		},
 		{
@@ -764,9 +321,9 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrWrongContentType,
 			},
 			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
+				code:     http.StatusUnsupportedMediaType,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -774,9 +331,9 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrNotEnoughImages,
 			},
 			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
+				code:     http.StatusBadRequest,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
 			},
 		},
 		{
@@ -784,9 +341,9 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrTooManyImages,
 			},
 			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
+				code:     http.StatusRequestEntityTooLarge,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
 			},
 		},
 		{
@@ -794,9 +351,9 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrImageTooLarge,
 			},
 			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
+				code:     http.StatusRequestEntityTooLarge,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
 			},
 		},
 		{
@@ -804,9 +361,9 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrNotImage,
 			},
 			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
+				code:     http.StatusUnsupportedMediaType,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -814,9 +371,9 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrDurationNotSet,
 			},
 			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
+				code:     http.StatusBadRequest,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
 			},
 		},
 		{
@@ -824,9 +381,9 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrDurationInvalid,
 			},
 			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
+				code:     http.StatusBadRequest,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
 			},
 		},
 		{
@@ -834,9 +391,19 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrAlbumNotFound,
 			},
 			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
+				code:     http.StatusNotFound,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrPairNotFound,
+			},
+			want: want{
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":11,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -844,9 +411,49 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrTokenNotFound,
 			},
 			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
+				code:     http.StatusNotFound,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrImageNotFound,
+			},
+			want: want{
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":13,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrAlbumAlreadyExists,
+			},
+			want: want{
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":14,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrTokenAlreadyExists,
+			},
+			want: want{
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":15,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrUnsupportedMediaType,
+			},
+			want: want{
+				code:     http.StatusUnsupportedMediaType,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":16,"msg":"unsupported media type"}}` + "\n",
 			},
 		},
 		{
@@ -854,431 +461,9 @@ func TestControllerHandleImage(t *testing.T) {
 				err: domain.ErrThirdPartyUnavailable,
 			},
 			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.Canceled,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.DeadlineExceeded,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run("", func(t *testing.T) {
-			serv := service.NewMock(tt.give.err)
-			contr := newController(DefaultControllerConfig, serv)
-			fn := contr.handleImage()
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/api/images/8v7AAAAAAAA/", http.NoBody)
-			ps := httprouter.Params{httprouter.Param{Key: "token", Value: "8v7AAAAAAAA"}}
-			fn(w, r, ps)
-			AssertStatusCode(t, w, tt.want.code)
-			AssertContentType(t, w, tt.want.typ)
-			AssertBody(t, w, tt.want.body)
-		})
-	}
-}
-
-func TestControllerHandleVote(t *testing.T) {
-	type give struct {
-		err error
-	}
-	type want struct {
-		code int
-		typ  string
-		body string
-	}
-	tests := []struct {
-		give
-		want
-	}{
-		{
-			give: give{
-				err: nil,
-			},
-			want: want{
-				code: 200,
-				typ:  "",
-				body: ``,
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTooManyRequests,
-			},
-			want: want{
-				code: 429,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrBodyTooLarge,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrWrongContentType,
-			},
-			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrNotEnoughImages,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTooManyImages,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrImageTooLarge,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrNotImage,
-			},
-			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrDurationNotSet,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrDurationInvalid,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrAlbumNotFound,
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTokenNotFound,
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrThirdPartyUnavailable,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.Canceled,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.DeadlineExceeded,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run("", func(t *testing.T) {
-			serv := service.NewMock(tt.give.err)
-			contr := newController(DefaultControllerConfig, serv)
-			fn := contr.handleVote()
-			w := httptest.NewRecorder()
-			json := strings.NewReader(`{"album":{"imgFrom":{"token":"fYIAAAAAAAA"},"imgTo":{"token":"foIAAAAAAAA"}}}`)
-			r := httptest.NewRequest(http.MethodPatch, "/api/albums/fIIAAAAAAAA/", json)
-			r.Header.Set("Content-Type", "application/json; charset=utf-8")
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "fIIAAAAAAAA"}}
-			fn(w, r, ps)
-			AssertStatusCode(t, w, tt.want.code)
-			AssertContentType(t, w, tt.want.typ)
-			AssertBody(t, w, tt.want.body)
-		})
-	}
-}
-
-func TestControllerHandleTop(t *testing.T) {
-	type give struct {
-		err error
-	}
-	type want struct {
-		code int
-		typ  string
-		body string
-	}
-	tests := []struct {
-		give
-		want
-	}{
-		{
-			give: give{
-				err: nil,
-			},
-			want: want{
-				code: 200,
-				typ:  "application/json; charset=utf-8",
-				body: `{"album":{"images":[{"src":"/aye-and-nay/albums/byYAAAAAAAA/images/yFwAAAAAAAA","rating":0.5},{"src":"/aye-and-nay/albums/byYAAAAAAAA/images/jVgAAAAAAAA","rating":0.5}]}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTooManyRequests,
-			},
-			want: want{
-				code: 429,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":1,"msg":"too many requests"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrBodyTooLarge,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":2,"msg":"body too large"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrWrongContentType,
-			},
-			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":3,"msg":"unsupported media type"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrNotEnoughImages,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":4,"msg":"not enough images"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTooManyImages,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":5,"msg":"too many images"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrImageTooLarge,
-			},
-			want: want{
-				code: 413,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":6,"msg":"image too large"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrNotImage,
-			},
-			want: want{
-				code: 415,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":7,"msg":"unsupported media type"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrDurationNotSet,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":8,"msg":"duration not set"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrDurationInvalid,
-			},
-			want: want{
-				code: 400,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":9,"msg":"duration invalid"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrAlbumNotFound,
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":10,"msg":"album not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrTokenNotFound,
-			},
-			want: want{
-				code: 404,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":12,"msg":"token not found"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: domain.ErrThirdPartyUnavailable,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.Canceled,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
-			},
-		},
-		{
-			give: give{
-				err: context.DeadlineExceeded,
-			},
-			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run("", func(t *testing.T) {
-			serv := service.NewMock(tt.give.err)
-			contr := newController(DefaultControllerConfig, serv)
-			fn := contr.handleTop()
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest(http.MethodGet, "/api/albums/byYAAAAAAAA/top/", http.NoBody)
-			ps := httprouter.Params{httprouter.Param{Key: "album", Value: "byYAAAAAAAA"}}
-			fn(w, r, ps)
-			AssertStatusCode(t, w, tt.want.code)
-			AssertContentType(t, w, tt.want.typ)
-			AssertBody(t, w, tt.want.body)
-		})
-	}
-}
-
-func TestControllerHandleHealth(t *testing.T) {
-	type give struct {
-		err error
-	}
-	type want struct {
-		code int
-		typ  string
-		body string
-	}
-	tests := []struct {
-		give
-		want
-	}{
-		{
-			give: give{
-				err: nil,
-			},
-			want: want{
-				code: 200,
-				typ:  "",
-				body: ``,
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":17,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1286,9 +471,9 @@ func TestControllerHandleHealth(t *testing.T) {
 				err: domain.ErrBadHealthCompressor,
 			},
 			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":18,"msg":"internal server error"}}` + "\n",
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":18,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1296,9 +481,9 @@ func TestControllerHandleHealth(t *testing.T) {
 				err: domain.ErrBadHealthStorage,
 			},
 			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":19,"msg":"internal server error"}}` + "\n",
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":19,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1306,9 +491,9 @@ func TestControllerHandleHealth(t *testing.T) {
 				err: domain.ErrBadHealthDatabase,
 			},
 			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":20,"msg":"internal server error"}}` + "\n",
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":20,"msg":"internal server error"}}` + "\n",
 			},
 		},
 		{
@@ -1316,9 +501,39 @@ func TestControllerHandleHealth(t *testing.T) {
 				err: domain.ErrBadHealthCache,
 			},
 			want: want{
-				code: 500,
-				typ:  "application/json; charset=utf-8",
-				body: `{"error":{"code":21,"msg":"internal server error"}}` + "\n",
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":21,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: domain.ErrUnknown,
+			},
+			want: want{
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":22,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: context.Canceled,
+			},
+			want: want{
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":-1,"msg":"internal server error"}}` + "\n",
+			},
+		},
+		{
+			give: give{
+				err: context.DeadlineExceeded,
+			},
+			want: want{
+				code:     http.StatusInternalServerError,
+				typ:      "application/json; charset=utf-8",
+				respBody: `{"error":{"code":-2,"msg":"internal server error"}}` + "\n",
 			},
 		},
 	}
@@ -1329,11 +544,10 @@ func TestControllerHandleHealth(t *testing.T) {
 			fn := contr.handleHealth()
 			w := httptest.NewRecorder()
 			r := httptest.NewRequest(http.MethodGet, "/api/health/", http.NoBody)
-			ps := httprouter.Params{}
-			fn(w, r, ps)
+			fn(w, r, nil)
 			AssertStatusCode(t, w, tt.want.code)
 			AssertContentType(t, w, tt.want.typ)
-			AssertBody(t, w, tt.want.body)
+			AssertBody(t, w, tt.want.respBody)
 		})
 	}
 }

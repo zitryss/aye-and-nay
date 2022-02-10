@@ -197,7 +197,7 @@ func TestBadgerSort(t *testing.T) {
 		assert.NoError(t, err)
 		imgs1, err := badger.GetImagesOrdered(context.Background(), ids.Uint64(0))
 		assert.NoError(t, err)
-		img1 := model.Image{Id: ids.Uint64(4), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4) + "", Rating: 0.77920413}
+		img1 := model.Image{Id: ids.Uint64(4), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4), Rating: 0.77920413}
 		img2 := model.Image{Id: ids.Uint64(1), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.48954984}
 		img3 := model.Image{Id: ids.Uint64(3), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(3), Rating: 0.41218211}
 		img4 := model.Image{Id: ids.Uint64(2), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2), Rating: 0.19186324}
@@ -225,7 +225,7 @@ func TestBadgerRatings(t *testing.T) {
 		img1 := model.Image{Id: ids.Uint64(1), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.54412788}
 		img2 := model.Image{Id: ids.Uint64(2), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2), Rating: 0.32537162}
 		img3 := model.Image{Id: ids.Uint64(3), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(3), Rating: 0.43185491}
-		img4 := model.Image{Id: ids.Uint64(4), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4) + "", Rating: 0.57356209}
+		img4 := model.Image{Id: ids.Uint64(4), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4), Rating: 0.57356209}
 		img5 := model.Image{Id: ids.Uint64(5), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(5), Rating: 0.61438023}
 		imgs1 := []model.Image{img1, img2, img3, img4, img5}
 		vector := map[uint64]float64{}
@@ -249,7 +249,7 @@ func TestBadgerRatings(t *testing.T) {
 		img1 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.54412788}
 		img2 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2), Rating: 0.32537162}
 		img3 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(3), Rating: 0.43185491}
-		img4 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4) + "", Rating: 0.57356209}
+		img4 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4), Rating: 0.57356209}
 		img5 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(5), Rating: 0.61438023}
 		vector := map[uint64]float64{}
 		vector[img1.Id] = img1.Rating

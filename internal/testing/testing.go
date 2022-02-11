@@ -31,13 +31,13 @@ type ids interface {
 	Base64(i int) string
 }
 
-func AlbumEmptyFactory(id func() uint64, ids ids) model.Album {
+func AlbumFactory(id func() uint64, ids ids) model.Album {
 	album := id()
-	img1 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1)}
-	img2 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2)}
-	img3 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(3)}
-	img4 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4)}
-	img5 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(5)}
+	img1 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.48954984}
+	img2 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2), Rating: 0.19186324}
+	img3 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(3), Rating: 0.41218211}
+	img4 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(4), Rating: 0.77920413}
+	img5 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(5), Rating: 0.13278389}
 	imgs := []model.Image{img1, img2, img3, img4, img5}
 	edgs := map[uint64]map[uint64]int{}
 	edgs[ids.Uint64(1)] = map[uint64]int{}
@@ -47,26 +47,6 @@ func AlbumEmptyFactory(id func() uint64, ids ids) model.Album {
 	edgs[ids.Uint64(5)] = map[uint64]int{}
 	expires := time.Time{}
 	alb := model.Album{album, imgs, edgs, expires}
-	return alb
-}
-
-func AlbumFullFactory(id func() uint64, ids ids) model.Album {
-	alb := AlbumEmptyFactory(id, ids)
-	alb.Images[0].Rating = 0.48954984
-	alb.Images[1].Rating = 0.19186324
-	alb.Images[2].Rating = 0.41218211
-	alb.Images[3].Rating = 0.77920413
-	alb.Images[4].Rating = 0.13278389
-	alb.Edges[ids.Uint64(4)][ids.Uint64(3)]++
-	alb.Edges[ids.Uint64(1)][ids.Uint64(3)]++
-	alb.Edges[ids.Uint64(1)][ids.Uint64(4)]++
-	alb.Edges[ids.Uint64(2)][ids.Uint64(3)]++
-	alb.Edges[ids.Uint64(2)][ids.Uint64(4)]++
-	alb.Edges[ids.Uint64(2)][ids.Uint64(1)]++
-	alb.Edges[ids.Uint64(5)][ids.Uint64(3)]++
-	alb.Edges[ids.Uint64(5)][ids.Uint64(4)]++
-	alb.Edges[ids.Uint64(5)][ids.Uint64(1)]++
-	alb.Edges[ids.Uint64(5)][ids.Uint64(2)]++
 	return alb
 }
 

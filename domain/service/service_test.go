@@ -505,11 +505,11 @@ func TestServiceDelete(t *testing.T) {
 		qComp.Monitor(ctx)
 		qDel := &QueueDel{newPQueue(idPQ(), mCache)}
 		qDel.Monitor(ctx)
-		alb1 := AlbumEmptyFactory(id1, ids1)
+		alb1 := AlbumFactory(id1, ids1)
 		alb1.Expires = time.Now().Add(-1 * time.Hour)
 		err := mDb.SaveAlbum(ctx, alb1)
 		assert.NoError(t, err)
-		alb2 := AlbumEmptyFactory(id2, ids2)
+		alb2 := AlbumFactory(id2, ids2)
 		alb2.Expires = time.Now().Add(1 * time.Hour)
 		err = mDb.SaveAlbum(ctx, alb2)
 		assert.NoError(t, err)

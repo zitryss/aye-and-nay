@@ -16,6 +16,11 @@ var (
 	indexId uint64
 )
 
+type Ids interface {
+	Uint64(i int) uint64
+	Base64(i int) string
+}
+
 func GenId() (func() uint64, *syncLogBook) {
 	lb := syncLogBook{m: sync.Mutex{}, logBook: map[int]uint64{}}
 	fn := func() func() uint64 {

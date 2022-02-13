@@ -1,3 +1,5 @@
+//go:build unit
+
 package generator
 
 import (
@@ -12,14 +14,16 @@ func TestGenId(t *testing.T) {
 	id, ids = GenId()
 	wg := sync.WaitGroup{}
 	wg.Add(2)
-	ch := make(chan struct{}, 1)
+	ch1 := make(chan struct{}, 1)
+	ch2 := make(chan struct{}, 1)
 	assert.NotPanics(t, func() {
 		go func() {
 			defer wg.Done()
 			for i := 0; i < IDS_SPAN/2; i++ {
 				_ = id()
 			}
-			ch <- struct{}{}
+			ch1 <- struct{}{}
+			<-ch2
 			for i := 0; i < IDS_SPAN/2; i++ {
 				_ = ids.Uint64(i)
 			}
@@ -29,7 +33,8 @@ func TestGenId(t *testing.T) {
 			for i := IDS_SPAN / 2; i < IDS_SPAN; i++ {
 				_ = id()
 			}
-			<-ch
+			ch2 <- struct{}{}
+			<-ch1
 			for i := IDS_SPAN / 2; i < IDS_SPAN; i++ {
 				_ = ids.Uint64(i)
 			}

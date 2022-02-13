@@ -11,73 +11,73 @@ import (
 	. "github.com/zitryss/aye-and-nay/internal/generator"
 )
 
-func TestMongoTestSuite(t *testing.T) {
-	suite.Run(t, &MongoTestSuite{})
+func TestBadgerTestSuite(t *testing.T) {
+	suite.Run(t, &BadgerTestSuite{})
 }
 
-type MongoTestSuite struct {
+type BadgerTestSuite struct {
 	suite.Suite
 	base MemTestSuite
 }
 
-func (suite *MongoTestSuite) SetupSuite() {
+func (suite *BadgerTestSuite) SetupSuite() {
 	if !*integration {
 		suite.T().Skip()
 	}
 	suite.base = MemTestSuite{}
 	suite.base.SetT(suite.T())
 	ctx, cancel := context.WithCancel(context.Background())
-	mongo, err := NewMongo(ctx, DefaultMongoConfig)
+	badger, err := NewBadger(DefaultBadgerConfig)
 	require.NoError(suite.T(), err)
 	suite.base.ctx = ctx
 	suite.base.cancel = cancel
-	suite.base.db = mongo
+	suite.base.db = badger
 }
 
-func (suite *MongoTestSuite) SetupTest() {
-	err := suite.base.db.(*Mongo).Reset()
+func (suite *BadgerTestSuite) SetupTest() {
+	err := suite.base.db.(*Badger).Reset()
 	require.NoError(suite.T(), err)
 }
 
-func (suite *MongoTestSuite) TearDownTest() {
+func (suite *BadgerTestSuite) TearDownTest() {
 
 }
 
-func (suite *MongoTestSuite) TearDownSuite() {
-	err := suite.base.db.(*Mongo).Reset()
+func (suite *BadgerTestSuite) TearDownSuite() {
+	err := suite.base.db.(*Badger).Reset()
 	require.NoError(suite.T(), err)
 	suite.base.cancel()
 }
 
-func (suite *MongoTestSuite) TestMongoAlbum() {
+func (suite *BadgerTestSuite) TestBadgerAlbum() {
 	suite.base.TestAlbum()
 }
 
-func (suite *MongoTestSuite) TestMongoCount() {
+func (suite *BadgerTestSuite) TestBadgerCount() {
 	suite.base.TestCount()
 }
 
-func (suite *MongoTestSuite) TestMongoImage() {
+func (suite *BadgerTestSuite) TestBadgerImage() {
 	suite.base.TestImage()
 }
 
-func (suite *MongoTestSuite) TestMongoVote() {
+func (suite *BadgerTestSuite) TestBadgerVote() {
 	suite.base.TestVote()
 }
 
-func (suite *MongoTestSuite) TestMongoSort() {
+func (suite *BadgerTestSuite) TestBadgerSort() {
 	suite.base.TestSort()
 }
 
-func (suite *MongoTestSuite) TestMongoRatings() {
+func (suite *BadgerTestSuite) TestBadgerRatings() {
 	suite.base.TestRatings()
 }
 
-func (suite *MongoTestSuite) TestMongoDelete() {
+func (suite *BadgerTestSuite) TestBadgerDelete() {
 	suite.base.TestDelete()
 }
 
-func (suite *MongoTestSuite) TestMongoLru() {
+func (suite *BadgerTestSuite) TestBadgerLru() {
 	id, ids := GenId()
 	alb1 := suite.base.saveAlbum(id, ids)
 	_ = suite.base.saveAlbum(id, ids)

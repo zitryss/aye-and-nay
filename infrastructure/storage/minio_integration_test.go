@@ -16,7 +16,7 @@ import (
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
-func TestExampleTestSuite(t *testing.T) {
+func TestMinioTestSuite(t *testing.T) {
 	suite.Run(t, &MinioTestSuite{})
 }
 

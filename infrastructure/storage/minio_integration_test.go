@@ -1,5 +1,3 @@
-//go:build integration
-
 package storage
 
 import (
@@ -28,6 +26,9 @@ type MinioTestSuite struct {
 }
 
 func (suite *MinioTestSuite) SetupSuite() {
+	if !*integration {
+		suite.T().Skip()
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	minio, err := NewMinio(ctx, DefaultMinioConfig)
 	require.NoError(suite.T(), err)

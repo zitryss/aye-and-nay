@@ -1,5 +1,3 @@
-//go:build integration
-
 package compressor
 
 import (
@@ -15,6 +13,9 @@ import (
 )
 
 func TestImaginaryPositive(t *testing.T) {
+	if !*integration {
+		t.Skip()
+	}
 	tests := []struct {
 		filename string
 	}{
@@ -46,6 +47,9 @@ func TestImaginaryPositive(t *testing.T) {
 }
 
 func TestImaginaryNegative(t *testing.T) {
+	if !*integration {
+		t.Skip()
+	}
 	if testing.Short() {
 		t.Skip("short flag is set")
 	}
@@ -61,6 +65,9 @@ func TestImaginaryNegative(t *testing.T) {
 }
 
 func TestImaginaryHealth(t *testing.T) {
+	if !*integration {
+		t.Skip()
+	}
 	im, err := NewImaginary(context.Background(), DefaultImaginaryConfig)
 	require.NoError(t, err)
 	_, err = im.Health(context.Background())

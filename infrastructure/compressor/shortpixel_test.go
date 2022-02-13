@@ -1,5 +1,3 @@
-//go:build unit
-
 package compressor
 
 import (
@@ -41,6 +39,9 @@ type response []struct {
 }
 
 func TestShortpixel(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	t.Run("Positive1", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, Png())

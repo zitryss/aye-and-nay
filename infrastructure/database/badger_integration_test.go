@@ -46,6 +46,8 @@ func (suite *BadgerTestSuite) TearDownTest() {
 func (suite *BadgerTestSuite) TearDownSuite() {
 	err := suite.base.db.(*Badger).Reset()
 	require.NoError(suite.T(), err)
+	err = suite.base.db.(*Badger).Close(suite.base.ctx)
+	require.NoError(suite.T(), err)
 	suite.base.cancel()
 }
 

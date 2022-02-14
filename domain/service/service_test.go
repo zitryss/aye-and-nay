@@ -69,7 +69,7 @@ func TestServiceAlbum(t *testing.T) {
 		defer cancel()
 		heartbeatRestart := make(chan interface{})
 		comp := compressor.NewShortpixel(compressor.DefaultShortpixelConfig, compressor.WithHeartbeatRestart(heartbeatRestart))
-		comp.Monitor()
+		comp.Monitor(ctx)
 		stor := storage.NewMock()
 		mDb := database.NewMem(database.DefaultMemConfig)
 		mCache := cache.NewMem(cache.DefaultMemConfig)

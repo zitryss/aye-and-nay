@@ -59,9 +59,14 @@ func (sp *Shortpixel) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (sp *Shortpixel) Monitor() {
+func (sp *Shortpixel) Monitor(ctx context.Context) {
 	go func() {
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 			<-sp.ch
 			if sp.heartbeat.restart != nil {
 				sp.heartbeat.restart <- struct{}{}

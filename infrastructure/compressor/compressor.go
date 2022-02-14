@@ -16,7 +16,7 @@ func New(ctx context.Context, conf CompressorConfig) (domain.Compresser, error) 
 		if err != nil {
 			return nil, err
 		}
-		sp.Monitor()
+		sp.Monitor(ctx)
 		return sp, nil
 	case "imaginary":
 		log.Info("connecting to imaginary")

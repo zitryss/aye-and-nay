@@ -43,6 +43,6 @@ var (
 		Timeout:                  30 * time.Second,
 		LimiterRequestsPerSecond: 1,
 		LimiterBurst:             1,
-		TimeToLive:               5 * time.Second,
+		TimeToLive:               3 * time.Second,
 	}
 )

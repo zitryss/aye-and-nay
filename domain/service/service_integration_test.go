@@ -108,7 +108,7 @@ func TestServiceIntegrationAlbum(t *testing.T) {
 		defer cancel()
 		heartbeatRestart := make(chan interface{})
 		comp := compressor.NewShortpixel(compressor.DefaultShortpixelConfig, compressor.WithHeartbeatRestart(heartbeatRestart))
-		comp.Monitor()
+		comp.Monitor(ctx)
 		minio, err := storage.NewMinio(ctx, storage.DefaultMinioConfig)
 		require.NoError(t, err)
 		mongo, err := database.NewMongo(ctx, database.DefaultMongoConfig)

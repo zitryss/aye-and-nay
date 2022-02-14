@@ -46,6 +46,8 @@ func (suite *MongoTestSuite) TearDownTest() {
 func (suite *MongoTestSuite) TearDownSuite() {
 	err := suite.base.db.(*Mongo).Reset()
 	require.NoError(suite.T(), err)
+	err = suite.base.db.(*Mongo).Close(suite.base.ctx)
+	require.NoError(suite.T(), err)
 	suite.base.cancel()
 }
 

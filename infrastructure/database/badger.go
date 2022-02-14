@@ -46,9 +46,14 @@ type Badger struct {
 	cache *lru.Cache
 }
 
-func (b *Badger) Monitor() {
+func (b *Badger) Monitor(ctx context.Context) {
 	go func() {
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 			_ = b.db.RunValueLogGC(b.conf.GcRatio)
 			time.Sleep(b.conf.CleanupInterval)
 		}

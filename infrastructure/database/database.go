@@ -18,6 +18,7 @@ func New(ctx context.Context, conf DatabaseConfig) (domain.Databaser, error) {
 		if err != nil {
 			return nil, err
 		}
+		b.Monitor(ctx)
 		return b, nil
 	case "mem":
 		return NewMem(conf.Mem), nil

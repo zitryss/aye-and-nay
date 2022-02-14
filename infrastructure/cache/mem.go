@@ -34,6 +34,12 @@ func NewMem(conf MemConfig, opts ...options) *Mem {
 
 type options func(*Mem)
 
+func WithHeartbeatCleanup(ch chan<- interface{}) options {
+	return func(m *Mem) {
+		m.heartbeat.cleanup = ch
+	}
+}
+
 func WithHeartbeatPair(ch chan<- interface{}) options {
 	return func(m *Mem) {
 		m.heartbeat.pair = ch
@@ -54,8 +60,9 @@ type Mem struct {
 	syncPairs
 	syncTokens
 	heartbeat struct {
-		pair  chan<- interface{}
-		token chan<- interface{}
+		cleanup chan<- interface{}
+		pair    chan<- interface{}
+		token   chan<- interface{}
 	}
 }
 
@@ -118,9 +125,17 @@ func timeComparator(a, b interface{}) int {
 	}
 }
 
-func (m *Mem) Monitor() {
+func (m *Mem) Monitor(ctx context.Context) {
 	go func() {
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			if m.heartbeat.cleanup != nil {
+				m.heartbeat.cleanup <- struct{}{}
+			}
 			now := time.Now()
 			m.syncVisitors.Lock()
 			for k, v := range m.visitors {
@@ -130,10 +145,18 @@ func (m *Mem) Monitor() {
 			}
 			m.syncVisitors.Unlock()
 			time.Sleep(m.conf.CleanupInterval)
+			if m.heartbeat.cleanup != nil {
+				m.heartbeat.cleanup <- struct{}{}
+			}
 		}
 	}()
 	go func() {
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 			if m.heartbeat.pair != nil {
 				m.heartbeat.pair <- struct{}{}
 			}
@@ -153,6 +176,11 @@ func (m *Mem) Monitor() {
 	}()
 	go func() {
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 			if m.heartbeat.token != nil {
 				m.heartbeat.token <- struct{}{}
 			}

@@ -42,6 +42,16 @@ func (suite *MinioTestSuite) SetupTest() {
 	require.NoError(suite.T(), err)
 }
 
+func (suite *MinioTestSuite) TearDownTest() {
+
+}
+
+func (suite *MinioTestSuite) TearDownSuite() {
+	err := suite.storage.(*Minio).Reset()
+	require.NoError(suite.T(), err)
+	suite.cancel()
+}
+
 func (suite *MinioTestSuite) TestMinio() {
 	suite.T().Run("", func(t *testing.T) {
 		id, ids := GenId()
@@ -85,13 +95,4 @@ func (suite *MinioTestSuite) TestMinio() {
 func (suite *MinioTestSuite) TestMinioHealth() {
 	_, err := suite.storage.Health(suite.ctx)
 	assert.NoError(suite.T(), err)
-}
-
-func (suite *MinioTestSuite) TearDownTest() {
-}
-
-func (suite *MinioTestSuite) TearDownSuite() {
-	err := suite.storage.(*Minio).Reset()
-	require.NoError(suite.T(), err)
-	suite.cancel()
 }

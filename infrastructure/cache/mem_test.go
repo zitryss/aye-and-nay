@@ -61,6 +61,9 @@ func (suite *MemTestSuite) TearDownTest() {
 func (suite *MemTestSuite) TearDownSuite() {
 	err := suite.cache.(*Mem).Reset()
 	require.NoError(suite.T(), err)
+	close(suite.heartbeatCleanup)
+	close(suite.heartbeatPair)
+	close(suite.heartbeatToken)
 	suite.cancel()
 }
 

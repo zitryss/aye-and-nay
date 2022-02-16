@@ -134,7 +134,11 @@ func (m *Mem) Monitor(ctx context.Context) {
 			default:
 			}
 			if m.heartbeat.cleanup != nil {
-				m.heartbeat.cleanup <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.cleanup <- struct{}{}:
+				}
 			}
 			now := time.Now()
 			m.syncVisitors.Lock()
@@ -146,7 +150,11 @@ func (m *Mem) Monitor(ctx context.Context) {
 			m.syncVisitors.Unlock()
 			time.Sleep(m.conf.CleanupInterval)
 			if m.heartbeat.cleanup != nil {
-				m.heartbeat.cleanup <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.cleanup <- struct{}{}:
+				}
 			}
 		}
 	}()
@@ -158,7 +166,11 @@ func (m *Mem) Monitor(ctx context.Context) {
 			default:
 			}
 			if m.heartbeat.pair != nil {
-				m.heartbeat.pair <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.pair <- struct{}{}:
+				}
 			}
 			now := time.Now()
 			m.syncPairs.Lock()
@@ -170,7 +182,11 @@ func (m *Mem) Monitor(ctx context.Context) {
 			m.syncPairs.Unlock()
 			time.Sleep(m.conf.CleanupInterval)
 			if m.heartbeat.pair != nil {
-				m.heartbeat.pair <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.pair <- struct{}{}:
+				}
 			}
 		}
 	}()
@@ -182,7 +198,11 @@ func (m *Mem) Monitor(ctx context.Context) {
 			default:
 			}
 			if m.heartbeat.token != nil {
-				m.heartbeat.token <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.token <- struct{}{}:
+				}
 			}
 			now := time.Now()
 			m.syncTokens.Lock()
@@ -194,7 +214,11 @@ func (m *Mem) Monitor(ctx context.Context) {
 			m.syncTokens.Unlock()
 			time.Sleep(m.conf.CleanupInterval)
 			if m.heartbeat.token != nil {
-				m.heartbeat.token <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.token <- struct{}{}:
+				}
 			}
 		}
 	}()

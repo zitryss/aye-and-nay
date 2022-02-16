@@ -67,7 +67,11 @@ func (s *Service) StartWorkingPoolCalc(ctx context.Context, g *errgroup.Group) {
 						continue
 					}
 					if s.heartbeat.calc != nil {
-						s.heartbeat.calc <- struct{}{}
+						select {
+						case <-ctx.Done():
+							return
+						case s.heartbeat.calc <- struct{}{}:
+						}
 					}
 				}
 			})
@@ -134,7 +138,11 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 						f, err = s.comp.Compress(ctx, f)
 						if errors.Is(err, domain.ErrThirdPartyUnavailable) {
 							if s.heartbeat.comp != nil {
-								s.heartbeat.comp <- err
+								select {
+								case <-ctx.Done():
+									return
+								case s.heartbeat.comp <- err:
+								}
 							}
 						}
 						if err != nil {
@@ -159,7 +167,11 @@ func (s *Service) StartWorkingPoolComp(ctx context.Context, g *errgroup.Group) {
 						}
 						if s.heartbeat.comp != nil {
 							p, _ := s.Progress(ctx, album)
-							s.heartbeat.comp <- p
+							select {
+							case <-ctx.Done():
+								return
+							case s.heartbeat.comp <- p:
+							}
 						}
 					}
 				}
@@ -224,7 +236,11 @@ func (s *Service) StartWorkingPoolDel(ctx context.Context, g *errgroup.Group) {
 				}
 			}
 			if s.heartbeat.del != nil {
-				s.heartbeat.del <- album
+				select {
+				case <-ctx.Done():
+					return
+				case s.heartbeat.del <- album:
+				}
 			}
 		}
 	})

@@ -69,12 +69,20 @@ func (sp *Shortpixel) Monitor(ctx context.Context) {
 			}
 			<-sp.ch
 			if sp.heartbeat.restart != nil {
-				sp.heartbeat.restart <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case sp.heartbeat.restart <- struct{}{}:
+				}
 			}
 			time.Sleep(sp.conf.RestartIn)
 			atomic.StoreUint32(&sp.done, 0)
 			if sp.heartbeat.restart != nil {
-				sp.heartbeat.restart <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case sp.heartbeat.restart <- struct{}{}:
+				}
 			}
 		}
 	}()

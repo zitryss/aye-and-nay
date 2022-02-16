@@ -16,6 +16,7 @@ require (
 	github.com/ory/dockertest/v3 v3.6.5
 	github.com/radovskyb/watcher v1.0.7
 	github.com/rs/cors v1.8.0
+	github.com/segmentio/asm v1.1.3
 	github.com/spf13/viper v1.9.0
 	github.com/stretchr/testify v1.7.0
 	go.mongodb.org/mongo-driver v1.8.0

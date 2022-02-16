@@ -1,8 +1,9 @@
 package base64
 
 import (
-	"encoding/base64"
 	"encoding/binary"
+
+	"github.com/segmentio/asm/base64"
 )
 
 func FromUint64(u uint64) string {

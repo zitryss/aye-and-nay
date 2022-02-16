@@ -1,15 +1,23 @@
-//go:build unit
-
 package generator
 
 import (
+	"flag"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	unit        = flag.Bool("unit", false, "")
+	integration = flag.Bool("int", false, "")
+	ci          = flag.Bool("ci", false, "")
+)
+
 func TestGenId(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	id, ids := GenId()
 	id, ids = GenId()
 	wg := sync.WaitGroup{}

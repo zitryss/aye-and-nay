@@ -1,8 +1,7 @@
-//go:build unit
-
 package http
 
 import (
+	"flag"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -19,7 +18,16 @@ import (
 	"github.com/zitryss/aye-and-nay/internal/client"
 )
 
+var (
+	unit        = flag.Bool("unit", false, "")
+	integration = flag.Bool("int", false, "")
+	ci          = flag.Bool("ci", false, "")
+)
+
 func TestServer(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	comp := compressor.NewMock()
 	stor := storage.NewMock()
 	data := database.NewMem(database.DefaultMemConfig)

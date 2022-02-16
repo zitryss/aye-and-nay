@@ -1,5 +1,3 @@
-//go:build unit
-
 package http
 
 import (
@@ -27,6 +25,9 @@ func (l limiterMockNeg) Allow(_ context.Context, _ uint64) (bool, error) {
 }
 
 func TestMiddlewareRecover(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	t.Run("Positive", func(t *testing.T) {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -60,6 +61,9 @@ func TestMiddlewareRecover(t *testing.T) {
 }
 
 func TestMiddlewareLimit(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	t.Run("Positive", func(t *testing.T) {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
@@ -95,6 +99,9 @@ func TestMiddlewareLimit(t *testing.T) {
 }
 
 func TestIP(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	type args struct {
 		xff        string
 		remoteAddr string

@@ -1,8 +1,7 @@
-//go:build unit
-
 package errors_test
 
 import (
+	"flag"
 	"fmt"
 	"testing"
 
@@ -11,7 +10,16 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
+var (
+	unit        = flag.Bool("unit", false, "")
+	integration = flag.Bool("int", false, "")
+	ci          = flag.Bool("ci", false, "")
+)
+
 func TestCause(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	tests := []struct {
 		give error
 		want error

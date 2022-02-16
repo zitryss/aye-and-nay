@@ -1,5 +1,3 @@
-//go:build unit
-
 package service
 
 import (
@@ -14,6 +12,9 @@ import (
 )
 
 func TestPQueue(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	id, _ := GenId()
 	mem := cache.NewMem(cache.DefaultMemConfig)
 	pqueue := id()

@@ -6,14 +6,13 @@ import (
 
 	"github.com/ory/dockertest/v3"
 
-	"github.com/zitryss/aye-and-nay/pkg/env"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
 func New() docker {
-	host, err := env.Lookup("DOCKER_HOST")
-	if err != nil {
+	host, ok := os.LookupEnv("DOCKER_HOST")
+	if !ok || host == "" {
 		host = "tcp://localhost:2375"
 	}
 	u, err := url.Parse(host)

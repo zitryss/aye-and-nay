@@ -1,5 +1,3 @@
-//go:build unit
-
 package http
 
 import (
@@ -22,6 +20,9 @@ import (
 )
 
 func TestControllerHandle(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	type give struct {
 		handle  func() httprouter.Handle
 		method  string
@@ -284,6 +285,9 @@ func png() string {
 }
 
 func TestControllerError(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	type give struct {
 		err error
 	}

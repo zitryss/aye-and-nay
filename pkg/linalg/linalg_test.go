@@ -1,8 +1,7 @@
-//go:build unit
-
 package linalg_test
 
 import (
+	"flag"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -13,7 +12,16 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/linalg"
 )
 
+var (
+	unit        = flag.Bool("unit", false, "")
+	integration = flag.Bool("int", false, "")
+	ci          = flag.Bool("ci", false, "")
+)
+
 func TestPageRank(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	edgs := map[uint64]map[uint64]int{}
 	edgs[0x5B92] = map[uint64]int{}
 	edgs[0x804F] = map[uint64]int{}

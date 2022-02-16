@@ -1,8 +1,7 @@
-//go:build unit
-
 package log_test
 
 import (
+	"flag"
 	"strings"
 	"testing"
 
@@ -11,7 +10,16 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
+var (
+	unit        = flag.Bool("unit", false, "")
+	integration = flag.Bool("int", false, "")
+	ci          = flag.Bool("ci", false, "")
+)
+
 func TestLogLevelPositive(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	tests := []struct {
 		level interface{}
 		want  string
@@ -71,6 +79,9 @@ func TestLogLevelPositive(t *testing.T) {
 }
 
 func TestLogLevelNegative(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	tests := []struct {
 		level interface{}
 		want  string

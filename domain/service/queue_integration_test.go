@@ -1,5 +1,3 @@
-//go:build integration
-
 package service
 
 import (
@@ -15,6 +13,9 @@ import (
 )
 
 func TestPQueueIntegration(t *testing.T) {
+	if !*integration {
+		t.Skip()
+	}
 	id, _ := GenId()
 	redis, err := cache.NewRedis(context.Background(), cache.DefaultRedisConfig)
 	require.NoError(t, err)

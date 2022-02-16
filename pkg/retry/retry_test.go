@@ -1,8 +1,7 @@
-//go:build unit
-
 package retry_test
 
 import (
+	"flag"
 	"testing"
 	"time"
 
@@ -12,7 +11,16 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
+var (
+	unit        = flag.Bool("unit", false, "")
+	integration = flag.Bool("int", false, "")
+	ci          = flag.Bool("ci", false, "")
+)
+
 func TestDo1(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	type give struct {
 		times int
 		pause time.Duration
@@ -69,6 +77,9 @@ func TestDo1(t *testing.T) {
 }
 
 func TestDo2(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	type give struct {
 		times int
 		pause time.Duration
@@ -125,6 +136,9 @@ func TestDo2(t *testing.T) {
 }
 
 func TestDo3(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	type give struct {
 		times int
 		pause time.Duration

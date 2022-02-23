@@ -94,7 +94,7 @@ func main() {
 		qCalc.Monitor(ctx)
 
 		qComp := &service.QueueComp{}
-		if conf.Compressor.IsMock() {
+		if !conf.Compressor.IsMock() {
 			qComp = service.NewQueueComp(cach)
 			qComp.Monitor(ctx)
 		}
@@ -117,7 +117,7 @@ func main() {
 
 		gComp := (*errgroup.Group)(nil)
 		ctxComp := context.Context(nil)
-		if conf.Compressor.IsMock() {
+		if !conf.Compressor.IsMock() {
 			gComp, ctxComp = errgroup.WithContext(ctx)
 			log.Info("starting compression worker pool")
 			serv.StartWorkingPoolComp(ctxComp, gComp)
@@ -155,7 +155,7 @@ func main() {
 			log.Error(err)
 		}
 
-		if conf.Compressor.IsMock() {
+		if !conf.Compressor.IsMock() {
 			log.Info("stopping compression worker pool")
 			err = gComp.Wait()
 			if err != nil {

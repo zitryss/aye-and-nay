@@ -83,19 +83,25 @@ func (c *controller) handleAlbum() httprouter.Handle {
 				_ = f.Close()
 				return nil, albumRequest{}, errors.Wrap(domain.ErrNotImage)
 			}
-			closeFn := func() error {
-				switch v := f.(type) {
-				case *os.File:
+			F := model.File{}
+			switch v := f.(type) {
+			case *os.File:
+				closeFn := func() error {
 					_ = v.Close()
 					_ = os.Remove(v.Name())
-				case multipart.File:
-					_ = v.Close()
-				default:
-					panic(errors.Wrap(domain.ErrUnknown))
+					return nil
 				}
-				return nil
+				F = model.NewFile(v, closeFn, fh.Size)
+			case multipart.File:
+				closeFn := func() error {
+					_ = v.Close()
+					return nil
+				}
+				F = model.NewFile(v, closeFn, fh.Size)
+			default:
+				return nil, albumRequest{}, errors.Wrap(domain.ErrUnknown)
 			}
-			req.ff = append(req.ff, model.NewFile(f, closeFn, fh.Size))
+			req.ff = append(req.ff, F)
 		}
 		vals := r.MultipartForm.Value["duration"]
 		if len(vals) == 0 {

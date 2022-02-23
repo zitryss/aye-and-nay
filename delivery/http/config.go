@@ -2,8 +2,11 @@ package http
 
 import (
 	"time"
+)
 
-	"github.com/zitryss/aye-and-nay/pkg/unit"
+const (
+	_ int64 = 1 << (10 * iota)
+	kb
 )
 
 type ServerConfig struct {
@@ -44,6 +47,6 @@ var (
 	}
 	DefaultControllerConfig = ControllerConfig{
 		MaxNumberOfFiles: 3,
-		MaxFileSize:      512 * unit.KB,
+		MaxFileSize:      512 * kb,
 	}
 )

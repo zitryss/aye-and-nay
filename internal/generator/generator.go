@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	IDS_SPAN = 100
+	span = 100
 )
 
 var (
@@ -16,22 +16,24 @@ var (
 	indexId uint64
 )
 
+type IdGenFunc func() uint64
+
 type Ids interface {
 	Uint64(i int) uint64
 	Base64(i int) string
 }
 
-func GenId() (func() uint64, *syncLogBook) {
-	lb := syncLogBook{m: sync.Mutex{}, logBook: map[int]uint64{}}
-	fn := func() func() uint64 {
+func GenId() (IdGenFunc, *IdLogBook) {
+	lb := IdLogBook{m: sync.Mutex{}, logBook: map[int]uint64{}, valid: true}
+	fn := func() IdGenFunc {
 		m.Lock()
 		firstId := indexId
-		indexId += IDS_SPAN
+		indexId += span
 		m.Unlock()
 		mFn := sync.Mutex{}
 		i := -1
 		curId := firstId - 1
-		lastId := firstId + IDS_SPAN - 1
+		lastId := firstId + span - 1
 		return func() uint64 {
 			mFn.Lock()
 			i++
@@ -48,18 +50,28 @@ func GenId() (func() uint64, *syncLogBook) {
 	return fn(), &lb
 }
 
-type syncLogBook struct {
+type IdLogBook struct {
 	m       sync.Mutex
 	logBook map[int]uint64
+	valid   bool
 }
 
-func (lb *syncLogBook) set(i int, id uint64) {
+func (lb *IdLogBook) set(i int, id uint64) {
+	if lb == nil || !lb.valid {
+		return
+	}
 	lb.m.Lock()
 	defer lb.m.Unlock()
-	lb.logBook[i] = id
+	_, ok := lb.logBook[i]
+	if ok {
+		lb.logBook[i] = id
+	}
 }
 
-func (lb *syncLogBook) Uint64(i int) uint64 {
+func (lb *IdLogBook) Uint64(i int) uint64 {
+	if lb == nil || !lb.valid {
+		return 0x0
+	}
 	lb.m.Lock()
 	defer lb.m.Unlock()
 	id, ok := lb.logBook[i]
@@ -69,6 +81,6 @@ func (lb *syncLogBook) Uint64(i int) uint64 {
 	return id
 }
 
-func (lb *syncLogBook) Base64(i int) string {
+func (lb *IdLogBook) Base64(i int) string {
 	return base64.FromUint64(lb.Uint64(i))
 }

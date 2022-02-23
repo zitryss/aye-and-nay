@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	ldisabled int = iota
-	ldebug
-	linfo
-	lerror
-	lcritical
+	logDisabled int = iota
+	logDebug
+	logInfo
+	logError
+	logCritical
 )
 
 var (
@@ -21,7 +21,7 @@ var (
 			UserMsg:    "too many requests",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "too many requests",
 		},
 	}
@@ -32,7 +32,7 @@ var (
 			UserMsg:    "body too large",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "body too large",
 		},
 	}
@@ -43,7 +43,7 @@ var (
 			UserMsg:    "unsupported media type",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "wrong content type",
 		},
 	}
@@ -54,7 +54,7 @@ var (
 			UserMsg:    "not enough images",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "not enough images",
 		},
 	}
@@ -65,7 +65,7 @@ var (
 			UserMsg:    "too many images",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "too many images",
 		},
 	}
@@ -76,7 +76,7 @@ var (
 			UserMsg:    "image too large",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "image too large",
 		},
 	}
@@ -87,7 +87,7 @@ var (
 			UserMsg:    "unsupported media type",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "not an image",
 		},
 	}
@@ -98,7 +98,7 @@ var (
 			UserMsg:    "duration not set",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "duration not set",
 		},
 	}
@@ -109,7 +109,7 @@ var (
 			UserMsg:    "duration invalid",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "duration invalid",
 		},
 	}
@@ -120,7 +120,7 @@ var (
 			UserMsg:    "album not found",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "album not found",
 		},
 	}
@@ -131,7 +131,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lerror,
+			Level:  logError,
 			DevMsg: "pair not found",
 		},
 	}
@@ -142,7 +142,7 @@ var (
 			UserMsg:    "token not found",
 		},
 		innerError: innerError{
-			Level:  ldebug,
+			Level:  logDebug,
 			DevMsg: "token not found",
 		},
 	}
@@ -153,7 +153,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lerror,
+			Level:  logError,
 			DevMsg: "image not found",
 		},
 	}
@@ -164,7 +164,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lerror,
+			Level:  logError,
 			DevMsg: "album already exists",
 		},
 	}
@@ -175,7 +175,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lerror,
+			Level:  logError,
 			DevMsg: "token already exists",
 		},
 	}
@@ -186,7 +186,7 @@ var (
 			UserMsg:    "unsupported media type",
 		},
 		innerError: innerError{
-			Level:  lerror,
+			Level:  logError,
 			DevMsg: "image rejected by third party",
 		},
 	}
@@ -197,7 +197,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lcritical,
+			Level:  logCritical,
 			DevMsg: "third party is unavailable",
 		},
 	}
@@ -208,7 +208,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lcritical,
+			Level:  logCritical,
 			DevMsg: "compressor is unavailable",
 		},
 	}
@@ -219,7 +219,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lcritical,
+			Level:  logCritical,
 			DevMsg: "storage is unavailable",
 		},
 	}
@@ -230,7 +230,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lcritical,
+			Level:  logCritical,
 			DevMsg: "database is unavailable",
 		},
 	}
@@ -241,7 +241,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lcritical,
+			Level:  logCritical,
 			DevMsg: "cache is unavailable",
 		},
 	}
@@ -252,7 +252,7 @@ var (
 			UserMsg:    "internal server error",
 		},
 		innerError: innerError{
-			Level:  lerror,
+			Level:  logError,
 			DevMsg: "unknown",
 		},
 	}

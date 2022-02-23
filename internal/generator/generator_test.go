@@ -27,29 +27,29 @@ func TestGenId(t *testing.T) {
 	assert.NotPanics(t, func() {
 		go func() {
 			defer wg.Done()
-			for i := 0; i < IDS_SPAN/2; i++ {
+			for i := 0; i < span/2; i++ {
 				_ = id()
 			}
 			ch1 <- struct{}{}
 			<-ch2
-			for i := 0; i < IDS_SPAN/2; i++ {
+			for i := 0; i < span/2; i++ {
 				_ = ids.Uint64(i)
 			}
 		}()
 		go func() {
 			defer wg.Done()
-			for i := IDS_SPAN / 2; i < IDS_SPAN; i++ {
+			for i := span / 2; i < span; i++ {
 				_ = id()
 			}
 			ch2 <- struct{}{}
 			<-ch1
-			for i := IDS_SPAN / 2; i < IDS_SPAN; i++ {
+			for i := span / 2; i < span; i++ {
 				_ = ids.Uint64(i)
 			}
 		}()
 	})
 	wg.Wait()
-	assert.Len(t, ids.logBook, IDS_SPAN)
+	assert.Len(t, ids.logBook, span)
 	assert.Equal(t, ids.logBook[0], uint64(100))
 	assert.Equal(t, ids.logBook[len(ids.logBook)-1], uint64(199))
 	assert.Panics(t, func() { id() })

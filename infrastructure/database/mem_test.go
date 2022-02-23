@@ -53,7 +53,7 @@ func (suite *MemTestSuite) TearDownSuite() {
 	suite.cancel()
 }
 
-func (suite *MemTestSuite) saveAlbum(id func() uint64, ids Ids) model.Album {
+func (suite *MemTestSuite) saveAlbum(id IdGenFunc, ids Ids) model.Album {
 	suite.T().Helper()
 	alb := AlbumFactory(id, ids)
 	err := suite.db.SaveAlbum(suite.ctx, alb)

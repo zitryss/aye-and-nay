@@ -27,7 +27,7 @@ func Png() model.File {
 	return model.File{Reader: buf, Size: int64(buf.Len())}
 }
 
-func AlbumFactory(id func() uint64, ids Ids) model.Album {
+func AlbumFactory(id IdGenFunc, ids Ids) model.Album {
 	album := id()
 	img1 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.48954984}
 	img2 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(2), Rating: 0.19186324}

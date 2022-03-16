@@ -5,8 +5,7 @@ import (
 )
 
 const (
-	_ int64 = 1 << (10 * iota)
-	kb
+	kb = 1 << (10 * 1)
 )
 
 type ServerConfig struct {

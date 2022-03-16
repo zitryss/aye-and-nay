@@ -17,6 +17,7 @@ import (
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
 	"github.com/zitryss/aye-and-nay/internal/config"
+	"github.com/zitryss/aye-and-nay/internal/ulimit"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/log"
 )
@@ -26,6 +27,12 @@ var (
 )
 
 func main() {
+	err := ulimit.SetMax()
+	if err != nil {
+		_, _ = fmt.Fprintln(os.Stderr, "critical:", err)
+		os.Exit(1)
+	}
+
 	path := ""
 	flag.StringVar(&path, "config", "./config.env", "filepath to a config file")
 	flag.Parse()

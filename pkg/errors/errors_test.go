@@ -66,7 +66,9 @@ func TestCause(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
 			got := errors.Cause(tt.give)
 			assert.Equal(t, tt.want, got)
 		})

@@ -29,6 +29,7 @@ func TestMiddlewareRecover(t *testing.T) {
 		t.Skip()
 	}
 	t.Run("Positive", func(t *testing.T) {
+		t.Parallel()
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			w.WriteHeader(418)
@@ -45,6 +46,7 @@ func TestMiddlewareRecover(t *testing.T) {
 		AssertBody(t, w, `I'm a teapot`)
 	})
 	t.Run("Negative", func(t *testing.T) {
+		t.Parallel()
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			panic("don't")
 		}
@@ -65,6 +67,7 @@ func TestMiddlewareLimit(t *testing.T) {
 		t.Skip()
 	}
 	t.Run("Positive", func(t *testing.T) {
+		t.Parallel()
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			w.WriteHeader(418)
@@ -81,6 +84,7 @@ func TestMiddlewareLimit(t *testing.T) {
 		AssertBody(t, w, `I'm a teapot`)
 	})
 	t.Run("Negative", func(t *testing.T) {
+		t.Parallel()
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 			w.WriteHeader(418)
@@ -147,10 +151,12 @@ func TestIP(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		r := httptest.NewRequest(http.MethodGet, "/api/health/", http.NoBody)
 		r.Header.Set("X-Forwarded-For", tt.args.xff)
 		r.RemoteAddr = tt.args.remoteAddr
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
 			assert.Equal(t, tt.want, ip(r))
 		})
 	}

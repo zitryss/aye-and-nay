@@ -18,6 +18,7 @@ func TestGenId(t *testing.T) {
 	if !*unit {
 		t.Skip()
 	}
+	t.Parallel()
 	id, ids := GenId()
 	id, ids = GenId()
 	wg := sync.WaitGroup{}

@@ -22,6 +22,7 @@ func TestPageRank(t *testing.T) {
 	if !*unit {
 		t.Skip()
 	}
+	t.Parallel()
 	edgs := map[uint64]map[uint64]int{}
 	edgs[0x5B92] = map[uint64]int{}
 	edgs[0x804F] = map[uint64]int{}

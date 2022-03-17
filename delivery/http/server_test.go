@@ -28,6 +28,7 @@ func TestServer(t *testing.T) {
 	if !*unit {
 		t.Skip()
 	}
+	t.Parallel()
 	comp := compressor.NewMock()
 	stor := storage.NewMock()
 	data := database.NewMem(database.DefaultMemConfig)

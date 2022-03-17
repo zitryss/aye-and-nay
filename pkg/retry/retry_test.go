@@ -63,7 +63,9 @@ func TestDo1(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
 			c := 0
 			err := retry.Do(tt.times, tt.pause, func() error {
 				c++
@@ -122,7 +124,9 @@ func TestDo2(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
 			c := 0
 			err := retry.Do(tt.times, tt.pause, func() error {
 				c++
@@ -181,7 +185,9 @@ func TestDo3(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
 			c := 0
 			err := retry.Do(tt.times, tt.pause, func() error {
 				c++

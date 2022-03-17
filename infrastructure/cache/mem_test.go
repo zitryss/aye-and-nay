@@ -27,6 +27,7 @@ type MemTestSuite struct {
 	heartbeatPair    chan interface{}
 	heartbeatToken   chan interface{}
 	cache            domain.Cacher
+	setupTestFn      func()
 }
 
 func (suite *MemTestSuite) SetupSuite() {
@@ -47,6 +48,7 @@ func (suite *MemTestSuite) SetupSuite() {
 	suite.heartbeatPair = hp
 	suite.heartbeatToken = ht
 	suite.cache = mem
+	suite.setupTestFn = suite.SetupTest
 }
 
 func (suite *MemTestSuite) SetupTest() {
@@ -66,6 +68,7 @@ func (suite *MemTestSuite) TearDownSuite() {
 
 func (suite *MemTestSuite) TestPair() {
 	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		album := id()
 		pairs := [][2]uint64{{id(), id()}}
@@ -77,12 +80,14 @@ func (suite *MemTestSuite) TestPair() {
 		assert.Equal(t, ids.Uint64(2), image2)
 	})
 	suite.T().Run("Negative1", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		album := id()
 		_, _, err := suite.cache.Pop(suite.ctx, album)
 		assert.ErrorIs(t, err, domain.ErrPairNotFound)
 	})
 	suite.T().Run("Negative2", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		album := id()
 		pairs := [][2]uint64{{id(), id()}}
@@ -94,6 +99,7 @@ func (suite *MemTestSuite) TestPair() {
 		assert.ErrorIs(t, err, domain.ErrPairNotFound)
 	})
 	suite.T().Run("Negative3", func(t *testing.T) {
+		suite.setupTestFn()
 		_, ok := suite.cache.(*Redis)
 		if testing.Short() && ok {
 			t.Skip("short flag is set")
@@ -113,6 +119,7 @@ func (suite *MemTestSuite) TestPair() {
 
 func (suite *MemTestSuite) TestToken() {
 	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		token := id()
 		album1 := id()
@@ -125,6 +132,7 @@ func (suite *MemTestSuite) TestToken() {
 		assert.Equal(t, image1, image2)
 	})
 	suite.T().Run("Negative1", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		token := id()
 		album := id()
@@ -135,12 +143,14 @@ func (suite *MemTestSuite) TestToken() {
 		assert.ErrorIs(t, err, domain.ErrTokenAlreadyExists)
 	})
 	suite.T().Run("Negative2", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		token := id()
 		_, _, err := suite.cache.Get(suite.ctx, token)
 		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
 	suite.T().Run("Negative3", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		token := id()
 		album := id()
@@ -157,12 +167,14 @@ func (suite *MemTestSuite) TestToken() {
 		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
 	suite.T().Run("Negative4", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		token := id()
 		err := suite.cache.Del(suite.ctx, token)
 		assert.NoError(t, err)
 	})
 	suite.T().Run("Negative5", func(t *testing.T) {
+		suite.setupTestFn()
 		_, ok := suite.cache.(*Redis)
 		if testing.Short() && ok {
 			t.Skip("short flag is set")

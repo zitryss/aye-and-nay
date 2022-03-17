@@ -12,16 +12,16 @@ compile-health:
 	CGO_ENABLED=0 go build -ldflags="-s -w" -o healthcheck ./cmd/healthcheck/main.go
 
 test-unit: gen
-	go test -v -race -shuffle=on -count=1 -short -tags=unit -cover ./...
+	go test -v -race -shuffle=on -count=2 -short -cover ./... -args -unit
 
 test-int: gen
-	go test -v -race -shuffle=on -count=1 -short -tags=integration -cover ./...
+	go test -v -race -shuffle=on -count=2 -short -cover ./... -args -int
 
 test-unit-ci: gen
-	go test -v -race -shuffle=on -count=1 -tags=unit -failfast -coverprofile=coverage.txt -covermode=atomic ./...
+	go test -v -race -shuffle=on -count=2 -failfast -coverprofile=coverage.txt -covermode=atomic ./... -args -unit -ci
 
 test-int-ci: gen
-	go test -v -race -shuffle=on -count=1 -tags=integration -failfast -coverprofile=coverage.txt -covermode=atomic ./...
+	go test -v -race -shuffle=on -count=2 -failfast -coverprofile=coverage.txt -covermode=atomic ./... -args -int -ci
 
 dev-up:
 	docker compose --file ./build/docker-compose-dev.yml up -d --build

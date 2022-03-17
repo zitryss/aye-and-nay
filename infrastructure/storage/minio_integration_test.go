@@ -20,9 +20,10 @@ func TestMinioTestSuite(t *testing.T) {
 
 type MinioTestSuite struct {
 	suite.Suite
-	ctx     context.Context
-	cancel  context.CancelFunc
-	storage domain.Storager
+	ctx         context.Context
+	cancel      context.CancelFunc
+	storage     domain.Storager
+	setupTestFn func()
 }
 
 func (suite *MinioTestSuite) SetupSuite() {
@@ -35,6 +36,7 @@ func (suite *MinioTestSuite) SetupSuite() {
 	suite.ctx = ctx
 	suite.cancel = cancel
 	suite.storage = minio
+	suite.setupTestFn = suite.SetupTest
 }
 
 func (suite *MinioTestSuite) SetupTest() {
@@ -54,6 +56,7 @@ func (suite *MinioTestSuite) TearDownSuite() {
 
 func (suite *MinioTestSuite) TestMinio() {
 	suite.T().Run("", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		album := id()
 		image := id()
@@ -75,6 +78,7 @@ func (suite *MinioTestSuite) TestMinio() {
 		assert.Nil(t, f.Reader)
 	})
 	suite.T().Run("", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		album := id()
 		image := id()

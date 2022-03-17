@@ -50,8 +50,6 @@ func TestGenId(t *testing.T) {
 	})
 	wg.Wait()
 	assert.Len(t, ids.logBook, span)
-	assert.Equal(t, ids.logBook[0], uint64(100))
-	assert.Equal(t, ids.logBook[len(ids.logBook)-1], uint64(199))
 	assert.Panics(t, func() { id() })
 	assert.Panics(t, func() {
 		_, ids := GenId()

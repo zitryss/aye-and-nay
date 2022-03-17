@@ -19,7 +19,8 @@ func TestRedisTestSuite(t *testing.T) {
 
 type RedisTestSuite struct {
 	suite.Suite
-	base MemTestSuite
+	base        MemTestSuite
+	setupTestFn func()
 }
 
 func (suite *RedisTestSuite) SetupSuite() {
@@ -37,6 +38,8 @@ func (suite *RedisTestSuite) SetupSuite() {
 	suite.base.conf.LimiterRequestsPerSecond = float64(conf.LimiterRequestsPerSecond)
 	suite.base.conf.TimeToLive = conf.TimeToLive
 	suite.base.cache = redis
+	suite.base.setupTestFn = suite.SetupTest
+	suite.setupTestFn = suite.SetupTest
 }
 
 func (suite *RedisTestSuite) SetupTest() {
@@ -58,6 +61,7 @@ func (suite *RedisTestSuite) TearDownSuite() {
 
 func (suite *RedisTestSuite) TestRedisAllow() {
 	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		rpm := suite.base.conf.LimiterRequestsPerSecond
 		ip := id()
@@ -74,6 +78,7 @@ func (suite *RedisTestSuite) TestRedisAllow() {
 		}
 	})
 	suite.T().Run("Negative", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		rps := suite.base.conf.LimiterRequestsPerSecond
 		ip := id()

@@ -64,8 +64,9 @@ func (lb *IdLogBook) set(i int, id uint64) {
 	defer lb.m.Unlock()
 	_, ok := lb.logBook[i]
 	if ok {
-		lb.logBook[i] = id
+		panic(fmt.Sprintf("id #%d already used", i))
 	}
+	lb.logBook[i] = id
 }
 
 func (lb *IdLogBook) Uint64(i int) uint64 {

@@ -32,6 +32,7 @@ func (suite *MongoTestSuite) SetupSuite() {
 	suite.base.ctx = ctx
 	suite.base.cancel = cancel
 	suite.base.db = mongo
+	suite.base.setupTestFn = suite.SetupTest
 }
 
 func (suite *MongoTestSuite) SetupTest() {

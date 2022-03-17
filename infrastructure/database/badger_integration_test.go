@@ -32,6 +32,7 @@ func (suite *BadgerTestSuite) SetupSuite() {
 	suite.base.ctx = ctx
 	suite.base.cancel = cancel
 	suite.base.db = badger
+	suite.base.setupTestFn = suite.SetupTest
 }
 
 func (suite *BadgerTestSuite) SetupTest() {

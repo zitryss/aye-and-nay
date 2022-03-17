@@ -22,9 +22,10 @@ func TestMemTestSuite(t *testing.T) {
 
 type MemTestSuite struct {
 	suite.Suite
-	ctx    context.Context
-	cancel context.CancelFunc
-	db     domain.Databaser
+	ctx         context.Context
+	cancel      context.CancelFunc
+	db          domain.Databaser
+	setupTestFn func()
 }
 
 func (suite *MemTestSuite) SetupSuite() {
@@ -36,6 +37,7 @@ func (suite *MemTestSuite) SetupSuite() {
 	suite.ctx = ctx
 	suite.cancel = cancel
 	suite.db = mem
+	suite.setupTestFn = suite.SetupTest
 }
 
 func (suite *MemTestSuite) SetupTest() {
@@ -63,6 +65,7 @@ func (suite *MemTestSuite) saveAlbum(id IdGenFunc, ids Ids) model.Album {
 
 func (suite *MemTestSuite) TestAlbum() {
 	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		alb := suite.saveAlbum(id, ids)
 		edgs, err := suite.db.GetEdges(suite.ctx, ids.Uint64(0))
@@ -70,17 +73,20 @@ func (suite *MemTestSuite) TestAlbum() {
 		assert.Equal(t, alb.Edges, edgs)
 	})
 	suite.T().Run("Negative1", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		alb := suite.saveAlbum(id, ids)
 		err := suite.db.SaveAlbum(suite.ctx, alb)
 		assert.ErrorIs(t, err, domain.ErrAlbumAlreadyExists)
 	})
 	suite.T().Run("Negative2", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		_, err := suite.db.GetImagesIds(suite.ctx, id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	suite.T().Run("Negative3", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		_, err := suite.db.GetEdges(suite.ctx, id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
@@ -89,6 +95,7 @@ func (suite *MemTestSuite) TestAlbum() {
 
 func (suite *MemTestSuite) TestCount() {
 	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_ = suite.saveAlbum(id, ids)
 		n, err := suite.db.CountImages(suite.ctx, ids.Uint64(0))
@@ -112,6 +119,7 @@ func (suite *MemTestSuite) TestCount() {
 		assert.Equal(t, 2, n)
 	})
 	suite.T().Run("Negative1", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_ = suite.saveAlbum(id, ids)
 		err := suite.db.UpdateCompressionStatus(suite.ctx, ids.Uint64(0), ids.Uint64(1))
@@ -123,21 +131,25 @@ func (suite *MemTestSuite) TestCount() {
 		assert.Equal(t, 1, n)
 	})
 	suite.T().Run("Negative2", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		_, err := suite.db.CountImages(suite.ctx, id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	suite.T().Run("Negative3", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		_, err := suite.db.CountImagesCompressed(suite.ctx, id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	suite.T().Run("Negative4", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		err := suite.db.UpdateCompressionStatus(suite.ctx, id(), ids.Uint64(0))
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	suite.T().Run("Negative5", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_ = suite.saveAlbum(id, ids)
 		err := suite.db.UpdateCompressionStatus(suite.ctx, ids.Uint64(0), id())
@@ -147,6 +159,7 @@ func (suite *MemTestSuite) TestCount() {
 
 func (suite *MemTestSuite) TestImage() {
 	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_ = suite.saveAlbum(id, ids)
 		src, err := suite.db.GetImageSrc(suite.ctx, ids.Uint64(0), ids.Uint64(4))
@@ -154,11 +167,13 @@ func (suite *MemTestSuite) TestImage() {
 		assert.Equal(t, "/aye-and-nay/albums/"+ids.Base64(0)+"/images/"+ids.Base64(4), src)
 	})
 	suite.T().Run("Negative1", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_, err := suite.db.GetImageSrc(suite.ctx, id(), ids.Uint64(0))
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	suite.T().Run("Negative2", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_ = suite.saveAlbum(id, ids)
 		_, err := suite.db.GetImageSrc(suite.ctx, ids.Uint64(0), id())
@@ -168,6 +183,7 @@ func (suite *MemTestSuite) TestImage() {
 
 func (suite *MemTestSuite) TestVote() {
 	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_ = suite.saveAlbum(id, ids)
 		err := suite.db.SaveVote(suite.ctx, ids.Uint64(0), ids.Uint64(3), ids.Uint64(5))
@@ -179,6 +195,7 @@ func (suite *MemTestSuite) TestVote() {
 		assert.Equal(t, 2, edgs[ids.Uint64(3)][ids.Uint64(5)])
 	})
 	suite.T().Run("Negative", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		err := suite.db.SaveVote(suite.ctx, id(), id(), id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
@@ -187,6 +204,7 @@ func (suite *MemTestSuite) TestVote() {
 
 func (suite *MemTestSuite) TestSort() {
 	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_ = suite.saveAlbum(id, ids)
 		imgs1, err := suite.db.GetImagesOrdered(suite.ctx, ids.Uint64(0))
@@ -200,6 +218,7 @@ func (suite *MemTestSuite) TestSort() {
 		assert.Equal(t, imgs2, imgs1)
 	})
 	suite.T().Run("Negative", func(t *testing.T) {
+		suite.setupTestFn()
 		id, _ := GenId()
 		_, err := suite.db.GetImagesOrdered(suite.ctx, id())
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
@@ -208,6 +227,7 @@ func (suite *MemTestSuite) TestSort() {
 
 func (suite *MemTestSuite) TestRatings() {
 	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_ = suite.saveAlbum(id, ids)
 		img1 := model.Image{Id: ids.Uint64(1), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.54412788}
@@ -230,6 +250,7 @@ func (suite *MemTestSuite) TestRatings() {
 		assert.Equal(t, imgs1, imgs2)
 	})
 	suite.T().Run("Negative", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		album := id()
 		img1 := model.Image{Id: id(), Src: "/aye-and-nay/albums/" + ids.Base64(0) + "/images/" + ids.Base64(1), Rating: 0.54412788}
@@ -250,6 +271,7 @@ func (suite *MemTestSuite) TestRatings() {
 
 func (suite *MemTestSuite) TestDelete() {
 	suite.T().Run("Positive1", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		alb := AlbumFactory(id, ids)
 		_, err := suite.db.CountImages(suite.ctx, ids.Uint64(0))
@@ -268,6 +290,7 @@ func (suite *MemTestSuite) TestDelete() {
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	suite.T().Run("Positive2", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		alb := AlbumFactory(id, ids)
 		alb.Expires = time.Now().Add(-1 * time.Hour)
@@ -282,6 +305,7 @@ func (suite *MemTestSuite) TestDelete() {
 		assert.ErrorIs(t, err, domain.ErrAlbumNotFound)
 	})
 	suite.T().Run("Negative", func(t *testing.T) {
+		suite.setupTestFn()
 		id, ids := GenId()
 		_ = suite.saveAlbum(id, ids)
 		err := suite.db.DeleteAlbum(suite.ctx, id())

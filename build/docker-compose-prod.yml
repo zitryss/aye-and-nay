@@ -21,6 +21,15 @@ services:
       context: ./../
       dockerfile: ./build/Dockerfile-app
     container_name: prod-app
+    env_file: config-prod.env
+    deploy:
+      resources:
+        limits:
+          memory: ${APP_MEM_TOTAL}
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 120s
     volumes:
       - "./config-prod.env:/config.env"
     depends_on:

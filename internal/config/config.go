@@ -51,9 +51,11 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name    string `mapstructure:"APP_NAME"     validate:"required"`
-	Ballast int64  `mapstructure:"APP_BALLAST"`
-	Log     string `mapstructure:"APP_LOG"      validate:"required"`
+	Name          string  `mapstructure:"APP_NAME"     validate:"required"`
+	Log           string  `mapstructure:"APP_LOG"      validate:"required"`
+	GcTuner       bool    `mapstructure:"APP_GC_TUNER"`
+	MemTotal      int     `mapstructure:"APP_MEM_TOTAL"`
+	MemLimitRatio float64 `mapstructure:"APP_MEM_LIMIT_RATIO"`
 }
 
 func (c *Config) OnChange(ctx context.Context, fn func()) {

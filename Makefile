@@ -30,7 +30,7 @@ dev-down:
 	docker compose --file ./build/docker-compose-dev.yml down --rmi all -v
 
 prod-loadtest:
-	go run ./cmd/loadtest/main.go -verbose=false
+	go run ./cmd/loadtest/* -verbose=false
 
 prod-up:
 	docker compose --file ./build/docker-compose-prod.yml up -d --build
@@ -39,7 +39,7 @@ prod-down:
 	docker compose --file ./build/docker-compose-prod.yml down --rmi all -v
 
 embed-loadtest:
-	go run ./cmd/loadtest/main.go -verbose=false -api-address "http://localhost:8001" -minio-address "http://localhost:9000" -html-address ""
+	go run ./cmd/loadtest/* -verbose=false -api-address "http://localhost:8001" -minio-address "http://localhost:9000" -html-address ""
 
 embed-up:
 	docker compose --file ./build/docker-compose-embed.yml up -d --build

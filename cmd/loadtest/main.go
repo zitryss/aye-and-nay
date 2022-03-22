@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"os"
 	"os/signal"
 	"sync"
@@ -38,7 +37,7 @@ func main() {
 
 	if verbose {
 		log.SetOutput(os.Stderr)
-		log.SetLevel(log.ERROR)
+		log.SetLevel(log.INFO)
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -60,9 +59,9 @@ func main() {
 				return
 			case <-time.After(1 * time.Second):
 				passed, failed := c.Stats()
-				fmt.Printf("%d rps, ", passed-passed1sAgo)
-				fmt.Printf("%d passed (%.2f%%), ", passed, float64(passed)/float64(passed+failed)*100)
-				fmt.Printf("%d failed (%.2f%%)\n", failed, float64(failed)/float64(passed+failed)*100)
+				log.Infof("%d rps, ", passed-passed1sAgo)
+				log.Infof("%d passed (%.2f%%), ", passed, float64(passed)/float64(passed+failed)*100)
+				log.Infof("%d failed (%.2f%%)\n", failed, float64(failed)/float64(passed+failed)*100)
 				passed1sAgo = passed
 			}
 		}

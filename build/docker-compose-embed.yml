@@ -5,6 +5,15 @@ services:
       context: ./../
       dockerfile: ./build/Dockerfile-app
     container_name: embed-app
+    env_file: config-embed.env
+    deploy:
+      resources:
+        limits:
+          memory: ${APP_MEM_TOTAL}
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
+        window: 120s
     ports:
       - "8001:8001"
     volumes:

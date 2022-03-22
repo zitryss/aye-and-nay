@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -17,13 +18,10 @@ import (
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
 	"github.com/zitryss/aye-and-nay/internal/config"
+	"github.com/zitryss/aye-and-nay/internal/gctuner"
 	"github.com/zitryss/aye-and-nay/internal/ulimit"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/log"
-)
-
-var (
-	ballast []byte
 )
 
 func main() {
@@ -48,6 +46,7 @@ func main() {
 			_, _ = fmt.Fprintln(os.Stderr, "critical:", err)
 			reload = true
 			stop()
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
@@ -58,18 +57,28 @@ func main() {
 			})
 		}
 
-		ballast = make([]byte, conf.App.Ballast)
-
 		log.SetOutput(os.Stderr)
 		log.SetPrefix(conf.App.Name)
 		log.SetLevel(conf.App.Log)
 		log.Info("logging initialized:", "log level:", conf.App.Log)
+
+		if conf.App.GcTuner {
+			err = gctuner.Start(ctx, conf.App.MemTotal, conf.App.MemLimitRatio)
+			if err != nil {
+				log.Critical(err)
+				reload = true
+				stop()
+				time.Sleep(2 * time.Second)
+				continue
+			}
+		}
 
 		cach, err := cache.New(ctx, conf.Cache)
 		if err != nil {
 			log.Critical(err)
 			reload = true
 			stop()
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
@@ -78,6 +87,7 @@ func main() {
 			log.Critical(err)
 			reload = true
 			stop()
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
@@ -86,6 +96,7 @@ func main() {
 			log.Critical(err)
 			reload = true
 			stop()
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
@@ -94,6 +105,7 @@ func main() {
 			log.Critical(err)
 			reload = true
 			stop()
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
@@ -115,6 +127,7 @@ func main() {
 			log.Critical(err)
 			reload = true
 			stop()
+			time.Sleep(2 * time.Second)
 			continue
 		}
 
@@ -141,6 +154,7 @@ func main() {
 			log.Critical(err)
 			reload = true
 			stop()
+			time.Sleep(2 * time.Second)
 			continue
 		}
 		srv.Monitor(ctx)

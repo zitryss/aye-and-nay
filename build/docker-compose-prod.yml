@@ -21,7 +21,6 @@ services:
       context: ./../
       dockerfile: ./build/Dockerfile-app
     container_name: prod-app
-    env_file: config-prod.env
     deploy:
       resources:
         limits:

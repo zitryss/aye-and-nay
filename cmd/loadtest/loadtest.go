@@ -105,10 +105,10 @@ func (l *loadtest) html(page string) {
 	if l.err != nil {
 		return
 	}
-	if htmlAddress == "" {
+	if !html {
 		return
 	}
-	err := l.client.Do(http.MethodGet, htmlAddress+page, http.NoBody)
+	err := l.client.Do(http.MethodGet, apiAddress+page, http.NoBody)
 	if err != nil {
 		l.err = errors.Wrap(err)
 		log.Error(l.err)
@@ -131,14 +131,19 @@ func (l *loadtest) minio(src string) {
 	if l.err != nil {
 		return
 	}
-	address := minioAddress
-	if strings.HasPrefix(src, "/api/images/") {
-		address = apiAddress
-	}
-	if minioAddress == "" && address == "" {
+	if !minio {
 		return
 	}
-	err := l.client.Do(http.MethodGet, address+src, http.NoBody)
+	address := ""
+	if strings.HasPrefix(src, "http://") || strings.HasPrefix(src, "https://") {
+		address = src
+	} else {
+		address = apiAddress + src
+	}
+	if !strings.HasPrefix(src, "/api/images/") {
+		return // FIXME
+	}
+	err := l.client.Do(http.MethodGet, address, http.NoBody)
 	if err != nil {
 		l.err = errors.Wrap(err)
 		log.Error(l.err)

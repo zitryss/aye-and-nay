@@ -33,16 +33,16 @@ prod-loadtest:
 	go run ./cmd/loadtest/* -verbose=false
 
 prod-up:
-	docker compose --file ./build/docker-compose-prod.yml up -d --build
+	docker compose --file ./build/docker-compose-prod.yml --env-file ./build/config-prod.env up -d --build
 
 prod-down:
-	docker compose --file ./build/docker-compose-prod.yml down --rmi all -v
+	docker compose --file ./build/docker-compose-prod.yml --env-file ./build/config-prod.env down --rmi all -v
 
 embed-loadtest:
-	go run ./cmd/loadtest/* -verbose=false -api-address "http://localhost:8001" -minio-address "http://localhost:9000" -html-address ""
+	go run ./cmd/loadtest/* -verbose=false -api-address="http://localhost:8001" -html=false
 
 embed-up:
-	docker compose --file ./build/docker-compose-embed.yml up -d --build
+	docker compose --file ./build/docker-compose-embed.yml --env-file ./build/config-embed.env up -d --build
 
 embed-down:
-	docker compose --file ./build/docker-compose-embed.yml down --rmi all -v
+	docker compose --file ./build/docker-compose-embed.yml --env-file ./build/config-embed.env down --rmi all -v

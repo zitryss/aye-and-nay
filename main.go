@@ -12,6 +12,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/zitryss/aye-and-nay/delivery/http"
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/service"
 	"github.com/zitryss/aye-and-nay/infrastructure/cache"
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
@@ -34,6 +35,11 @@ func main() {
 	path := ""
 	flag.StringVar(&path, "config", "./config.env", "filepath to a config file")
 	flag.Parse()
+
+	cach := domain.Cacher(nil)
+	comp := domain.Compresser(nil)
+	data := domain.Databaser(nil)
+	stor := domain.Storager(nil)
 
 	reload := true
 	for reload {
@@ -73,7 +79,7 @@ func main() {
 			}
 		}
 
-		cach, err := cache.New(ctx, conf.Cache)
+		cach, err = cache.New(ctx, conf.Cache)
 		if err != nil {
 			log.Critical(err)
 			reload = true
@@ -82,7 +88,7 @@ func main() {
 			continue
 		}
 
-		comp, err := compressor.New(ctx, conf.Compressor)
+		comp, err = compressor.New(ctx, conf.Compressor)
 		if err != nil {
 			log.Critical(err)
 			reload = true
@@ -91,7 +97,7 @@ func main() {
 			continue
 		}
 
-		data, err := database.New(ctx, conf.Database)
+		data, err = database.New(ctx, conf.Database)
 		if err != nil {
 			log.Critical(err)
 			reload = true
@@ -100,7 +106,7 @@ func main() {
 			continue
 		}
 
-		stor, err := storage.New(ctx, conf.Storage)
+		stor, err = storage.New(ctx, conf.Storage)
 		if err != nil {
 			log.Critical(err)
 			reload = true
@@ -190,30 +196,30 @@ func main() {
 			log.Error(err)
 		}
 
-		r, ok := cach.(*cache.Redis)
-		if ok {
-			err = r.Close(ctx)
-			if err != nil {
-				log.Error(err)
-			}
-		}
-
-		m, ok := data.(*database.Mongo)
-		if ok {
-			err = m.Close(ctx)
-			if err != nil {
-				log.Error(err)
-			}
-		}
-
-		b, ok := data.(*database.Badger)
-		if ok {
-			err = b.Close(ctx)
-			if err != nil {
-				log.Error(err)
-			}
-		}
-
 		stop()
+	}
+
+	r, ok := cach.(*cache.Redis)
+	if ok {
+		err = r.Close(context.Background())
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+	m, ok := data.(*database.Mongo)
+	if ok {
+		err = m.Close(context.Background())
+		if err != nil {
+			log.Error(err)
+		}
+	}
+
+	b, ok := data.(*database.Badger)
+	if ok {
+		err = b.Close(context.Background())
+		if err != nil {
+			log.Error(err)
+		}
 	}
 }

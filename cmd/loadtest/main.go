@@ -14,14 +14,14 @@ import (
 )
 
 var (
-	duration     time.Duration
-	connections  int
-	timeout      time.Duration
-	testdata     string
-	apiAddress   string
-	htmlAddress  string
-	minioAddress string
-	verbose      bool
+	duration    time.Duration
+	connections int
+	timeout     time.Duration
+	testdata    string
+	apiAddress  string
+	html        bool
+	minio       bool
+	verbose     bool
 )
 
 func main() {
@@ -30,8 +30,8 @@ func main() {
 	flag.DurationVar(&timeout, "timeout", 5*time.Second, "in seconds")
 	flag.StringVar(&testdata, "testdata", "./testdata", "")
 	flag.StringVar(&apiAddress, "api-address", "https://localhost", "")
-	flag.StringVar(&htmlAddress, "html-address", "https://localhost", "")
-	flag.StringVar(&minioAddress, "minio-address", "https://localhost", "")
+	flag.BoolVar(&html, "html", true, "")
+	flag.BoolVar(&minio, "minio", true, "")
 	flag.BoolVar(&verbose, "verbose", true, "")
 	flag.Parse()
 
@@ -59,9 +59,12 @@ func main() {
 				return
 			case <-time.After(1 * time.Second):
 				passed, failed := c.Stats()
-				log.Infof("%d rps, ", passed-passed1sAgo)
-				log.Infof("%d passed (%.2f%%), ", passed, float64(passed)/float64(passed+failed)*100)
-				log.Infof("%d failed (%.2f%%)\n", failed, float64(failed)/float64(passed+failed)*100)
+				log.Infof(
+					"%d rps, %d passed (%.2f%%), %d failed (%.2f%%)\n",
+					passed-passed1sAgo,
+					passed, float64(passed)/float64(passed+failed)*100,
+					failed, float64(failed)/float64(passed+failed)*100,
+				)
 				passed1sAgo = passed
 			}
 		}
@@ -71,7 +74,7 @@ func main() {
 		defer wg.Done()
 		start := time.Now()
 		sem := make(chan struct{}, connections)
-		for time.Since(start) < duration*time.Second {
+		for time.Since(start) < duration {
 			select {
 			case sem <- struct{}{}:
 			case <-ctx.Done():

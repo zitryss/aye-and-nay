@@ -14,6 +14,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
+const (
+	retries = 5
+)
+
 var (
 	_ domain.Cacher = (*Redis)(nil)
 )
@@ -59,21 +63,35 @@ func (r *Redis) Allow(ctx context.Context, ip uint64) (bool, error) {
 
 func (r *Redis) Add(ctx context.Context, queue uint64, album uint64) error {
 	queueB64 := base64.FromUint64(queue)
-	albumB64 := base64.FromUint64(album)
 	key1 := "queue:" + queueB64 + ":set"
-	ok, err := r.client.SIsMember(ctx, key1, albumB64).Result()
-	if err != nil {
-		return errors.Wrap(err)
-	}
-	if ok {
+	key2 := "queue:" + queueB64 + ":list"
+	txFn := func(tx *redisdb.Tx) error {
+		albumB64 := base64.FromUint64(album)
+		ok, err := tx.SIsMember(ctx, key1, albumB64).Result()
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		if ok {
+			return nil
+		}
+		_, err = tx.SAdd(ctx, key1, albumB64).Result()
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		_, err = tx.RPush(ctx, key2, albumB64).Result()
+		if err != nil {
+			return errors.Wrap(err)
+		}
 		return nil
 	}
-	_, err = r.client.SAdd(ctx, key1, albumB64).Result()
-	if err != nil {
-		return errors.Wrap(err)
+	err := error(nil)
+	for i := 0; i < retries; i++ {
+		err = r.client.Watch(ctx, txFn, key1, key2)
+		if err != nil {
+			continue
+		}
+		break
 	}
-	key2 := "queue:" + queueB64 + ":list"
-	_, err = r.client.RPush(ctx, key2, albumB64).Result()
 	if err != nil {
 		return errors.Wrap(err)
 	}
@@ -83,16 +101,31 @@ func (r *Redis) Add(ctx context.Context, queue uint64, album uint64) error {
 func (r *Redis) Poll(ctx context.Context, queue uint64) (uint64, error) {
 	queueB64 := base64.FromUint64(queue)
 	key1 := "queue:" + queueB64 + ":list"
-	albumB64, err := r.client.LPop(ctx, key1).Result()
-	if errors.Is(err, redisdb.Nil) {
-		return 0x0, errors.Wrap(domain.ErrUnknown)
-	}
 	key2 := "queue:" + queueB64 + ":set"
-	_, err = r.client.SRem(ctx, key2, albumB64).Result()
-	if err != nil {
-		return 0x0, errors.Wrap(err)
+	album := uint64(0x0)
+	txFn := func(tx *redisdb.Tx) error {
+		albumB64, err := tx.LPop(ctx, key1).Result()
+		if errors.Is(err, redisdb.Nil) {
+			return errors.Wrap(domain.ErrUnknown)
+		}
+		_, err = tx.SRem(ctx, key2, albumB64).Result()
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		album, err = base64.ToUint64(albumB64)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		return nil
 	}
-	album, err := base64.ToUint64(albumB64)
+	err := error(nil)
+	for i := 0; i < retries; i++ {
+		err = r.client.Watch(ctx, txFn, key1, key2)
+		if err != nil {
+			continue
+		}
+		break
+	}
 	if err != nil {
 		return 0x0, errors.Wrap(err)
 	}
@@ -149,9 +182,9 @@ func (r *Redis) PSize(ctx context.Context, pqueue uint64) (int, error) {
 }
 
 func (r *Redis) Push(ctx context.Context, album uint64, pairs [][2]uint64) error {
+	pipe := r.client.Pipeline()
 	albumB64 := base64.FromUint64(album)
 	key := "album:" + albumB64 + ":pairs"
-	pipe := r.client.Pipeline()
 	for _, images := range pairs {
 		image0B64 := base64.FromUint64(images[0])
 		image1B64 := base64.FromUint64(images[1])

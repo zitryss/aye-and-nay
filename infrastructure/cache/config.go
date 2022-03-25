@@ -26,6 +26,7 @@ type RedisConfig struct {
 	LimiterRequestsPerSecond int           `mapstructure:"MIDDLEWARE_LIMITER_REQUESTS_PER_SECOND" validate:"required"`
 	LimiterBurst             int64         `mapstructure:"MIDDLEWARE_LIMITER_BURST"               validate:"required"`
 	TimeToLive               time.Duration `mapstructure:"CACHE_REDIS_TIME_TO_LIVE"               validate:"required"`
+	TxRetries                int           `mapstructure:"CACHE_REDIS_TX_RETRIES"                 validate:"required"`
 }
 
 var (
@@ -44,5 +45,6 @@ var (
 		LimiterRequestsPerSecond: 1,
 		LimiterBurst:             1,
 		TimeToLive:               3 * time.Second,
+		TxRetries:                1,
 	}
 )

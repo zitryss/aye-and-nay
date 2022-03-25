@@ -197,6 +197,14 @@ func main() {
 		}
 
 		stop()
+
+		b, ok := data.(*database.Badger)
+		if ok {
+			err = b.Close(context.Background())
+			if err != nil {
+				log.Error(err)
+			}
+		}
 	}
 
 	r, ok := cach.(*cache.Redis)
@@ -210,14 +218,6 @@ func main() {
 	m, ok := data.(*database.Mongo)
 	if ok {
 		err = m.Close(context.Background())
-		if err != nil {
-			log.Error(err)
-		}
-	}
-
-	b, ok := data.(*database.Badger)
-	if ok {
-		err = b.Close(context.Background())
 		if err != nil {
 			log.Error(err)
 		}

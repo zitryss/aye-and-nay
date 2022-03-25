@@ -14,10 +14,6 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
-const (
-	retries = 5
-)
-
 var (
 	_ domain.Cacher = (*Redis)(nil)
 )
@@ -85,7 +81,7 @@ func (r *Redis) Add(ctx context.Context, queue uint64, album uint64) error {
 		return nil
 	}
 	err := error(nil)
-	for i := 0; i < retries; i++ {
+	for i := 0; i < r.conf.TxRetries; i++ {
 		err = r.client.Watch(ctx, txFn, key1, key2)
 		if err != nil {
 			continue
@@ -119,7 +115,7 @@ func (r *Redis) Poll(ctx context.Context, queue uint64) (uint64, error) {
 		return nil
 	}
 	err := error(nil)
-	for i := 0; i < retries; i++ {
+	for i := 0; i < r.conf.TxRetries; i++ {
 		err = r.client.Watch(ctx, txFn, key1, key2)
 		if err != nil {
 			continue
@@ -134,12 +130,36 @@ func (r *Redis) Poll(ctx context.Context, queue uint64) (uint64, error) {
 
 func (r *Redis) Size(ctx context.Context, queue uint64) (int, error) {
 	queueB64 := base64.FromUint64(queue)
-	key := "queue:" + queueB64 + ":set"
-	n, err := r.client.SCard(ctx, key).Result()
+	key1 := "queue:" + queueB64 + ":set"
+	key2 := "queue:" + queueB64 + ":list"
+	n := 0
+	txFn := func(tx *redisdb.Tx) error {
+		n1, err := r.client.SCard(ctx, key1).Result()
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		n2, err := r.client.LLen(ctx, key2).Result()
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		if n1 != n2 {
+			return errors.Wrap(domain.ErrUnknown)
+		}
+		n = int(n1)
+		return nil
+	}
+	err := error(nil)
+	for i := 0; i < r.conf.TxRetries; i++ {
+		err = r.client.Watch(ctx, txFn, key1, key2)
+		if err != nil {
+			continue
+		}
+		break
+	}
 	if err != nil {
 		return 0, errors.Wrap(err)
 	}
-	return int(n), nil
+	return n, nil
 }
 
 func (r *Redis) PAdd(ctx context.Context, pqueue uint64, album uint64, expires time.Time) error {

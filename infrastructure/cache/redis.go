@@ -168,14 +168,10 @@ func (r *Redis) Push(ctx context.Context, album uint64, pairs [][2]uint64) error
 func (r *Redis) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 	albumB64 := base64.FromUint64(album)
 	key := "album:" + albumB64 + ":pairs"
-	n, err := r.client.LLen(ctx, key).Result()
-	if err != nil {
-		return 0x0, 0x0, errors.Wrap(err)
-	}
-	if n == 0 {
+	val, err := r.client.LPop(ctx, key).Result()
+	if errors.Is(err, redisdb.Nil) {
 		return 0x0, 0x0, errors.Wrap(domain.ErrPairNotFound)
 	}
-	val, err := r.client.LPop(ctx, key).Result()
 	if err != nil {
 		return 0x0, 0x0, errors.Wrap(err)
 	}

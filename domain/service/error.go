@@ -14,8 +14,7 @@ func handleError(err error) {
 
 func HandleInnerError(err error) {
 	cause := errors.Cause(err)
-	e := domain.Error(nil)
-	if errors.As(cause, &e) {
+	if e := domain.Error(nil); errors.As(cause, &e) {
 		log.Println(log.Level(e.Inner().Level), err)
 		return
 	}

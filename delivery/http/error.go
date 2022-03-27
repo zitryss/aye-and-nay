@@ -45,8 +45,7 @@ func handleOuterError(w http.ResponseWriter, err error) {
 		_ = json.NewEncoder(w).Encode(resp)
 	}()
 	cause := errors.Cause(err)
-	e := domain.Error(nil)
-	if errors.As(cause, &e) {
+	if e := domain.Error(nil); errors.As(cause, &e) {
 		out := e.Outer()
 		resp.Error.statusCode = out.StatusCode
 		resp.Error.AppCode = out.AppCode

@@ -168,7 +168,7 @@ func (c *controller) handleStatus() httprouter.Handle {
 	process := func(ctx context.Context, req statusRequest) (statusResponse, error) {
 		album, err := base64.ToUint64(req.album.id)
 		if err != nil {
-			return statusResponse{}, errors.Wrap(err)
+			return statusResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		p, err := c.serv.Progress(ctx, album)
 		if err != nil {
@@ -215,7 +215,7 @@ func (c *controller) handlePair() httprouter.Handle {
 	process := func(ctx context.Context, req pairRequest) (pairResponse, error) {
 		album, err := base64.ToUint64(req.album.id)
 		if err != nil {
-			return pairResponse{}, errors.Wrap(err)
+			return pairResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		img1, img2, err := c.serv.Pair(ctx, album)
 		if err != nil {
@@ -267,7 +267,7 @@ func (c *controller) handleImage() httprouter.Handle {
 	process := func(ctx context.Context, req imageRequest) (imageResponse, error) {
 		token, err := base64.ToUint64(req.image.token)
 		if err != nil {
-			return imageResponse{}, errors.Wrap(err)
+			return imageResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		f, err := c.serv.Image(ctx, token)
 		if err != nil {
@@ -321,15 +321,15 @@ func (c *controller) handleVote() httprouter.Handle {
 	process := func(ctx context.Context, req voteRequest) (voteResponse, error) {
 		album, err := base64.ToUint64(req.Album.id)
 		if err != nil {
-			return voteResponse{}, errors.Wrap(err)
+			return voteResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		imgFromToken, err := base64.ToUint64(req.Album.ImgFrom.Token)
 		if err != nil {
-			return voteResponse{}, errors.Wrap(err)
+			return voteResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		imgToToken, err := base64.ToUint64(req.Album.ImgTo.Token)
 		if err != nil {
-			return voteResponse{}, errors.Wrap(err)
+			return voteResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		err = c.serv.Vote(ctx, album, imgFromToken, imgToToken)
 		if err != nil {
@@ -370,7 +370,7 @@ func (c *controller) handleTop() httprouter.Handle {
 	process := func(ctx context.Context, req topRequest) (topResponse, error) {
 		album, err := base64.ToUint64(req.album.id)
 		if err != nil {
-			return topResponse{}, errors.Wrap(err)
+			return topResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		imgs, err := c.serv.Top(ctx, album)
 		if err != nil {

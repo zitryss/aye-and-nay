@@ -113,6 +113,17 @@ var (
 			DevMsg: "duration invalid",
 		},
 	}
+	ErrInvalidId = &domainError{
+		outerError: outerError{
+			StatusCode: http.StatusBadRequest,
+			AppCode:    0x17,
+			UserMsg:    "id invalid",
+		},
+		innerError: innerError{
+			Level:  logDebug,
+			DevMsg: "id invalid",
+		},
+	}
 	ErrAlbumNotFound = &domainError{
 		outerError: outerError{
 			StatusCode: http.StatusNotFound,

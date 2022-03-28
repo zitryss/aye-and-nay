@@ -11,6 +11,7 @@ import (
 
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/process"
+	"github.com/spf13/afero"
 
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/log"
@@ -25,6 +26,7 @@ var (
 	lastGOGC      float64
 	memTotal      float64
 	memLimitRatio = 0.7
+	appFs         = afero.NewOsFs()
 )
 
 func Start(ctx context.Context, total int, ratio float64) error {
@@ -39,7 +41,7 @@ func Start(ctx context.Context, total int, ratio float64) error {
 			return errors.Wrap(err)
 		}
 	}
-	if total >= 0.0 {
+	if total > 0.0 {
 		memTotal = float64(total)
 	}
 	if ratio > 0.0 && ratio <= 1.0 {
@@ -73,37 +75,62 @@ func checkMemTotal() error {
 }
 
 func checkCgroup() error {
-	for _, path := range []string{cgroupMemTotalPathV1, cgroupMemTotalPathV2} {
-		f, err := os.Open(path)
-		if err != nil {
-			continue
-		}
-		defer f.Close()
-		err = readCgroupMemTotal(f)
-		if err != nil {
-			return errors.Wrap(err)
-		}
+	var (
+		f   io.ReadCloser
+		err error
+		e   error
+		mt  float64
+	)
+	f, err = appFs.Open(cgroupMemTotalPathV1)
+	if err != nil {
+		e = errors.Wrap(err)
+		goto second_file
+	}
+	defer f.Close()
+	mt, err = readCgroupMemTotal(f)
+	if err != nil {
+		e = errors.Wrap(err)
+		goto second_file
+	}
+	if mt > 0.0 && mt < memTotal {
+		memTotal = mt
+	}
+second_file:
+	f, err = appFs.Open(cgroupMemTotalPathV2)
+	if err != nil {
+		return nil
+	}
+	defer f.Close()
+	mt, err = readCgroupMemTotal(f)
+	if err != nil && e != nil {
+		return errors.Wrapf(err, "%s", e)
+	}
+	if err != nil && e == nil {
+		return nil
+	}
+	if mt > 0.0 && mt < memTotal {
+		memTotal = mt
 	}
 	return nil
 }
 
-func readCgroupMemTotal(f io.Reader) error {
+func readCgroupMemTotal(f io.Reader) (float64, error) {
 	b, err := io.ReadAll(f)
 	if err != nil {
-		return errors.Wrap(err)
+		return 0.0, errors.Wrap(err)
 	}
 	s := strings.TrimSpace(string(b))
-	if s == "max" {
-		return nil
+	if s == "" || s == "max" {
+		return 0.0, nil
 	}
 	cgroupMemTotal, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		return errors.Wrap(err)
+		return 0.0, errors.Wrap(err)
 	}
-	if cgroupMemTotal > 0.0 && cgroupMemTotal < memTotal {
-		memTotal = cgroupMemTotal
+	if cgroupMemTotal <= 0.0 {
+		return 0.0, nil
 	}
-	return nil
+	return cgroupMemTotal, nil
 }
 
 type finalizer struct {

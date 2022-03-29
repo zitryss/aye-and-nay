@@ -23,10 +23,12 @@ const (
 )
 
 var (
+	newGOGC       float64
 	lastGOGC      float64
 	memTotal      float64
 	memLimitRatio = 0.7
 	appFs         = afero.NewOsFs()
+	memUsedFn     = memProcess
 )
 
 func Start(ctx context.Context, total int, ratio float64) error {
@@ -157,17 +159,18 @@ func finalizerHandler(ctx context.Context) func(fin *finalizerRef) {
 }
 
 func updateGOGC() error {
-	p, err := process.NewProcess(int32(os.Getpid()))
+	memUsed, err := memUsedFn()
 	if err != nil {
 		return errors.Wrap(err)
 	}
-	processMemory, err := p.MemoryInfo()
-	if err != nil {
-		return errors.Wrap(err)
+	if memTotal == 0 {
+		return errors.New("division by zero")
 	}
-	memUsed := float64(processMemory.RSS)
 	memUsedRatio := memUsed / memTotal
-	newGOGC := (memLimitRatio - memUsedRatio) / memUsedRatio * 100.0
+	if memUsedRatio == 0 {
+		return errors.New("division by zero")
+	}
+	newGOGC = (memLimitRatio - memUsedRatio) / memUsedRatio * 100.0
 	if newGOGC < 0.0 {
 		newGOGC = lastGOGC * memLimitRatio / memUsedRatio
 	}
@@ -176,4 +179,16 @@ func updateGOGC() error {
 	log.Debugf("mem used ratio: %.2f\n", memUsedRatio)
 	log.Debugf("new GOGC: %.0f\n", newGOGC)
 	return nil
+}
+
+func memProcess() (float64, error) {
+	p, err := process.NewProcess(int32(os.Getpid()))
+	if err != nil {
+		return 0.0, errors.Wrap(err)
+	}
+	processMemory, err := p.MemoryInfo()
+	if err != nil {
+		return 0.0, errors.Wrap(err)
+	}
+	return float64(processMemory.RSS), nil
 }

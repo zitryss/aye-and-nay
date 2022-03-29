@@ -21,7 +21,7 @@ func TestLogLevelPositive(t *testing.T) {
 		t.Skip()
 	}
 	tests := []struct {
-		level interface{}
+		level any
 		want  string
 	}{
 		{
@@ -83,7 +83,7 @@ func TestLogLevelNegative(t *testing.T) {
 		t.Skip()
 	}
 	tests := []struct {
-		level interface{}
+		level any
 		want  string
 	}{
 		{

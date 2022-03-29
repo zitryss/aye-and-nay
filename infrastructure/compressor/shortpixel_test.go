@@ -17,7 +17,7 @@ import (
 
 type response []struct {
 	Status struct {
-		Code    interface{}
+		Code    any
 		Message string
 	}
 	OriginalURL        string `json:"OriginalURL,omitempty"`
@@ -53,7 +53,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -151,7 +151,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -209,7 +209,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -265,7 +265,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -341,7 +341,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    -110,
@@ -365,7 +365,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    -201,
@@ -389,7 +389,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    -202,
@@ -419,7 +419,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -452,7 +452,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -545,7 +545,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -579,7 +579,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -611,7 +611,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -668,7 +668,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -696,7 +696,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    -110,
@@ -713,7 +713,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -741,7 +741,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -761,7 +761,7 @@ func TestShortpixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",

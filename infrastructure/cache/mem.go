@@ -34,19 +34,19 @@ func NewMem(conf MemConfig, opts ...options) *Mem {
 
 type options func(*Mem)
 
-func WithHeartbeatCleanup(ch chan<- interface{}) options {
+func WithHeartbeatCleanup(ch chan<- any) options {
 	return func(m *Mem) {
 		m.heartbeat.cleanup = ch
 	}
 }
 
-func WithHeartbeatPair(ch chan<- interface{}) options {
+func WithHeartbeatPair(ch chan<- any) options {
 	return func(m *Mem) {
 		m.heartbeat.pair = ch
 	}
 }
 
-func WithHeartbeatToken(ch chan<- interface{}) options {
+func WithHeartbeatToken(ch chan<- any) options {
 	return func(m *Mem) {
 		m.heartbeat.token = ch
 	}
@@ -60,9 +60,9 @@ type Mem struct {
 	syncPairs
 	syncTokens
 	heartbeat struct {
-		cleanup chan<- interface{}
-		pair    chan<- interface{}
-		token   chan<- interface{}
+		cleanup chan<- any
+		pair    chan<- any
+		token   chan<- any
 	}
 }
 
@@ -112,7 +112,7 @@ type elem struct {
 	expires time.Time
 }
 
-func timeComparator(a, b interface{}) int {
+func timeComparator(a, b any) int {
 	tA := a.(elem).expires
 	tB := b.(elem).expires
 	switch {

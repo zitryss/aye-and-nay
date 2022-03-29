@@ -23,9 +23,9 @@ type MemTestSuite struct {
 	ctx              context.Context
 	cancel           context.CancelFunc
 	conf             MemConfig
-	heartbeatCleanup chan interface{}
-	heartbeatPair    chan interface{}
-	heartbeatToken   chan interface{}
+	heartbeatCleanup chan any
+	heartbeatPair    chan any
+	heartbeatToken   chan any
 	cache            domain.Cacher
 	setupTestFn      func()
 }
@@ -36,9 +36,9 @@ func (suite *MemTestSuite) SetupSuite() {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	conf := DefaultMemConfig
-	hc := make(chan interface{})
-	hp := make(chan interface{})
-	ht := make(chan interface{})
+	hc := make(chan any)
+	hp := make(chan any)
+	ht := make(chan any)
 	mem := NewMem(conf, WithHeartbeatCleanup(hc), WithHeartbeatPair(hp), WithHeartbeatToken(ht))
 	mem.Monitor(ctx)
 	suite.ctx = ctx

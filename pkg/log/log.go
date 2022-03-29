@@ -41,7 +41,7 @@ func SetFlags(flag int) {
 	l.SetFlags(flag)
 }
 
-func SetLevel(lvl interface{}) {
+func SetLevel(lvl any) {
 	oldLevel := l.lvl
 	newLevel := disabled
 	switch v := lvl.(type) {
@@ -71,46 +71,46 @@ func SetLevel(lvl interface{}) {
 	l.lvl = newLevel
 }
 
-func Println(level Level, v ...interface{}) {
+func Println(level Level, v ...any) {
 	if DEBUG <= level && level <= CRITICAL && l.lvl <= level {
-		l.Println(append([]interface{}{fmt.Sprint(level) + ":"}, v...)...)
+		l.Println(append([]any{fmt.Sprint(level) + ":"}, v...)...)
 	}
 }
 
-func Printf(level Level, format string, v ...interface{}) {
+func Printf(level Level, format string, v ...any) {
 	if DEBUG <= level && level <= CRITICAL && l.lvl <= level {
-		l.Printf("%s: "+format, append([]interface{}{level}, v...)...)
+		l.Printf("%s: "+format, append([]any{level}, v...)...)
 	}
 }
 
-func Debug(v ...interface{}) {
+func Debug(v ...any) {
 	Println(DEBUG, v...)
 }
 
-func Debugf(format string, v ...interface{}) {
+func Debugf(format string, v ...any) {
 	Printf(DEBUG, format, v...)
 }
 
-func Info(v ...interface{}) {
+func Info(v ...any) {
 	Println(INFO, v...)
 }
 
-func Infof(format string, v ...interface{}) {
+func Infof(format string, v ...any) {
 	Printf(INFO, format, v...)
 }
 
-func Error(v ...interface{}) {
+func Error(v ...any) {
 	Println(ERROR, v...)
 }
 
-func Errorf(format string, v ...interface{}) {
+func Errorf(format string, v ...any) {
 	Printf(ERROR, format, v...)
 }
 
-func Critical(v ...interface{}) {
+func Critical(v ...any) {
 	Println(CRITICAL, v...)
 }
 
-func Criticalf(format string, v ...interface{}) {
+func Criticalf(format string, v ...any) {
 	Printf(CRITICAL, format, v...)
 }

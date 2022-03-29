@@ -86,7 +86,7 @@ func (m *Mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 	if n > 0 {
 		return errors.Wrap(domain.ErrAlbumAlreadyExists)
 	}
-	imgsDao := make([]interface{}, 0, len(alb.Images))
+	imgsDao := make([]any, 0, len(alb.Images))
 	albLru := make(albumLru, len(alb.Images))
 	for _, img := range alb.Images {
 		imgDao := imageDao{int64(alb.Id), int64(img.Id), img.Src, img.Rating, m.conf.Compressed, alb.Expires}

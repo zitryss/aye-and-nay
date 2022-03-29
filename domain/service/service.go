@@ -96,19 +96,19 @@ func WithRandShuffle(fn func(int, func(int, int))) options {
 	}
 }
 
-func WithHeartbeatCalc(ch chan<- interface{}) options {
+func WithHeartbeatCalc(ch chan<- any) options {
 	return func(s *Service) {
 		s.heartbeat.calc = ch
 	}
 }
 
-func WithHeartbeatComp(ch chan<- interface{}) options {
+func WithHeartbeatComp(ch chan<- any) options {
 	return func(s *Service) {
 		s.heartbeat.comp = ch
 	}
 }
 
-func WithHeartbeatDel(ch chan<- interface{}) options {
+func WithHeartbeatDel(ch chan<- any) options {
 	return func(s *Service) {
 		s.heartbeat.del = ch
 	}
@@ -132,9 +132,9 @@ type Service struct {
 		shuffle func(n int, swap func(i, j int))
 	}
 	heartbeat struct {
-		calc chan<- interface{}
-		comp chan<- interface{}
-		del  chan<- interface{}
+		calc chan<- any
+		comp chan<- any
+		del  chan<- any
 	}
 }
 

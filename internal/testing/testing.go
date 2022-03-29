@@ -73,12 +73,12 @@ func AssertBody(t *testing.T, w *httptest.ResponseRecorder, body string) {
 	}
 }
 
-func AssertChannel(t *testing.T, heartbeat <-chan interface{}) interface{} {
+func AssertChannel(t *testing.T, heartbeat <-chan any) any {
 	t.Helper()
 	if heartbeat == nil {
 		return nil
 	}
-	v := interface{}(nil)
+	v := any(nil)
 	select {
 	case v = <-heartbeat:
 	case <-time.After(1 * time.Second):
@@ -87,7 +87,7 @@ func AssertChannel(t *testing.T, heartbeat <-chan interface{}) interface{} {
 	return v
 }
 
-func AssertNotChannel(t *testing.T, heartbeat <-chan interface{}) {
+func AssertNotChannel(t *testing.T, heartbeat <-chan any) {
 	t.Helper()
 	if heartbeat == nil {
 		return

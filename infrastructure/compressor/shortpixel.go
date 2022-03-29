@@ -34,7 +34,7 @@ func NewShortpixel(conf ShortpixelConfig, opts ...options) *Shortpixel {
 
 type options func(*Shortpixel)
 
-func WithHeartbeatRestart(ch chan<- interface{}) options {
+func WithHeartbeatRestart(ch chan<- any) options {
 	return func(sp *Shortpixel) {
 		sp.heartbeat.restart = ch
 	}
@@ -45,7 +45,7 @@ type Shortpixel struct {
 	done      uint32
 	ch        chan struct{}
 	heartbeat struct {
-		restart chan<- interface{}
+		restart chan<- any
 	}
 }
 
@@ -220,7 +220,7 @@ func (sp *Shortpixel) upload(ctx context.Context, f model.File) (string, error) 
 	buf.Write(bb)
 	response := struct {
 		Status struct {
-			Code    interface{}
+			Code    any
 			Message string
 		}
 		OriginalUrl string
@@ -314,7 +314,7 @@ func (sp *Shortpixel) repeat(ctx context.Context, src string) (string, error) {
 	buf.Write(b)
 	response := struct {
 		Status struct {
-			Code    interface{}
+			Code    any
 			Message string
 		}
 		LossyUrl string

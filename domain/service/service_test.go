@@ -70,9 +70,9 @@ type ServiceTestSuite struct {
 	cancel        context.CancelFunc
 	id            IdGenFunc
 	ids           *IdLogBook
-	heartbeatComp chan interface{}
-	heartbeatCalc chan interface{}
-	heartbeatDel  chan interface{}
+	heartbeatComp chan any
+	heartbeatCalc chan any
+	heartbeatDel  chan any
 	serv          *Service
 	gComp         *errgroup.Group
 	gCalc         *errgroup.Group
@@ -93,9 +93,9 @@ func (suite *ServiceTestSuite) SetupSuite() {
 	qDel := NewQueueDel(cach)
 	qDel.Monitor(ctx)
 	fnShuffle := func(n int, swap func(i int, j int)) {}
-	heartbeatComp := make(chan interface{})
-	heartbeatCalc := make(chan interface{})
-	heartbeatDel := make(chan interface{})
+	heartbeatComp := make(chan any)
+	heartbeatCalc := make(chan any)
+	heartbeatDel := make(chan any)
 	serv := New(DefaultServiceConfig, comp, stor, data, cach, qCalc, qComp, qDel,
 		WithRandShuffle(fnShuffle),
 		WithHeartbeatComp(heartbeatComp),

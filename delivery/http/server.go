@@ -36,7 +36,7 @@ func NewServer(
 func newServer(conf ServerConfig, handler http.Handler) (*http.Server, error) {
 	srv := &http.Server{
 		Addr:         conf.Host + ":" + conf.Port,
-		Handler:      http.TimeoutHandler(handler, conf.WriteTimeout, ""),
+		Handler:      handler,
 		ReadTimeout:  conf.ReadTimeout,
 		WriteTimeout: conf.WriteTimeout + 1*time.Second,
 		IdleTimeout:  conf.IdleTimeout,

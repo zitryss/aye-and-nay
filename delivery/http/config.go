@@ -21,8 +21,9 @@ type ServerConfig struct {
 }
 
 type MiddlewareConfig struct {
-	CorsAllowOrigin string `mapstructure:"MIDDLEWARE_CORS_ALLOW_ORIGIN" validate:"required"`
-	MaxFileSize     int64  `mapstructure:"CONTROLLER_MAX_FILE_SIZE"       validate:"required"`
+	CorsAllowOrigin string        `mapstructure:"MIDDLEWARE_CORS_ALLOW_ORIGIN" validate:"required"`
+	WriteTimeout    time.Duration `mapstructure:"SERVER_WRITE_TIMEOUT"         validate:"required"`
+	MaxFileSize     int64         `mapstructure:"CONTROLLER_MAX_FILE_SIZE"     validate:"required"`
 }
 
 type ControllerConfig struct {
@@ -44,6 +45,7 @@ var (
 	}
 	DefaultMiddlewareConfig = MiddlewareConfig{
 		CorsAllowOrigin: "",
+		WriteTimeout:    10 * time.Second,
 		MaxFileSize:     512 * kb,
 	}
 	DefaultControllerConfig = ControllerConfig{

@@ -29,7 +29,22 @@ func (m *Middleware) Chain(h http.Handler) http.Handler {
 		AllowedOrigins: []string{m.conf.CorsAllowOrigin},
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch},
 	})
-	return m.recover(m.limit(c.Handler(http.MaxBytesHandler(m.headers(h), m.conf.MaxFileSize))))
+	handler :=
+		m.recover(
+			m.limit(
+				c.Handler(
+					http.TimeoutHandler(
+						http.MaxBytesHandler(
+							m.headers(h),
+							m.conf.MaxFileSize,
+						),
+						m.conf.WriteTimeout,
+						"",
+					),
+				),
+			),
+		)
+	return handler
 }
 
 func (m *Middleware) recover(h http.Handler) http.Handler {

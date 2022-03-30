@@ -1,7 +1,9 @@
 package gctuner
 
 import (
+	"flag"
 	"io"
+	"runtime/debug"
 	"strings"
 	"testing"
 
@@ -11,7 +13,16 @@ import (
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
+var (
+	unit        = flag.Bool("unit", false, "")
+	integration = flag.Bool("int", false, "")
+	ci          = flag.Bool("ci", false, "")
+)
+
 func TestReadCgroupMemTotal(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	tests := []struct {
 		f       io.Reader
 		want    float64
@@ -77,6 +88,9 @@ func TestReadCgroupMemTotal(t *testing.T) {
 }
 
 func TestMemTotal(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	tests := []struct {
 		total            float64
 		cgroupMemTotalV1 []byte
@@ -216,6 +230,9 @@ func TestMemTotal(t *testing.T) {
 }
 
 func TestUpdateGOGC(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	memTestFn := func(memUsed float64) func() (float64, error) {
 		return func() (float64, error) {
 			return memUsed, nil
@@ -239,7 +256,7 @@ func TestUpdateGOGC(t *testing.T) {
 			memTotal:      100.0,
 			memUsed:       99.9,
 			memLimitRatio: 0.5,
-			want:          50.05005005005005,
+			want:          99.59959959959959,
 			wantErr:       false,
 		},
 		{
@@ -262,6 +279,7 @@ func TestUpdateGOGC(t *testing.T) {
 			memTotal = tt.memTotal
 			memUsedFn = memTestFn(tt.memUsed)
 			memLimitRatio = tt.memLimitRatio
+			lastGOGC = float64(debug.SetGCPercent(100))
 			err := updateGOGC()
 			if tt.wantErr {
 				assert.Error(t, err)

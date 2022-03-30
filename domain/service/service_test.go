@@ -81,6 +81,9 @@ type ServiceTestSuite struct {
 }
 
 func (suite *ServiceTestSuite) SetupSuite() {
+	if !*unit {
+		suite.T().Skip()
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	comp := compressor.NewMock()
 	stor := storage.NewMock()

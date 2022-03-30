@@ -29,7 +29,7 @@ func (m *Middleware) Chain(h http.Handler) http.Handler {
 		AllowedOrigins: []string{m.conf.CorsAllowOrigin},
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch},
 	})
-	return m.recover(m.limit(c.Handler(m.headers(h))))
+	return m.recover(m.limit(c.Handler(http.MaxBytesHandler(m.headers(h), m.conf.MaxFileSize))))
 }
 
 func (m *Middleware) recover(h http.Handler) http.Handler {
@@ -87,7 +87,9 @@ func (m *Middleware) headers(h http.Handler) http.Handler {
 func ip(r *http.Request) string {
 	xff := r.Header.Get("X-Forwarded-For")
 	if xff != "" {
-		return strings.Split(xff, ", ")[0]
+		before, _, _ := strings.Cut(xff, ", ")
+		return before
 	}
-	return strings.Split(r.RemoteAddr, ":")[0]
+	before, _, _ := strings.Cut(r.RemoteAddr, ":")
+	return before
 }

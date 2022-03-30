@@ -229,15 +229,15 @@ func (r *Redis) Pop(ctx context.Context, album uint64) (uint64, uint64, error) {
 		return 0x0, 0x0, errors.Wrap(err)
 	}
 	_ = r.client.Expire(ctx, key, r.conf.TimeToLive)
-	imagesB64 := strings.Split(val, ":")
-	if len(imagesB64) != 2 {
+	image1B64, image2B64, found := strings.Cut(val, ":")
+	if !found {
 		return 0x0, 0x0, errors.Wrap(domain.ErrUnknown)
 	}
-	image0, err := base64.ToUint64(imagesB64[0])
+	image0, err := base64.ToUint64(image1B64)
 	if err != nil {
 		return 0x0, 0x0, errors.Wrap(err)
 	}
-	image1, err := base64.ToUint64(imagesB64[1])
+	image1, err := base64.ToUint64(image2B64)
 	if err != nil {
 		return 0x0, 0x0, errors.Wrap(err)
 	}
@@ -273,15 +273,15 @@ func (r *Redis) Get(ctx context.Context, token uint64) (uint64, uint64, error) {
 	if err != nil {
 		return 0x0, 0x0, errors.Wrap(err)
 	}
-	ss := strings.Split(s, ":")
-	if len(ss) != 2 {
+	albumB64, imageB64, found := strings.Cut(s, ":")
+	if !found {
 		return 0x0, 0x0, errors.Wrap(domain.ErrUnknown)
 	}
-	album, err := base64.ToUint64(ss[0])
+	album, err := base64.ToUint64(albumB64)
 	if err != nil {
 		return 0x0, 0x0, errors.Wrap(err)
 	}
-	image, err := base64.ToUint64(ss[1])
+	image, err := base64.ToUint64(imageB64)
 	if err != nil {
 		return 0x0, 0x0, errors.Wrap(err)
 	}

@@ -55,12 +55,12 @@ func AssertStatusCode(t *testing.T, w *httptest.ResponseRecorder, code int) {
 	}
 }
 
-func AssertContentType(t *testing.T, w *httptest.ResponseRecorder, content string) {
+func AssertHeader(t *testing.T, w *httptest.ResponseRecorder, header string, value string) {
 	t.Helper()
-	got := w.Result().Header.Get("Content-Type")
-	want := content
+	got := w.Result().Header.Get(header)
+	want := value
 	if got != want {
-		t.Errorf("Content-Type = %v; want %v", got, want)
+		t.Errorf("%v = %v; want %v", header, got, want)
 	}
 }
 

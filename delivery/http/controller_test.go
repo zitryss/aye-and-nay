@@ -247,7 +247,7 @@ func TestControllerHandle(t *testing.T) {
 			}
 			fn(w, r, tt.give.params)
 			AssertStatusCode(t, w, tt.want.code)
-			AssertContentType(t, w, tt.want.typ)
+			AssertHeader(t, w, "Content-Type", tt.want.typ)
 			AssertBody(t, w, tt.want.respBody)
 		})
 	}
@@ -550,7 +550,7 @@ func TestControllerError(t *testing.T) {
 			r := httptest.NewRequest(http.MethodGet, "/api/health/", http.NoBody)
 			fn(w, r, nil)
 			AssertStatusCode(t, w, tt.want.code)
-			AssertContentType(t, w, tt.want.typ)
+			AssertHeader(t, w, "Content-Type", tt.want.typ)
 			AssertBody(t, w, tt.want.respBody)
 		})
 	}

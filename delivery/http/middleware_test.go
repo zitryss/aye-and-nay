@@ -9,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	. "github.com/zitryss/aye-and-nay/internal/context"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
@@ -42,7 +43,7 @@ func TestMiddlewareRecover(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		handler.ServeHTTP(w, r)
 		AssertStatusCode(t, w, 418)
-		AssertContentType(t, w, "text/plain; charset=utf-8")
+		AssertHeader(t, w, "Content-Type", "text/plain; charset=utf-8")
 		AssertBody(t, w, `I'm a teapot`)
 	})
 	t.Run("Negative", func(t *testing.T) {
@@ -57,7 +58,7 @@ func TestMiddlewareRecover(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		handler.ServeHTTP(w, r)
 		AssertStatusCode(t, w, 500)
-		AssertContentType(t, w, "application/json; charset=utf-8")
+		AssertHeader(t, w, "Content-Type", "application/json; charset=utf-8")
 		AssertBody(t, w, `{"error":{"code":22,"msg":"internal server error"}}`+"\n")
 	})
 }
@@ -80,7 +81,7 @@ func TestMiddlewareLimit(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		handler.ServeHTTP(w, r)
 		AssertStatusCode(t, w, 418)
-		AssertContentType(t, w, "text/plain; charset=utf-8")
+		AssertHeader(t, w, "Content-Type", "text/plain; charset=utf-8")
 		AssertBody(t, w, `I'm a teapot`)
 	})
 	t.Run("Negative", func(t *testing.T) {
@@ -97,7 +98,7 @@ func TestMiddlewareLimit(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
 		handler.ServeHTTP(w, r)
 		AssertStatusCode(t, w, 429)
-		AssertContentType(t, w, "application/json; charset=utf-8")
+		AssertHeader(t, w, "Content-Type", "application/json; charset=utf-8")
 		AssertBody(t, w, `{"error":{"code":1,"msg":"too many requests"}}`+"\n")
 	})
 }
@@ -160,4 +161,60 @@ func TestIP(t *testing.T) {
 			assert.Equal(t, tt.want, ip(r))
 		})
 	}
+}
+
+func TestMiddlewareRequestId(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
+	t.Parallel()
+	ids := []uint64{0}
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		id := GetRequestId(ctx)
+		assert.NotZero(t, id)
+		assert.Positive(t, id)
+		assert.Greater(t, id, ids[len(ids)-1])
+		ids = append(ids, id)
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(418)
+		_, _ = io.WriteString(w, "I'm a teapot")
+	}
+	lim := limiterMockPos{}
+	middle := NewMiddleware(DefaultMiddlewareConfig, lim)
+	handler := middle.requestId(http.HandlerFunc(fn))
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
+	handler.ServeHTTP(w, r)
+	AssertStatusCode(t, w, 418)
+	AssertHeader(t, w, "Content-Type", "text/plain; charset=utf-8")
+	AssertBody(t, w, `I'm a teapot`)
+	w = httptest.NewRecorder()
+	r = httptest.NewRequest(http.MethodGet, "/", http.NoBody)
+	handler.ServeHTTP(w, r)
+	AssertStatusCode(t, w, 418)
+	AssertHeader(t, w, "Content-Type", "text/plain; charset=utf-8")
+	AssertBody(t, w, `I'm a teapot`)
+}
+
+func TestMiddlewareHeaders(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
+	t.Parallel()
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(418)
+		_, _ = io.WriteString(w, "I'm a teapot")
+	}
+	lim := limiterMockPos{}
+	middle := NewMiddleware(DefaultMiddlewareConfig, lim)
+	handler := middle.headers(http.HandlerFunc(fn))
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest(http.MethodGet, "/", http.NoBody)
+	handler.ServeHTTP(w, r)
+	AssertStatusCode(t, w, 418)
+	AssertHeader(t, w, "Content-Type", "text/plain; charset=utf-8")
+	AssertHeader(t, w, "X-Content-Type-Options", "nosniff")
+	AssertBody(t, w, `I'm a teapot`)
 }

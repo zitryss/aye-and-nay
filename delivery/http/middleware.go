@@ -9,6 +9,7 @@ import (
 	"github.com/rs/cors"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
+	"github.com/zitryss/aye-and-nay/internal/context"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
@@ -35,7 +36,9 @@ func (m *Middleware) Chain(h http.Handler) http.Handler {
 				c.Handler(
 					http.TimeoutHandler(
 						http.MaxBytesHandler(
-							m.headers(h),
+							m.requestId(
+								m.headers(h),
+							),
 							m.conf.MaxFileSize,
 						),
 						m.conf.WriteTimeout,
@@ -90,15 +93,6 @@ func (m *Middleware) limit(h http.Handler) http.Handler {
 	)
 }
 
-func (m *Middleware) headers(h http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(w http.ResponseWriter, r *http.Request) {
-			h.ServeHTTP(w, r)
-			w.Header().Set("X-Content-Type-Options", "nosniff")
-		},
-	)
-}
-
 func ip(r *http.Request) string {
 	xff := r.Header.Get("X-Forwarded-For")
 	if xff != "" {
@@ -107,4 +101,23 @@ func ip(r *http.Request) string {
 	}
 	before, _, _ := strings.Cut(r.RemoteAddr, ":")
 	return before
+}
+
+func (m *Middleware) requestId(h http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			ctx := context.WithRequestId(r.Context())
+			r = r.WithContext(ctx)
+			h.ServeHTTP(w, r)
+		},
+	)
+}
+
+func (m *Middleware) headers(h http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+			h.ServeHTTP(w, r)
+		},
+	)
 }

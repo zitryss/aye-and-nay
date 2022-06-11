@@ -1,4 +1,4 @@
-package context
+package requestid
 
 import (
 	"context"
@@ -16,11 +16,11 @@ var (
 	requestID atomic.Uint64
 )
 
-func WithRequestId(ctx context.Context) context.Context {
+func Set(ctx context.Context) context.Context {
 	return context.WithValue(ctx, ctxRequestId, requestID.Inc())
 }
 
-func GetRequestId(ctx context.Context) uint64 {
+func Get(ctx context.Context) uint64 {
 	reqId, ok := ctx.Value(ctxRequestId).(uint64)
 	if !ok {
 		return 0

@@ -1,4 +1,4 @@
-package context
+package requestid
 
 import (
 	"context"
@@ -15,14 +15,23 @@ var (
 )
 
 func TestContext(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	t.Run("Positive", func(t *testing.T) {
-		ctx := WithRequestId(context.Background())
-		assert.Equal(t, uint64(1), GetRequestId(ctx))
-		ctx = WithRequestId(ctx)
-		assert.Equal(t, uint64(2), GetRequestId(ctx))
+		ctx := Set(context.Background())
+		id1 := Get(ctx)
+		assert.NotZero(t, id1)
+		assert.Positive(t, id1)
+		assert.Greater(t, id1, uint64(0))
+		ctx = Set(ctx)
+		id2 := Get(ctx)
+		assert.NotZero(t, id2)
+		assert.Positive(t, id2)
+		assert.Greater(t, id2, id1)
 	})
 	t.Run("Negative", func(t *testing.T) {
 		ctx := context.Background()
-		assert.Equal(t, uint64(0), GetRequestId(ctx))
+		assert.Equal(t, uint64(0), Get(ctx))
 	})
 }

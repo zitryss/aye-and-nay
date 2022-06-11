@@ -2,8 +2,9 @@ package database
 
 import (
 	"context"
-	"sort"
 	"sync"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -192,7 +193,7 @@ func (m *Mem) GetImagesOrdered(_ context.Context, album uint64) ([]model.Image, 
 	}
 	imgs := make([]model.Image, len(alb.Images))
 	copy(imgs, alb.Images)
-	sort.Slice(imgs, func(i, j int) bool { return imgs[i].Rating > imgs[j].Rating })
+	slices.SortFunc(imgs, func(a, b model.Image) bool { return a.Rating > b.Rating })
 	return imgs, nil
 }
 

@@ -140,20 +140,20 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }
@@ -187,20 +187,20 @@ func (c *controller) handleStatus() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }
@@ -239,20 +239,20 @@ func (c *controller) handlePair() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }
@@ -285,20 +285,20 @@ func (c *controller) handleImage() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }
@@ -342,20 +342,20 @@ func (c *controller) handleVote() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }
@@ -393,32 +393,33 @@ func (c *controller) handleTop() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }
 
 func (c *controller) handleHealth() httprouter.Handle {
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
-			_, err := c.serv.Health(r.Context())
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
+			ctx := r.Context()
+			_, err := c.serv.Health(ctx)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }

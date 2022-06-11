@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/zitryss/aye-and-nay/internal/context"
+	"github.com/zitryss/aye-and-nay/internal/requestid"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
 )
 
@@ -171,7 +171,7 @@ func TestMiddlewareRequestId(t *testing.T) {
 	ids := []uint64{0}
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		id := GetRequestId(ctx)
+		id := requestid.Get(ctx)
 		assert.NotZero(t, id)
 		assert.Positive(t, id)
 		assert.Greater(t, id, ids[len(ids)-1])

@@ -13,8 +13,8 @@ import (
 	"github.com/shirou/gopsutil/process"
 	"github.com/spf13/afero"
 
+	"github.com/zitryss/aye-and-nay/internal/log"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
-	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
 const (
@@ -147,7 +147,7 @@ func finalizerHandler(ctx context.Context) func(fin *finalizerRef) {
 	return func(fin *finalizerRef) {
 		err := updateGOGC()
 		if err != nil {
-			log.Error("update GOGC:", err)
+			log.Error(context.Background(), "err", err)
 		}
 		select {
 		case <-ctx.Done():
@@ -175,9 +175,11 @@ func updateGOGC() error {
 		newGOGC = lastGOGC * memLimitRatio / memUsedRatio
 	}
 	lastGOGC = float64(debug.SetGCPercent(int(newGOGC)))
-	log.Debugf("mem used: %.0f\n", memUsed)
-	log.Debugf("mem used ratio: %.2f\n", memUsedRatio)
-	log.Debugf("new GOGC: %.0f\n", newGOGC)
+	log.Debug(context.Background(),
+		"mem used", memUsed,
+		"mem used ratio", memUsedRatio,
+		"new GOGC", newGOGC,
+	)
 	return nil
 }
 

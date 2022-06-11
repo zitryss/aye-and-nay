@@ -1,8 +1,8 @@
 .PHONY: gen compile compile-health test-unit test-int test-unit-ci test-int-ci dev-up dev-down prod-loadtest prod-up prod-down embed-loadtest embed-up embed-down
 
 gen:
-	go install github.com/mailru/easyjson/easyjson@latest
-	go install golang.org/x/tools/cmd/stringer@latest
+	go install github.com/mailru/easyjson/easyjson
+	go install golang.org/x/tools/cmd/stringer
 	go generate ./...
 
 compile: gen

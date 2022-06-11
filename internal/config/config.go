@@ -16,8 +16,8 @@ import (
 	"github.com/zitryss/aye-and-nay/infrastructure/compressor"
 	"github.com/zitryss/aye-and-nay/infrastructure/database"
 	"github.com/zitryss/aye-and-nay/infrastructure/storage"
+	"github.com/zitryss/aye-and-nay/internal/log"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
-	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
 func New(path string) (Config, error) {
@@ -64,7 +64,7 @@ func (c *Config) OnChange(ctx context.Context, fn func()) {
 	w.FilterOps(watcher.Write)
 	err := w.Add(c.path)
 	if err != nil {
-		log.Error(errors.Wrap(err))
+		log.Error(context.Background(), "err", errors.Wrap(err))
 	}
 	go func() {
 		for {
@@ -72,7 +72,7 @@ func (c *Config) OnChange(ctx context.Context, fn func()) {
 			case <-w.Event:
 				fn()
 			case err := <-w.Error:
-				log.Error(errors.Wrap(err))
+				log.Error(context.Background(), "err", errors.Wrap(err))
 			case <-w.Closed:
 				return
 			case <-ctx.Done():
@@ -85,7 +85,7 @@ func (c *Config) OnChange(ctx context.Context, fn func()) {
 	go func() {
 		err := w.Start(c.ReloadInterval)
 		if err != nil {
-			log.Error(errors.Wrap(err))
+			log.Error(context.Background(), "err", errors.Wrap(err))
 		}
 	}()
 }
@@ -95,7 +95,7 @@ func readConfig(path string, conf *Config) error {
 	viper.AutomaticEnv()
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Error(errors.Wrap(err))
+		log.Error(context.Background(), "err", errors.Wrap(err))
 	}
 	if len(viper.AllSettings()) == 0 {
 		bindEnv(reflect.TypeOf(*conf))
@@ -120,7 +120,7 @@ func bindEnv(t reflect.Type) {
 		if field.IsExported() && tag != "" && tag != ",squash" {
 			err := viper.BindEnv(strings.ToLower(tag), tag)
 			if err != nil {
-				log.Error(errors.Wrap(err))
+				log.Error(context.Background(), "err", errors.Wrap(err))
 			}
 		}
 	}

@@ -5,12 +5,12 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"runtime"
-	"sort"
 	"time"
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/dgraph-io/badger/v3/options"
 	lru "github.com/hashicorp/golang-lru"
+	"golang.org/x/exp/slices"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -199,7 +199,7 @@ func (b *Badger) GetImagesOrdered(_ context.Context, album uint64) ([]model.Imag
 	if errors.Is(err, badger.ErrKeyNotFound) {
 		return nil, errors.Wrap(domain.ErrAlbumNotFound)
 	}
-	sort.Slice(alb.Images, func(i, j int) bool { return alb.Images[i].Rating > alb.Images[j].Rating })
+	slices.SortFunc(alb.Images, func(a, b model.Image) bool { return a.Rating > b.Rating })
 	return alb.Images, nil
 }
 

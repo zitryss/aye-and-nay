@@ -106,6 +106,7 @@ func TestToUint64(t *testing.T) {
 	}
 }
 
+// go test -fuzz=FuzzFromUint64 -fuzztime 5s
 func FuzzFromUint64(f *testing.F) {
 	f.Add(uint64(0))
 	f.Fuzz(func(t *testing.T, u1 uint64) {
@@ -119,6 +120,7 @@ func FuzzFromUint64(f *testing.F) {
 	})
 }
 
+// go test -fuzz=FuzzToUint64 -fuzztime 5s
 func FuzzToUint64(f *testing.F) {
 	f.Add("AAAAAAAAAAA")
 	f.Fuzz(func(t *testing.T, s string) {

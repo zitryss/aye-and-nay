@@ -32,6 +32,7 @@ func (m *Middleware) Chain(h http.Handler) http.Handler {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{m.conf.CorsAllowOrigin},
 		AllowedMethods: []string{http.MethodGet, http.MethodPost, http.MethodPatch},
+		MaxAge:         86400, // Firefox caps the value at 86400 (24 hours) while all Chromium-based browsers cap it at 7200 (2 hours)
 	})
 	if m.conf.Debug {
 		h = m.debug(h)

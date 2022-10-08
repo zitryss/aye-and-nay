@@ -1,6 +1,6 @@
 module github.com/zitryss/aye-and-nay
 
-go 1.18
+go 1.19
 
 require (
 	github.com/caddyserver/certmagic v0.15.4

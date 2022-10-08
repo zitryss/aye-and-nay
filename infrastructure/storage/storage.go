@@ -10,7 +10,7 @@ import (
 func New(ctx context.Context, conf StorageConfig) (domain.Storager, error) {
 	switch conf.Storage {
 	case "minio":
-		log.Info(context.Background(), "msg", "connecting to storage")
+		log.Info(context.Background(), "connecting to storage")
 		return NewMinio(ctx, conf.Minio)
 	case "mock":
 		return NewMock(), nil

@@ -72,12 +72,12 @@ func main() {
 			continue
 		}
 
-		log.Info(context.Background(), "msg", "logging initialized:", "log level:", conf.App.Log)
+		log.Info(context.Background(), "logging initialized", "log level", conf.App.Log)
 
 		if conf.App.GcTuner {
 			err = gctuner.Start(ctx, conf.App.MemTotal, conf.App.MemLimitRatio)
 			if err != nil {
-				log.Critical(context.Background(), "err", err)
+				log.Critical(context.Background(), "err", "stacktrace", err)
 				reload = true
 				stop()
 				time.Sleep(2 * time.Second)
@@ -87,7 +87,7 @@ func main() {
 
 		cach, err = cache.New(ctx, conf.Cache)
 		if err != nil {
-			log.Critical(context.Background(), "err", err)
+			log.Critical(context.Background(), "err", "stacktrace", err)
 			reload = true
 			stop()
 			time.Sleep(2 * time.Second)
@@ -96,7 +96,7 @@ func main() {
 
 		comp, err = compressor.New(ctx, conf.Compressor)
 		if err != nil {
-			log.Critical(context.Background(), "err", err)
+			log.Critical(context.Background(), "err", "stacktrace", err)
 			reload = true
 			stop()
 			time.Sleep(2 * time.Second)
@@ -105,7 +105,7 @@ func main() {
 
 		data, err = database.New(ctx, conf.Database)
 		if err != nil {
-			log.Critical(context.Background(), "err", err)
+			log.Critical(context.Background(), "err", "stacktrace", err)
 			reload = true
 			stop()
 			time.Sleep(2 * time.Second)
@@ -114,7 +114,7 @@ func main() {
 
 		stor, err = storage.New(ctx, conf.Storage)
 		if err != nil {
-			log.Critical(context.Background(), "err", err)
+			log.Critical(context.Background(), "err", "stacktrace", err)
 			reload = true
 			stop()
 			time.Sleep(2 * time.Second)
@@ -136,7 +136,7 @@ func main() {
 		serv := service.New(conf.Service, comp, stor, data, cach, qCalc, qComp, qDel)
 		err = serv.CleanUp(ctx)
 		if err != nil {
-			log.Critical(context.Background(), "err", err)
+			log.Critical(context.Background(), "err", "stacktrace", err)
 			reload = true
 			stop()
 			time.Sleep(2 * time.Second)
@@ -144,62 +144,62 @@ func main() {
 		}
 
 		gCalc, ctxCalc := errgroup.WithContext(ctx)
-		log.Info(context.Background(), "msg", "starting calculation worker pool")
+		log.Info(context.Background(), "starting calculation worker pool")
 		serv.StartWorkingPoolCalc(ctxCalc, gCalc)
 
 		gComp := (*errgroup.Group)(nil)
 		ctxComp := context.Context(nil)
 		if !conf.Compressor.IsMock() {
 			gComp, ctxComp = errgroup.WithContext(ctx)
-			log.Info(context.Background(), "msg", "starting compression worker pool")
+			log.Info(context.Background(), "starting compression worker pool")
 			serv.StartWorkingPoolComp(ctxComp, gComp)
 		}
 
 		gDel, ctxDel := errgroup.WithContext(ctx)
-		log.Info(context.Background(), "msg", "starting deletion worker pool")
+		log.Info(context.Background(), "starting deletion worker pool")
 		serv.StartWorkingPoolDel(ctxDel, gDel)
 
 		middle := http.NewMiddleware(conf.Middleware, cach)
 		srvWait := make(chan error, 1)
 		srv, err := http.NewServer(conf.Server, middle.Chain, serv, srvWait)
 		if err != nil {
-			log.Critical(context.Background(), "err", err)
+			log.Critical(context.Background(), "err", "stacktrace", err)
 			reload = true
 			stop()
 			time.Sleep(2 * time.Second)
 			continue
 		}
 		srv.Monitor(ctx)
-		log.Info(context.Background(), "msg", "starting web server")
+		log.Info(context.Background(), "starting web server")
 		err = srv.Start()
 
-		log.Info(context.Background(), "msg", "stopping web server")
+		log.Info(context.Background(), "stopping web server")
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Error(context.Background(), "err", err)
+			log.Error(context.Background(), "err", "stacktrace", err)
 		}
 		err = <-srvWait
 		if err != nil {
-			log.Error(context.Background(), "err", err)
+			log.Error(context.Background(), "err", "stacktrace", err)
 		}
 
-		log.Info(context.Background(), "msg", "stopping deletion worker pool")
+		log.Info(context.Background(), "stopping deletion worker pool")
 		err = gDel.Wait()
 		if err != nil {
-			log.Error(context.Background(), "err", err)
+			log.Error(context.Background(), "err", "stacktrace", err)
 		}
 
 		if !conf.Compressor.IsMock() {
-			log.Info(context.Background(), "msg", "stopping compression worker pool")
+			log.Info(context.Background(), "stopping compression worker pool")
 			err = gComp.Wait()
 			if err != nil {
-				log.Error(context.Background(), "err", err)
+				log.Error(context.Background(), "err", "stacktrace", err)
 			}
 		}
 
-		log.Info(context.Background(), "msg", "stopping calculation worker pool")
+		log.Info(context.Background(), "stopping calculation worker pool")
 		err = gCalc.Wait()
 		if err != nil {
-			log.Error(context.Background(), "err", err)
+			log.Error(context.Background(), "err", "stacktrace", err)
 		}
 
 		stop()
@@ -208,7 +208,7 @@ func main() {
 		if ok {
 			err = b.Close(context.Background())
 			if err != nil {
-				log.Error(context.Background(), "err", err)
+				log.Error(context.Background(), "err", "stacktrace", err)
 			}
 		}
 	}
@@ -217,7 +217,7 @@ func main() {
 	if ok {
 		err = r.Close(context.Background())
 		if err != nil {
-			log.Error(context.Background(), "err", err)
+			log.Error(context.Background(), "err", "stacktrace", err)
 		}
 	}
 
@@ -225,7 +225,7 @@ func main() {
 	if ok {
 		err = m.Close(context.Background())
 		if err != nil {
-			log.Error(context.Background(), "err", err)
+			log.Error(context.Background(), "err", "stacktrace", err)
 		}
 	}
 }

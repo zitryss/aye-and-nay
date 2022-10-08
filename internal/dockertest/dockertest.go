@@ -18,7 +18,7 @@ func New() docker {
 	u, err := url.Parse(host)
 	if err != nil {
 		err = errors.Wrap(err)
-		log.Critical("dockertest: ", err)
+		log.Critical("dockertest:", err)
 		os.Exit(1)
 	}
 	hostname := u.Hostname()

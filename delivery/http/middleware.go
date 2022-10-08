@@ -135,6 +135,7 @@ func (m *Middleware) debug(h http.Handler) http.Handler {
 		func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 			log.Debug(ctx,
+				"incoming request",
 				"time", time.Now(),
 				"r.RemoteAddr", r.RemoteAddr,
 				"r.Host", r.Host,

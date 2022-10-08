@@ -147,7 +147,7 @@ func finalizerHandler(ctx context.Context) func(fin *finalizerRef) {
 	return func(fin *finalizerRef) {
 		err := updateGOGC()
 		if err != nil {
-			log.Error(context.Background(), "err", err)
+			log.Error(context.Background(), "err", "stacktrace", err)
 		}
 		select {
 		case <-ctx.Done():
@@ -176,6 +176,7 @@ func updateGOGC() error {
 	}
 	lastGOGC = float64(debug.SetGCPercent(int(newGOGC)))
 	log.Debug(context.Background(),
+		"gc",
 		"mem used", memUsed,
 		"mem used ratio", memUsedRatio,
 		"new GOGC", newGOGC,

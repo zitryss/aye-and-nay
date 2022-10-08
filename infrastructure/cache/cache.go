@@ -10,7 +10,7 @@ import (
 func New(ctx context.Context, conf CacheConfig) (domain.Cacher, error) {
 	switch conf.Cache {
 	case "redis":
-		log.Info(context.Background(), "msg", "connecting to cache")
+		log.Info(context.Background(), "connecting to cache")
 		return NewRedis(ctx, conf.Redis)
 	case "mem":
 		mem := NewMem(conf.Mem)

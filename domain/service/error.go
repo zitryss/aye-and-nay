@@ -15,15 +15,15 @@ func handleError(err error) {
 func HandleInnerError(ctx context.Context, err error) {
 	cause := errors.Cause(err)
 	if e := domain.Error(nil); errors.As(cause, &e) {
-		log.Print(ctx, e.Inner().Level, "err", err)
+		log.Print(ctx, e.Inner().Level, "err", "stacktrace", err)
 		return
 	}
 	switch cause {
 	case context.Canceled:
-		log.Debug(ctx, "err", err)
+		log.Debug(ctx, "err", "stacktrace", err)
 	case context.DeadlineExceeded:
-		log.Debug(ctx, "err", err)
+		log.Debug(ctx, "err", "stacktrace", err)
 	default:
-		log.Error(ctx, "err", err)
+		log.Error(ctx, "err", "stacktrace", err)
 	}
 }

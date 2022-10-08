@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/internal/requestid"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
@@ -17,12 +18,12 @@ var (
 
 type logger struct {
 	*zap.SugaredLogger
-	lvl    zapcore.Level
-	prefix string
+	lvl zapcore.Level
 }
 
 func New(lvl string, prefix string) error {
 	zapConf := zap.NewProductionConfig()
+	zapConf.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	switch strings.ToLower(lvl) {
 	case "debug":
 		l.lvl = zap.DebugLevel
@@ -36,92 +37,71 @@ func New(lvl string, prefix string) error {
 	case "critical":
 		l.lvl = zap.ErrorLevel
 		zapConf.Level = zap.NewAtomicLevelAt(l.lvl)
+	default:
+		return errors.Wrap(errors.New("wrong log level"))
 	}
-	zapLog, err := zapConf.Build()
+	zapLog, err := zapConf.Build(zap.WithCaller(false))
 	if err != nil {
 		return errors.Wrap(err)
 	}
 	l.SugaredLogger = zapLog.Sugar()
-	l.prefix = prefix
+	l.With("app-name", prefix)
 	return nil
 }
 
-func Print(ctx context.Context, level int, v ...any) {
-	if level < 1 || level > 4 || l.lvl > zapcore.Level(level-2) {
-		return
-	}
-	requestId := requestid.Get(ctx)
-	args := []any(nil)
-	args = append(args, "app-name", l.prefix)
-	if requestId != 0 {
-		args = append(args, "request-id", requestId)
-	}
-	args = append(args, v...)
-
+func Print(ctx context.Context, level int, msg string, v ...any) {
 	switch level {
-	case 1:
-		l.Debug(args...)
-	case 2:
-		l.Info(args...)
-	case 3:
-		l.Warn(args...)
-	case 4:
-		l.Error(args...)
+	case domain.LogDebug:
+		Debug(ctx, msg, v...)
+	case domain.LogInfo:
+		Info(ctx, msg, v...)
+	case domain.LogError:
+		Error(ctx, msg, v...)
+	case domain.LogCritical:
+		Critical(ctx, msg, v...)
 	}
 }
 
-func Debug(ctx context.Context, v ...any) {
+func Debug(ctx context.Context, msg string, v ...any) {
 	if l.lvl > zapcore.DebugLevel || l.SugaredLogger == nil {
 		return
 	}
 	requestId := requestid.Get(ctx)
-	args := []any(nil)
-	args = append(args, "app-name", l.prefix)
 	if requestId != 0 {
-		args = append(args, "request-id", requestId)
+		v = append([]any{"request-id", requestId}, v...)
 	}
-	args = append(args, v...)
-	l.Debug(args...)
+	l.Debugw(msg, v...)
 }
 
-func Info(ctx context.Context, v ...any) {
+func Info(ctx context.Context, msg string, v ...any) {
 	if l.lvl > zapcore.InfoLevel || l.SugaredLogger == nil {
 		return
 	}
 	requestId := requestid.Get(ctx)
-	args := []any(nil)
-	args = append(args, "app-name", l.prefix)
 	if requestId != 0 {
-		args = append(args, "request-id", requestId)
+		v = append([]any{"request-id", requestId}, v...)
 	}
-	args = append(args, v...)
-	l.Info(args...)
+	l.Infow(msg, v...)
 }
 
-func Error(ctx context.Context, v ...any) {
+func Error(ctx context.Context, msg string, v ...any) {
 	if l.lvl > zapcore.WarnLevel || l.SugaredLogger == nil {
 		return
 	}
 	requestId := requestid.Get(ctx)
-	args := []any(nil)
-	args = append(args, "app-name", l.prefix)
 	if requestId != 0 {
-		args = append(args, "request-id", requestId)
+		v = append([]any{"request-id", requestId}, v...)
 	}
-	args = append(args, v...)
-	l.Warn(args...)
+	l.Warnw(msg, v...)
 }
 
-func Critical(ctx context.Context, v ...any) {
+func Critical(ctx context.Context, msg string, v ...any) {
 	if l.lvl > zapcore.ErrorLevel || l.SugaredLogger == nil {
 		return
 	}
 	requestId := requestid.Get(ctx)
-	args := []any(nil)
-	args = append(args, "app-name", l.prefix)
 	if requestId != 0 {
-		args = append(args, "request-id", requestId)
+		v = append([]any{"request-id", requestId}, v...)
 	}
-	args = append(args, v...)
-	l.Error(args...)
+	l.Errorw(msg, v...)
 }

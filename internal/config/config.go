@@ -53,7 +53,7 @@ type Config struct {
 type AppConfig struct {
 	Name          string  `mapstructure:"APP_NAME"     validate:"required"`
 	Log           string  `mapstructure:"APP_LOG"      validate:"required"`
-	GcTuner       bool    `mapstructure:"APP_GC_TUNER"`
+	GcTuner       string  `mapstructure:"APP_GC_TUNER" validate:"required"`
 	MemTotal      int     `mapstructure:"APP_MEM_TOTAL"`
 	MemLimitRatio float64 `mapstructure:"APP_MEM_LIMIT_RATIO"`
 }

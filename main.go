@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -74,7 +75,7 @@ func main() {
 
 		log.Info(context.Background(), "logging initialized", "log level", conf.App.Log)
 
-		if conf.App.GcTuner {
+		if conf.App.GcTuner == "custom" {
 			err = gctuner.Start(ctx, conf.App.MemTotal, conf.App.MemLimitRatio)
 			if err != nil {
 				log.Critical(context.Background(), "err", "stacktrace", err)
@@ -83,6 +84,8 @@ func main() {
 				time.Sleep(2 * time.Second)
 				continue
 			}
+		} else if conf.App.GcTuner == "go" {
+			debug.SetMemoryLimit(int64(float64(conf.App.MemTotal) * conf.App.MemLimitRatio))
 		}
 
 		cach, err = cache.New(ctx, conf.Cache)

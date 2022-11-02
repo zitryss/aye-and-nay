@@ -29,6 +29,7 @@ func TestMiddlewareRecover(t *testing.T) {
 	if !*unit {
 		t.Skip()
 	}
+	t.Parallel()
 	t.Run("Positive", func(t *testing.T) {
 		t.Parallel()
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +68,7 @@ func TestMiddlewareLimit(t *testing.T) {
 	if !*unit {
 		t.Skip()
 	}
+	t.Parallel()
 	t.Run("Positive", func(t *testing.T) {
 		t.Parallel()
 		fn := func(w http.ResponseWriter, r *http.Request) {
@@ -151,6 +153,7 @@ func TestIP(t *testing.T) {
 			want: "",
 		},
 	}
+	t.Parallel()
 	for _, tt := range tests {
 		tt := tt
 		r := httptest.NewRequest(http.MethodGet, "/api/health/", http.NoBody)

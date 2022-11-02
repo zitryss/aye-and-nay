@@ -62,6 +62,7 @@ func TestDo1(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for _, tt := range tests {
 		tt := tt
 		t.Run("", func(t *testing.T) {
@@ -123,6 +124,7 @@ func TestDo2(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for _, tt := range tests {
 		tt := tt
 		t.Run("", func(t *testing.T) {
@@ -184,6 +186,7 @@ func TestDo3(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for _, tt := range tests {
 		tt := tt
 		t.Run("", func(t *testing.T) {

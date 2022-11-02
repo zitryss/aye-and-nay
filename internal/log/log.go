@@ -49,6 +49,11 @@ func New(lvl string, prefix string) error {
 	return nil
 }
 
+func newWithLogger(zapLog *zap.Logger, lvl zapcore.Level) {
+	l.SugaredLogger = zapLog.Sugar()
+	l.lvl = lvl
+}
+
 func Print(ctx context.Context, level int, msg string, v ...any) {
 	switch level {
 	case domain.LogDebug:

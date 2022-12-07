@@ -12,28 +12,28 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func handleHttpRouterError(fn func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error) httprouter.Handle {
+func handleHttpRouterError(fn func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error)) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-		err := fn(w, r, ps)
+		ctx, err := fn(w, r, ps)
 		if err == nil {
 			return
 		}
-		handleError(w, err)
+		handleError(ctx, w, err)
 	}
 }
 
-func handleHttpError(fn func(w http.ResponseWriter, r *http.Request) error) http.HandlerFunc {
+func handleHttpError(fn func(w http.ResponseWriter, r *http.Request) (context.Context, error)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := fn(w, r)
+		ctx, err := fn(w, r)
 		if err == nil {
 			return
 		}
-		handleError(w, err)
+		handleError(ctx, w, err)
 	}
 }
 
-func handleError(w http.ResponseWriter, err error) {
-	service.HandleInnerError(err)
+func handleError(ctx context.Context, w http.ResponseWriter, err error) {
+	service.HandleInnerError(ctx, err)
 	handleOuterError(w, err)
 }
 
@@ -41,13 +41,11 @@ func handleOuterError(w http.ResponseWriter, err error) {
 	resp := errorResponse{}
 	defer func() {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.WriteHeader(resp.Error.statusCode)
 		_ = json.NewEncoder(w).Encode(resp)
 	}()
 	cause := errors.Cause(err)
-	e := domain.Error(nil)
-	if errors.As(cause, &e) {
+	if e := domain.Error(nil); errors.As(cause, &e) {
 		out := e.Outer()
 		resp.Error.statusCode = out.StatusCode
 		resp.Error.AppCode = out.AppCode

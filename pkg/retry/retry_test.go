@@ -1,17 +1,26 @@
-//go:build unit
-
 package retry_test
 
 import (
-	"reflect"
+	"flag"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
+var (
+	unit        = flag.Bool("unit", false, "")
+	integration = flag.Bool("int", false, "")
+	ci          = flag.Bool("ci", false, "")
+)
+
 func TestDo1(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	type give struct {
 		times int
 		pause time.Duration
@@ -53,25 +62,27 @@ func TestDo1(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for _, tt := range tests {
+		tt := tt
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
 			c := 0
 			err := retry.Do(tt.times, tt.pause, func() error {
 				c++
 				time.Sleep(tt.busy)
 				return nil
 			})
-			if !reflect.DeepEqual(err, tt.err) {
-				t.Errorf("Do() err = %v, want = %v", err, tt.err)
-			}
-			if c != tt.calls {
-				t.Errorf("Do() calls = %v, want = %v", c, tt.calls)
-			}
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.calls, c)
 		})
 	}
 }
 
 func TestDo2(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	type give struct {
 		times int
 		pause time.Duration
@@ -113,25 +124,27 @@ func TestDo2(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for _, tt := range tests {
+		tt := tt
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
 			c := 0
 			err := retry.Do(tt.times, tt.pause, func() error {
 				c++
 				time.Sleep(tt.busy)
 				return errors.New("no luck")
 			})
-			if !reflect.DeepEqual(err, tt.err) {
-				t.Errorf("Do() err = %v, want = %v", err, tt.err)
-			}
-			if c != tt.calls {
-				t.Errorf("Do() calls = %v, want = %v", c, tt.calls)
-			}
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.calls, c)
 		})
 	}
 }
 
 func TestDo3(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	type give struct {
 		times int
 		pause time.Duration
@@ -173,8 +186,11 @@ func TestDo3(t *testing.T) {
 			},
 		},
 	}
+	t.Parallel()
 	for _, tt := range tests {
+		tt := tt
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
 			c := 0
 			err := retry.Do(tt.times, tt.pause, func() error {
 				c++
@@ -184,12 +200,8 @@ func TestDo3(t *testing.T) {
 				}
 				return nil
 			})
-			if !reflect.DeepEqual(err, tt.err) {
-				t.Errorf("Do() err = %v, want = %v", err, tt.err)
-			}
-			if c != tt.calls {
-				t.Errorf("Do() calls = %v, want = %v", c, tt.calls)
-			}
+			assert.Equal(t, tt.err, err)
+			assert.Equal(t, tt.calls, c)
 		})
 	}
 }

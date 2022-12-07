@@ -7,11 +7,17 @@ import (
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
+	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	myrand "github.com/zitryss/aye-and-nay/pkg/rand"
 )
 
+var (
+	_ domain.Servicer = (*Service)(nil)
+)
+
 func New(
+	conf ServiceConfig,
 	comp domain.Compresser,
 	stor domain.Storager,
 	pers domain.Databaser,
@@ -21,7 +27,6 @@ func New(
 	qDel *QueueDel,
 	opts ...options,
 ) *Service {
-	conf := newServiceConfig()
 	s := &Service{
 		conf:  conf,
 		comp:  comp,
@@ -29,6 +34,7 @@ func New(
 		pers:  pers,
 		pair:  temp,
 		token: temp,
+		cache: temp,
 		queue: struct {
 			calc *QueueCalc
 			comp *QueueComp
@@ -53,7 +59,7 @@ func New(
 }
 
 func NewQueueCalc(q domain.Queuer) *QueueCalc {
-	return &QueueCalc{newQueue(0x6CF9, q)}
+	return &QueueCalc{newQueue(0x1, q)}
 }
 
 type QueueCalc struct {
@@ -61,7 +67,7 @@ type QueueCalc struct {
 }
 
 func NewQueueComp(q domain.Queuer) *QueueComp {
-	return &QueueComp{newQueue(0xDD66, q)}
+	return &QueueComp{newQueue(0x2, q)}
 }
 
 type QueueComp struct {
@@ -69,7 +75,7 @@ type QueueComp struct {
 }
 
 func NewQueueDel(q domain.PQueuer) *QueueDel {
-	return &QueueDel{newPQueue(0xCDF9, q)}
+	return &QueueDel{newPQueue(0x3, q)}
 }
 
 type QueueDel struct {
@@ -90,31 +96,32 @@ func WithRandShuffle(fn func(int, func(int, int))) options {
 	}
 }
 
-func WithHeartbeatCalc(ch chan<- interface{}) options {
+func WithHeartbeatCalc(ch chan<- any) options {
 	return func(s *Service) {
 		s.heartbeat.calc = ch
 	}
 }
 
-func WithHeartbeatComp(ch chan<- interface{}) options {
+func WithHeartbeatComp(ch chan<- any) options {
 	return func(s *Service) {
 		s.heartbeat.comp = ch
 	}
 }
 
-func WithHeartbeatDel(ch chan<- interface{}) options {
+func WithHeartbeatDel(ch chan<- any) options {
 	return func(s *Service) {
 		s.heartbeat.del = ch
 	}
 }
 
 type Service struct {
-	conf  serviceConfig
+	conf  ServiceConfig
 	comp  domain.Compresser
 	stor  domain.Storager
 	pers  domain.Databaser
 	pair  domain.Stacker
 	token domain.Tokener
+	cache domain.Checker
 	queue struct {
 		calc *QueueCalc
 		comp *QueueComp
@@ -125,9 +132,9 @@ type Service struct {
 		shuffle func(n int, swap func(i, j int))
 	}
 	heartbeat struct {
-		calc chan<- interface{}
-		comp chan<- interface{}
-		del  chan<- interface{}
+		calc chan<- any
+		comp chan<- any
+		del  chan<- any
 	}
 }
 
@@ -198,33 +205,56 @@ func (s *Service) Pair(ctx context.Context, album uint64) (model.Image, model.Im
 	if err != nil {
 		return model.Image{}, model.Image{}, errors.Wrap(err)
 	}
-	src1, err := s.pers.GetImageSrc(ctx, album, image1)
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	src2, err := s.pers.GetImageSrc(ctx, album, image2)
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	token1, err := s.rand.id()
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	err = s.token.Set(ctx, album, token1, image1)
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	token2, err := s.rand.id()
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
-	}
-	err = s.token.Set(ctx, album, token2, image2)
-	if err != nil {
-		return model.Image{}, model.Image{}, errors.Wrap(err)
+	src1 := ""
+	src2 := ""
+	token1 := image1
+	token2 := image2
+	if s.conf.TempLinks {
+		token1, err = s.rand.id()
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		err = s.token.Set(ctx, token1, album, image1)
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		token1B64 := base64.FromUint64(token1)
+		src1 = "/api/images/" + token1B64 + "/"
+		token2, err = s.rand.id()
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		err = s.token.Set(ctx, token2, album, image2)
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		token2B64 := base64.FromUint64(token2)
+		src2 = "/api/images/" + token2B64 + "/"
+	} else {
+		src1, err = s.pers.GetImageSrc(ctx, album, image1)
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
+		src2, err = s.pers.GetImageSrc(ctx, album, image2)
+		if err != nil {
+			return model.Image{}, model.Image{}, errors.Wrap(err)
+		}
 	}
 	img1 := model.Image{Id: image1, Src: src1, Token: token1}
 	img2 := model.Image{Id: image2, Src: src2, Token: token2}
 	return img1, img2, nil
+}
+
+func (s *Service) Image(ctx context.Context, token uint64) (model.File, error) {
+	album, image, err := s.token.Get(ctx, token)
+	if err != nil {
+		return model.File{}, errors.Wrap(err)
+	}
+	f, err := s.stor.Get(ctx, album, image)
+	if err != nil {
+		return model.File{}, errors.Wrap(err)
+	}
+	return f, nil
 }
 
 func (s *Service) genPairs(ctx context.Context, album uint64) error {
@@ -249,13 +279,26 @@ func (s *Service) genPairs(ctx context.Context, album uint64) error {
 }
 
 func (s *Service) Vote(ctx context.Context, album uint64, tokenFrom uint64, tokenTo uint64) error {
-	imageFrom, err := s.token.Get(ctx, album, tokenFrom)
-	if err != nil {
-		return errors.Wrap(err)
-	}
-	imageTo, err := s.token.Get(ctx, album, tokenTo)
-	if err != nil {
-		return errors.Wrap(err)
+	imageFrom := tokenFrom
+	imageTo := tokenTo
+	err := error(nil)
+	if s.conf.TempLinks {
+		_, imageFrom, err = s.token.Get(ctx, tokenFrom)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		err = s.token.Del(ctx, tokenFrom)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		_, imageTo, err = s.token.Get(ctx, tokenTo)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		err = s.token.Del(ctx, tokenTo)
+		if err != nil {
+			return errors.Wrap(err)
+		}
 	}
 	err = s.pers.SaveVote(ctx, album, imageFrom, imageTo)
 	if err != nil {
@@ -274,6 +317,26 @@ func (s *Service) Top(ctx context.Context, album uint64) ([]model.Image, error) 
 		return nil, errors.Wrap(err)
 	}
 	return imgs, nil
+}
+
+func (s *Service) Health(ctx context.Context) (bool, error) {
+	_, err := s.comp.Health(ctx)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	_, err = s.stor.Health(ctx)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	_, err = s.pers.Health(ctx)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	_, err = s.cache.Health(ctx)
+	if err != nil {
+		return false, errors.Wrap(err)
+	}
+	return true, nil
 }
 
 func (s *Service) CleanUp(ctx context.Context) error {

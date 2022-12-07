@@ -1,5 +1,3 @@
-//go:build integration
-
 package cache
 
 import (
@@ -7,360 +5,185 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/zitryss/aye-and-nay/domain/domain"
-	_ "github.com/zitryss/aye-and-nay/internal/config"
-	"github.com/zitryss/aye-and-nay/pkg/errors"
+	. "github.com/zitryss/aye-and-nay/internal/generator"
 )
 
-func TestRedisAllow(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		if testing.Short() {
-			t.Skip("short flag is set")
+func TestRedisTestSuite(t *testing.T) {
+	suite.Run(t, &RedisTestSuite{})
+}
+
+type RedisTestSuite struct {
+	suite.Suite
+	base        MemTestSuite
+	setupTestFn func()
+}
+
+func (suite *RedisTestSuite) SetupSuite() {
+	if !*integration {
+		suite.T().Skip()
+	}
+	suite.base = MemTestSuite{}
+	suite.base.SetT(suite.T())
+	ctx, cancel := context.WithCancel(context.Background())
+	conf := DefaultRedisConfig
+	redis, err := NewRedis(ctx, conf)
+	require.NoError(suite.T(), err)
+	suite.base.ctx = ctx
+	suite.base.cancel = cancel
+	suite.base.conf.LimiterRequestsPerSecond = float64(conf.LimiterRequestsPerSecond)
+	suite.base.conf.TimeToLive = conf.TimeToLive
+	suite.base.cache = redis
+	suite.base.setupTestFn = suite.SetupTest
+	suite.setupTestFn = suite.SetupTest
+}
+
+func (suite *RedisTestSuite) SetupTest() {
+	err := suite.base.cache.(*Redis).Reset()
+	require.NoError(suite.T(), err)
+}
+
+func (suite *RedisTestSuite) TearDownTest() {
+
+}
+
+func (suite *RedisTestSuite) TearDownSuite() {
+	err := suite.base.cache.(*Redis).Reset()
+	require.NoError(suite.T(), err)
+	err = suite.base.cache.(*Redis).Close(suite.base.ctx)
+	require.NoError(suite.T(), err)
+	suite.base.cancel()
+}
+
+func (suite *RedisTestSuite) TestRedisAllow() {
+	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
+		id, _ := GenId()
+		rpm := suite.base.conf.LimiterRequestsPerSecond
+		ip := id()
+		for j := float64(0); j < rpm; j++ {
+			allowed, err := suite.base.cache.Allow(suite.base.ctx, ip)
+			assert.NoError(t, err)
+			assert.True(t, allowed)
 		}
-		redis, err := NewRedis()
-		if err != nil {
-			t.Fatal(err)
-		}
-		rpm := redis.conf.limiterRequestsPerMinute
-		for j := 0; j < rpm; j++ {
-			allowed, err := redis.Allow(context.Background(), 0xDEAD)
-			if err != nil {
-				t.Error(err)
-			}
-			if !allowed {
-				t.Error("!allowed")
-			}
-		}
-		time.Sleep(60 * time.Second)
-		for j := 0; j < rpm; j++ {
-			allowed, err := redis.Allow(context.Background(), 0xDEAD)
-			if err != nil {
-				t.Error(err)
-			}
-			if !allowed {
-				t.Error("!allowed")
-			}
+		time.Sleep(1 * time.Second)
+		for j := float64(0); j < rpm; j++ {
+			allowed, err := suite.base.cache.Allow(suite.base.ctx, ip)
+			assert.NoError(t, err)
+			assert.True(t, allowed)
 		}
 	})
-	t.Run("Negative", func(t *testing.T) {
-		redis, err := NewRedis()
-		if err != nil {
-			t.Fatal(err)
+	suite.T().Run("Negative", func(t *testing.T) {
+		suite.setupTestFn()
+		id, _ := GenId()
+		rps := suite.base.conf.LimiterRequestsPerSecond
+		ip := id()
+		for i := float64(0); i < rps; i++ {
+			allowed, err := suite.base.cache.Allow(suite.base.ctx, ip)
+			assert.NoError(t, err)
+			assert.True(t, allowed)
 		}
-		rps := redis.conf.limiterRequestsPerMinute
-		for i := 0; i < rps; i++ {
-			allowed, err := redis.Allow(context.Background(), 0xBEEF)
-			if err != nil {
-				t.Error(err)
-			}
-			if !allowed {
-				t.Error("!allowed")
-			}
-		}
-		allowed, err := redis.Allow(context.Background(), 0xBEEF)
-		if err != nil {
-			t.Error(err)
-		}
-		if allowed {
-			t.Error("allowed")
-		}
+		allowed, err := suite.base.cache.Allow(suite.base.ctx, ip)
+		assert.NoError(t, err)
+		assert.False(t, allowed)
 	})
 }
 
-func TestRedisQueue(t *testing.T) {
-	redis, err := NewRedis()
-	if err != nil {
-		t.Fatal(err)
-	}
-	n, err := redis.Size(context.Background(), 0x5D6D)
-	if err != nil {
-		t.Error(err)
-	}
-	if n != 0 {
-		t.Error("n != 0")
-	}
-	err = redis.Add(context.Background(), 0x5D6D, 0x1ED1)
-	if err != nil {
-		t.Error(err)
-	}
-	err = redis.Add(context.Background(), 0x5D6D, 0x1ED1)
-	if err != nil {
-		t.Error(err)
-	}
-	err = redis.Add(context.Background(), 0x5D6D, 0xF612)
-	if err != nil {
-		t.Error(err)
-	}
-	err = redis.Add(context.Background(), 0x5D6D, 0x1A83)
-	if err != nil {
-		t.Error(err)
-	}
-	err = redis.Add(context.Background(), 0x5D6D, 0xF612)
-	if err != nil {
-		t.Error(err)
-	}
-	n, err = redis.Size(context.Background(), 0x5D6D)
-	if err != nil {
-		t.Error(err)
-	}
-	if n != 3 {
-		t.Error("n != 3")
-	}
-	album, err := redis.Poll(context.Background(), 0x5D6D)
-	if err != nil {
-		t.Error(err)
-	}
-	if album != 0x1ED1 {
-		t.Error("album != 0x1ED1")
-	}
-	n, err = redis.Size(context.Background(), 0x5D6D)
-	if err != nil {
-		t.Error(err)
-	}
-	if n != 2 {
-		t.Error("n != 2")
-	}
-	album, err = redis.Poll(context.Background(), 0x5D6D)
-	if err != nil {
-		t.Error(err)
-	}
-	if album != 0xF612 {
-		t.Error("album != 0xF612")
-	}
-	album, err = redis.Poll(context.Background(), 0x5D6D)
-	if err != nil {
-		t.Error(err)
-	}
-	if album != 0x1A83 {
-		t.Error("album != 0x1A83")
-	}
-	n, err = redis.Size(context.Background(), 0x5D6D)
-	if err != nil {
-		t.Error(err)
-	}
-	if n != 0 {
-		t.Error("n != 0")
-	}
-	album, err = redis.Poll(context.Background(), 0x5D6D)
-	if err == nil {
-		t.Error(err)
-	}
-	if album != 0x0 {
-		t.Error("album != \"0x0\"")
-	}
-	n, err = redis.Size(context.Background(), 0x5D6D)
-	if err != nil {
-		t.Error(err)
-	}
-	if n != 0 {
-		t.Error("n != 0")
-	}
-	_, err = redis.Poll(context.Background(), 0x5D6D)
-	if !errors.Is(err, domain.ErrUnknown) {
-		t.Error(err)
-	}
+func (suite *RedisTestSuite) TestRedisQueue() {
+	id, _ := GenId()
+	queue := id()
+	albumExp1 := id()
+	albumExp2 := id()
+	albumExp3 := id()
+	n, err := suite.base.cache.Size(suite.base.ctx, queue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 0, n)
+	err = suite.base.cache.Add(suite.base.ctx, queue, albumExp1)
+	assert.NoError(suite.T(), err)
+	err = suite.base.cache.Add(suite.base.ctx, queue, albumExp1)
+	assert.NoError(suite.T(), err)
+	err = suite.base.cache.Add(suite.base.ctx, queue, albumExp2)
+	assert.NoError(suite.T(), err)
+	err = suite.base.cache.Add(suite.base.ctx, queue, albumExp3)
+	assert.NoError(suite.T(), err)
+	err = suite.base.cache.Add(suite.base.ctx, queue, albumExp2)
+	assert.NoError(suite.T(), err)
+	n, err = suite.base.cache.Size(suite.base.ctx, queue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 3, n)
+	album, err := suite.base.cache.Poll(suite.base.ctx, queue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), albumExp1, album)
+	n, err = suite.base.cache.Size(suite.base.ctx, queue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 2, n)
+	album, err = suite.base.cache.Poll(suite.base.ctx, queue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), albumExp2, album)
+	album, err = suite.base.cache.Poll(suite.base.ctx, queue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), albumExp3, album)
+	n, err = suite.base.cache.Size(suite.base.ctx, queue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 0, n)
+	album, err = suite.base.cache.Poll(suite.base.ctx, queue)
+	assert.Error(suite.T(), err)
+	assert.Equal(suite.T(), uint64(0x0), album)
+	n, err = suite.base.cache.Size(suite.base.ctx, queue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 0, n)
+	_, err = suite.base.cache.Poll(suite.base.ctx, queue)
+	assert.ErrorIs(suite.T(), err, domain.ErrUnknown)
 }
 
-func TestRedisPQueue(t *testing.T) {
-	redis, err := NewRedis()
-	if err != nil {
-		t.Fatal(err)
-	}
-	n, err := redis.PSize(context.Background(), 0x7D31)
-	if err != nil {
-		t.Error(err)
-	}
-	if n != 0 {
-		t.Error("n != 0")
-	}
-	err = redis.PAdd(context.Background(), 0x7D31, 0xE976, time.Unix(904867200, 0))
-	if err != nil {
-		t.Error(err)
-	}
-	err = redis.PAdd(context.Background(), 0x7D31, 0xEC0E, time.Unix(1075852800, 0))
-	if err != nil {
-		t.Error(err)
-	}
-	err = redis.PAdd(context.Background(), 0x7D31, 0x4CAF, time.Unix(681436800, 0))
-	if err != nil {
-		t.Error(err)
-	}
-	n, err = redis.PSize(context.Background(), 0x7D31)
-	if err != nil {
-		t.Error(err)
-	}
-	if n != 3 {
-		t.Error("n != 3")
-	}
-	album, expires, err := redis.PPoll(context.Background(), 0x7D31)
-	if err != nil {
-		t.Error(err)
-	}
-	if album != 0x4CAF {
-		t.Error("album != 0x4CAF")
-	}
-	if !expires.Equal(time.Unix(681436800, 0)) {
-		t.Error("!expires.Equal(time.Unix(681436800, 0))")
-	}
-	n, err = redis.PSize(context.Background(), 0x7D31)
-	if err != nil {
-		t.Error(err)
-	}
-	if n != 2 {
-		t.Error("n != 2")
-	}
-	album, expires, err = redis.PPoll(context.Background(), 0x7D31)
-	if err != nil {
-		t.Error(err)
-	}
-	if album != 0xE976 {
-		t.Error("album != 0xE976")
-	}
-	if !expires.Equal(time.Unix(904867200, 0)) {
-		t.Error("!expires.Equal(time.Unix(904867200, 0))")
-	}
-	album, expires, err = redis.PPoll(context.Background(), 0x7D31)
-	if err != nil {
-		t.Error(err)
-	}
-	if album != 0xEC0E {
-		t.Error("album != 0xEC0E")
-	}
-	if !expires.Equal(time.Unix(1075852800, 0)) {
-		t.Error("!expires.Equal(time.Unix(1075852800, 0))")
-	}
-	n, err = redis.PSize(context.Background(), 0x7D31)
-	if err != nil {
-		t.Error(err)
-	}
-	if n != 0 {
-		t.Error("n != 0")
-	}
-	_, _, err = redis.PPoll(context.Background(), 0x7D31)
-	if !errors.Is(err, domain.ErrUnknown) {
-		t.Error(err)
-	}
+func (suite *RedisTestSuite) TestRedisPQueue() {
+	id, _ := GenId()
+	pqueue := id()
+	albumExp1 := id()
+	albumExp2 := id()
+	albumExp3 := id()
+	n, err := suite.base.cache.PSize(suite.base.ctx, pqueue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 0, n)
+	err = suite.base.cache.PAdd(suite.base.ctx, pqueue, albumExp1, time.Unix(904867200, 0))
+	assert.NoError(suite.T(), err)
+	err = suite.base.cache.PAdd(suite.base.ctx, pqueue, albumExp2, time.Unix(1075852800, 0))
+	assert.NoError(suite.T(), err)
+	err = suite.base.cache.PAdd(suite.base.ctx, pqueue, albumExp3, time.Unix(681436800, 0))
+	assert.NoError(suite.T(), err)
+	n, err = suite.base.cache.PSize(suite.base.ctx, pqueue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 3, n)
+	album, expires, err := suite.base.cache.PPoll(suite.base.ctx, pqueue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), albumExp3, album)
+	assert.True(suite.T(), expires.Equal(time.Unix(681436800, 0)))
+	n, err = suite.base.cache.PSize(suite.base.ctx, pqueue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 2, n)
+	album, expires, err = suite.base.cache.PPoll(suite.base.ctx, pqueue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), albumExp1, album)
+	assert.True(suite.T(), expires.Equal(time.Unix(904867200, 0)))
+	album, expires, err = suite.base.cache.PPoll(suite.base.ctx, pqueue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), albumExp2, album)
+	assert.True(suite.T(), expires.Equal(time.Unix(1075852800, 0)))
+	n, err = suite.base.cache.PSize(suite.base.ctx, pqueue)
+	assert.NoError(suite.T(), err)
+	assert.Equal(suite.T(), 0, n)
+	_, _, err = suite.base.cache.PPoll(suite.base.ctx, pqueue)
+	assert.ErrorIs(suite.T(), err, domain.ErrUnknown)
 }
 
-func TestRedisPair(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		redis, err := NewRedis()
-		if err != nil {
-			t.Fatal(err)
-		}
-		image1 := uint64(0x3E3D)
-		image2 := uint64(0xB399)
-		err = redis.Push(context.Background(), 0x23D2, [][2]uint64{{image1, image2}})
-		if err != nil {
-			t.Error(err)
-		}
-		image3, image4, err := redis.Pop(context.Background(), 0x23D2)
-		if err != nil {
-			t.Error(err)
-		}
-		if image1 != image3 {
-			t.Error("image1 != image3")
-		}
-		if image2 != image4 {
-			t.Error("image2 != image4")
-		}
-	})
-	t.Run("Negative1", func(t *testing.T) {
-		redis, err := NewRedis()
-		if err != nil {
-			t.Fatal(err)
-		}
-		_, _, err = redis.Pop(context.Background(), 0x73BF)
-		if !errors.Is(err, domain.ErrPairNotFound) {
-			t.Error(err)
-		}
-	})
-	t.Run("Negative2", func(t *testing.T) {
-		redis, err := NewRedis()
-		if err != nil {
-			t.Fatal(err)
-		}
-		image1 := uint64(0x44DC)
-		image2 := uint64(0x721B)
-		err = redis.Push(context.Background(), 0x1AE9, [][2]uint64{{image1, image2}})
-		if err != nil {
-			t.Error(err)
-		}
-		_, _, err = redis.Pop(context.Background(), 0x1AE9)
-		if err != nil {
-			t.Error(err)
-		}
-		_, _, err = redis.Pop(context.Background(), 0x1AE9)
-		if !errors.Is(err, domain.ErrPairNotFound) {
-			t.Error(err)
-		}
-	})
+func (suite *RedisTestSuite) TestRedisPair() {
+	suite.base.TestPair()
 }
 
-func TestRedisToken(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		redis, err := NewRedis()
-		if err != nil {
-			t.Fatal(err)
-		}
-		image1 := uint64(0x52BD)
-		token := uint64(0xB41C)
-		err = redis.Set(context.Background(), 0xC2E7, token, image1)
-		if err != nil {
-			t.Error(err)
-		}
-		image2, err := redis.Get(context.Background(), 0xC2E7, token)
-		if err != nil {
-			t.Error(err)
-		}
-		if image1 != image2 {
-			t.Error("image1 != image2")
-		}
-	})
-	t.Run("Negative1", func(t *testing.T) {
-		redis, err := NewRedis()
-		if err != nil {
-			t.Fatal(err)
-		}
-		image := uint64(0x583C)
-		token := uint64(0xF0EE)
-		err = redis.Set(context.Background(), 0x1C4A, token, image)
-		if err != nil {
-			t.Error(err)
-		}
-		err = redis.Set(context.Background(), 0x1C4A, token, image)
-		if !errors.Is(err, domain.ErrTokenAlreadyExists) {
-			t.Error(err)
-		}
-	})
-	t.Run("Negative2", func(t *testing.T) {
-		redis, err := NewRedis()
-		if err != nil {
-			t.Fatal(err)
-		}
-		_, err = redis.Get(context.Background(), 0x1C4A, 0xC4F8)
-		if !errors.Is(err, domain.ErrTokenNotFound) {
-			t.Error(err)
-		}
-	})
-	t.Run("Negative3", func(t *testing.T) {
-		redis, err := NewRedis()
-		if err != nil {
-			t.Fatal(err)
-		}
-		image := uint64(0x7C45)
-		token := uint64(0xC67F)
-		err = redis.Set(context.Background(), 0xEB96, token, image)
-		if err != nil {
-			t.Error(err)
-		}
-		_, err = redis.Get(context.Background(), 0xEB96, token)
-		if err != nil {
-			t.Error(err)
-		}
-		_, err = redis.Get(context.Background(), 0xEB96, token)
-		if !errors.Is(err, domain.ErrTokenNotFound) {
-			t.Error(err)
-		}
-	})
+func (suite *RedisTestSuite) TestRedisToken() {
+	suite.base.TestToken()
 }

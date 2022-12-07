@@ -22,19 +22,11 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/AlbumResponse'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '413':
-          $ref: '#/components/responses/PayloadTooLarge'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
-  /api/albums/{id}/ready/:
+  /api/albums/{album}/status/:
     get:
       description: >
         Second request in a sequence (optional). It informs about
@@ -45,16 +37,12 @@ paths:
         - $ref: '#/components/parameters/albumParam'
       responses:
         '200':
-          $ref: '#/components/responses/ReadyResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/StatusResponse'
         '500':
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
-  /api/albums/{id}/pair/:
+  /api/albums/{album}/pair/:
     get:
       description: >
         Third request in a sequence. Response consists of 2 image
@@ -64,15 +52,26 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/PairResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
-  /api/albums/{id}/vote/:
+  /api/images/{token}/:
+    get:
+      description: >
+        If the backend is configured to hide an image ID, it will return
+        a temporary link to a file which can be requested under this
+        endpoint.
+      parameters:
+        - $ref: '#/components/parameters/tokenParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/PairResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/albums/{album}/vote/:
     patch:
       description: >
         Fourth request in a sequence. Request specifies a value transfer
@@ -86,17 +85,11 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/VoteResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '415':
-          $ref: '#/components/responses/UnsupportedMediaType'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/InternalServerError'
         '503':
           $ref: '#/components/responses/ServiceUnavailable'
-  /api/albums/{id}/top/:
+  /api/albums/{album}/top/:
     get:
       description: >
         Fifth request in a sequence. Returns a list of all images in an
@@ -107,10 +100,17 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/TopResponse'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '429':
-          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+  /api/health/:
+    get:
+      description: >
+        Returns the health of the service and its dependencies.
+      responses:
+        '200':
+          description: OK
         '500':
           $ref: '#/components/responses/InternalServerError'
         '503':
@@ -138,7 +138,7 @@ components:
           properties:
             id:
               $ref: '#/components/schemas/Id'
-    ReadyResponse:
+    StatusResponse:
       type: object
       properties:
         album:
@@ -208,12 +208,20 @@ components:
         error:
           type: object
           properties:
+            code:
+              type: integer
             msg:
               type: string
   parameters:
     albumParam:
       in: path
-      name: id
+      name: album
+      required: true
+      schema:
+        $ref: '#/components/schemas/Id'
+    tokenParam:
+      in: path
+      name: token
       required: true
       schema:
         $ref: '#/components/schemas/Id'
@@ -235,12 +243,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/AlbumResponse'
-    ReadyResponse:
+    StatusResponse:
       description: OK
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ReadyResponse'
+            $ref: '#/components/schemas/StatusResponse'
     PairResponse:
       description: OK
       content:
@@ -255,36 +263,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/TopResponse'
-    BadRequest:
-      description: Bad Request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: Not Found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    PayloadTooLarge:
-      description: Payload Too Large
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    UnsupportedMediaType:
-      description: Unsupported Media Type
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    TooManyRequests:
-      description: Too Many Requests
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
     InternalServerError:
       description: Internal Server Error
       content:

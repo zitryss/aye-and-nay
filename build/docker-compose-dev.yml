@@ -2,8 +2,8 @@ services:
 
   redis:
     build:
-      context: .
-      dockerfile: Dockerfile-redis
+      context: ./../
+      dockerfile: ./build/Dockerfile-redis
     container_name: dev-redis
     ports:
       - "6379:6379"
@@ -12,16 +12,16 @@ services:
 
   imaginary:
     build:
-      context: .
-      dockerfile: Dockerfile-imaginary
+      context: ./../
+      dockerfile: ./build/Dockerfile-imaginary
     container_name: dev-imaginary
     ports:
       - "9001:9001"
 
   mongo:
     build:
-      context: .
-      dockerfile: Dockerfile-mongo
+      context: ./../
+      dockerfile: ./build/Dockerfile-mongo
     container_name: dev-mongo
     ports:
       - "27017:27017"
@@ -30,8 +30,8 @@ services:
 
   minio:
     build:
-      context: .
-      dockerfile: Dockerfile-minio
+      context: ./../
+      dockerfile: ./build/Dockerfile-minio
     container_name: dev-minio
     ports:
       - "9000:9000"
@@ -39,12 +39,10 @@ services:
 
   swagger:
     build:
-      context: .
-      dockerfile: Dockerfile-swagger
+      context: ./../
+      dockerfile: ./build/Dockerfile-swagger
     container_name: dev-swagger
     ports:
-      - "8080:8080"
+      - "8081:8081"
     volumes:
       - "./swagger.yml:/swagger.yml"
-    environment:
-      - SWAGGER_JSON=/swagger.yml

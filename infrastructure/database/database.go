@@ -1,25 +1,28 @@
 package database
 
 import (
+	"context"
+
 	"github.com/zitryss/aye-and-nay/domain/domain"
-	"github.com/zitryss/aye-and-nay/pkg/log"
+	"github.com/zitryss/aye-and-nay/internal/log"
 )
 
-func New(s string) (domain.Databaser, error) {
-	switch s {
+func New(ctx context.Context, conf DatabaseConfig) (domain.Databaser, error) {
+	switch conf.Database {
 	case "mongo":
-		log.Info("connecting to database")
-		return NewMongo()
+		log.Info(context.Background(), "connecting to database")
+		return NewMongo(ctx, conf.Mongo)
 	case "badger":
-		log.Info("connecting to embedded database")
-		b, err := NewBadger(disk)
+		log.Info(context.Background(), "connecting to embedded database")
+		b, err := NewBadger(conf.Badger)
 		if err != nil {
 			return nil, err
 		}
+		b.Monitor(ctx)
 		return b, nil
 	case "mem":
-		return NewMem(), nil
+		return NewMem(conf.Mem), nil
 	default:
-		return NewMem(), nil
+		return NewMem(conf.Mem), nil
 	}
 }

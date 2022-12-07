@@ -2,16 +2,20 @@ package database
 
 import (
 	"context"
-	"sort"
 	"sync"
+
+	"golang.org/x/exp/slices"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMem() *Mem {
-	conf := newMemConfig()
+var (
+	_ domain.Databaser = (*Mem)(nil)
+)
+
+func NewMem(conf MemConfig) *Mem {
 	return &Mem{
 		conf:       conf,
 		syncAlbums: syncAlbums{albums: map[uint64]model.Album{}},
@@ -19,7 +23,7 @@ func NewMem() *Mem {
 }
 
 type Mem struct {
-	conf memConfig
+	conf MemConfig
 	syncAlbums
 }
 
@@ -38,7 +42,7 @@ func (m *Mem) SaveAlbum(_ context.Context, alb model.Album) error {
 	edgs := make(map[uint64]map[uint64]int, len(alb.Images))
 	for i := range alb.Images {
 		img := &alb.Images[i]
-		img.Compressed = m.conf.compressed
+		img.Compressed = m.conf.Compressed
 		edgs[img.Id] = make(map[uint64]int, len(alb.Images))
 	}
 	alb.Edges = edgs
@@ -189,7 +193,7 @@ func (m *Mem) GetImagesOrdered(_ context.Context, album uint64) ([]model.Image, 
 	}
 	imgs := make([]model.Image, len(alb.Images))
 	copy(imgs, alb.Images)
-	sort.Slice(imgs, func(i, j int) bool { return imgs[i].Rating > imgs[j].Rating })
+	slices.SortFunc(imgs, func(a, b model.Image) bool { return a.Rating > b.Rating })
 	return imgs, nil
 }
 
@@ -214,4 +218,15 @@ func (m *Mem) AlbumsToBeDeleted(_ context.Context) ([]model.Album, error) {
 		}
 	}
 	return albs, nil
+}
+
+func (m *Mem) Health(_ context.Context) (bool, error) {
+	return true, nil
+}
+
+func (m *Mem) Reset() error {
+	m.syncAlbums.Lock()
+	defer m.syncAlbums.Unlock()
+	m.albums = map[uint64]model.Album{}
+	return nil
 }

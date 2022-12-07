@@ -22,7 +22,7 @@ func Wrap(err error) error {
 	return fmt.Errorf("%s:%d: %w", funcName, line, err)
 }
 
-func Wrapf(err error, format string, args ...interface{}) error {
+func Wrapf(err error, format string, args ...any) error {
 	if err == nil {
 		return err
 	}
@@ -43,7 +43,7 @@ func Is(err error, target error) bool {
 	return errors.Is(err, target)
 }
 
-func As(err error, target interface{}) bool {
+func As(err error, target any) bool {
 	return errors.As(err, target)
 }
 

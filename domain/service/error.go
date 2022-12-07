@@ -4,27 +4,26 @@ import (
 	"context"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
+	"github.com/zitryss/aye-and-nay/internal/log"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
-	"github.com/zitryss/aye-and-nay/pkg/log"
 )
 
 func handleError(err error) {
-	HandleInnerError(err)
+	HandleInnerError(context.Background(), err)
 }
 
-func HandleInnerError(err error) {
+func HandleInnerError(ctx context.Context, err error) {
 	cause := errors.Cause(err)
-	e := domain.Error(nil)
-	if errors.As(cause, &e) {
-		log.Println(log.Level(e.Inner().Level), err)
+	if e := domain.Error(nil); errors.As(cause, &e) {
+		log.Print(ctx, e.Inner().Level, "err", "stacktrace", err)
 		return
 	}
 	switch cause {
 	case context.Canceled:
-		log.Debug(err)
+		log.Debug(ctx, "err", "stacktrace", err)
 	case context.DeadlineExceeded:
-		log.Debug(err)
+		log.Debug(ctx, "err", "stacktrace", err)
 	default:
-		log.Errorf("%T %v", err, err)
+		log.Error(ctx, "err", "stacktrace", err)
 	}
 }

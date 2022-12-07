@@ -18,12 +18,12 @@ var (
 )
 
 func NewServer(
+	conf ServerConfig,
 	middle func(http.Handler) http.Handler,
 	serv domain.Servicer,
 	serverWait chan<- error,
 ) (*Server, error) {
-	conf := newServerConfig()
-	contr := newController(serv)
+	contr := newController(conf.Controller, serv)
 	router := newRouter(contr)
 	handler := middle(router)
 	srv, err := newServer(conf, handler)
@@ -33,29 +33,29 @@ func NewServer(
 	return &Server{conf, srv, serverWait}, nil
 }
 
-func newServer(conf serverConfig, handler http.Handler) (*http.Server, error) {
+func newServer(conf ServerConfig, handler http.Handler) (*http.Server, error) {
 	srv := &http.Server{
-		Addr:         conf.host + ":" + conf.port,
-		Handler:      http.TimeoutHandler(handler, conf.writeTimeout, ""),
-		ReadTimeout:  conf.readTimeout,
-		WriteTimeout: conf.writeTimeout + 1*time.Second,
-		IdleTimeout:  conf.idleTimeout,
+		Addr:         conf.Host + ":" + conf.Port,
+		Handler:      handler,
+		ReadTimeout:  conf.ReadTimeout,
+		WriteTimeout: conf.WriteTimeout + 1*time.Second,
+		IdleTimeout:  conf.IdleTimeout,
 	}
-	if conf.domain != "" {
-		tlsConfig, err := certmagic.TLS([]string{conf.domain})
+	if conf.Domain != "" {
+		tlsConfig, err := certmagic.TLS([]string{conf.Domain})
 		if err != nil {
 			return nil, errors.Wrap(err)
 		}
 		srv.TLSConfig = tlsConfig
 	}
-	if conf.h2c {
+	if conf.H2C {
 		srv.Handler = h2c.NewHandler(srv.Handler, &http2.Server{})
 	}
 	return srv, nil
 }
 
 type Server struct {
-	conf       serverConfig
+	conf       ServerConfig
 	srv        *http.Server
 	serverWait chan<- error
 }
@@ -76,7 +76,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) shutdown() {
-	ctx, cancel := context.WithTimeout(context.Background(), s.conf.shutdownTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), s.conf.ShutdownTimeout)
 	defer cancel()
 	err := s.srv.Shutdown(ctx)
 	s.serverWait <- err

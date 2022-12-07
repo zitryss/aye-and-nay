@@ -1,2 +1,15 @@
 FROM h2non/imaginary:1
+USER root
+RUN \
+    apt-get update && \
+    apt-get install --no-install-recommends --yes curl && \
+    apt-get autoremove --yes && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+USER nobody
 ENV PORT=9001
+HEALTHCHECK \
+    --interval=1m \
+    --timeout=30s \
+    --retries=3 \
+    CMD curl -f http://localhost:9001/health || exit 1

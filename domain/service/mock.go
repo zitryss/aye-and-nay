@@ -2,9 +2,18 @@ package service
 
 import (
 	"context"
+	"io"
 	"time"
 
+	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
+	. "github.com/zitryss/aye-and-nay/internal/testing"
+	"github.com/zitryss/aye-and-nay/pkg/errors"
+	"github.com/zitryss/aye-and-nay/pkg/pool"
+)
+
+var (
+	_ domain.Servicer = (*Mock)(nil)
 )
 
 func NewMock(err error) *Mock {
@@ -38,6 +47,19 @@ func (m *Mock) Pair(_ context.Context, _ uint64) (model.Image, model.Image, erro
 	return img1, img2, nil
 }
 
+func (m *Mock) Image(_ context.Context, _ uint64) (model.File, error) {
+	if m.err != nil {
+		return model.File{}, m.err
+	}
+	f := Png()
+	buf := pool.GetBufferN(f.Size)
+	n, err := io.Copy(buf, f.Reader)
+	if err != nil {
+		return model.File{}, errors.Wrap(err)
+	}
+	return model.File{Reader: buf, Size: n}, nil
+}
+
 func (m *Mock) Vote(_ context.Context, _ uint64, _ uint64, _ uint64) error {
 	if m.err != nil {
 		return m.err
@@ -53,4 +75,11 @@ func (m *Mock) Top(_ context.Context, _ uint64) ([]model.Image, error) {
 	img2 := model.Image{Src: "/aye-and-nay/albums/byYAAAAAAAA/images/jVgAAAAAAAA", Rating: 0.5}
 	imgs := []model.Image{img1, img2}
 	return imgs, nil
+}
+
+func (m *Mock) Health(_ context.Context) (bool, error) {
+	if m.err != nil {
+		return false, m.err
+	}
+	return true, nil
 }

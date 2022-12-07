@@ -1,1 +1,3 @@
 FROM swaggerapi/swagger-ui:v4.1.2
+COPY ./build/swagger.yml /swagger.yml
+ENV SWAGGER_JSON=/swagger.yml

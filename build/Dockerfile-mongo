@@ -1,2 +1,8 @@
 FROM mongo:5
+COPY ./build/mongo.js /docker-entrypoint-initdb.d/mongo.js
 ENV MONGO_INITDB_DATABASE=aye-and-nay
+HEALTHCHECK \
+    --interval=1m \
+    --timeout=30s \
+    --retries=3 \
+    CMD test $(echo 'db.runCommand("ping").ok' | mongo --quiet) -eq 1 || exit 1

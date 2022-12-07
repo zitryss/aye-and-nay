@@ -13,8 +13,11 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func NewMem(opts ...options) *Mem {
-	conf := newMemConfig()
+var (
+	_ domain.Cacher = (*Mem)(nil)
+)
+
+func NewMem(conf MemConfig, opts ...options) *Mem {
 	m := &Mem{
 		conf:         conf,
 		syncVisitors: syncVisitors{visitors: map[uint64]*visitorTime{}},
@@ -31,28 +34,35 @@ func NewMem(opts ...options) *Mem {
 
 type options func(*Mem)
 
-func WithHeartbeatPair(ch chan<- interface{}) options {
+func WithHeartbeatCleanup(ch chan<- any) options {
+	return func(m *Mem) {
+		m.heartbeat.cleanup = ch
+	}
+}
+
+func WithHeartbeatPair(ch chan<- any) options {
 	return func(m *Mem) {
 		m.heartbeat.pair = ch
 	}
 }
 
-func WithHeartbeatToken(ch chan<- interface{}) options {
+func WithHeartbeatToken(ch chan<- any) options {
 	return func(m *Mem) {
 		m.heartbeat.token = ch
 	}
 }
 
 type Mem struct {
-	conf memConfig
+	conf MemConfig
 	syncVisitors
 	syncQueues
 	syncPQueues
 	syncPairs
 	syncTokens
 	heartbeat struct {
-		pair  chan<- interface{}
-		token chan<- interface{}
+		cleanup chan<- any
+		pair    chan<- any
+		token   chan<- any
 	}
 }
 
@@ -92,7 +102,8 @@ type syncTokens struct {
 }
 
 type tokenTime struct {
-	token uint64
+	album uint64
+	image uint64
 	seen  time.Time
 }
 
@@ -101,7 +112,7 @@ type elem struct {
 	expires time.Time
 }
 
-func timeComparator(a, b interface{}) int {
+func timeComparator(a, b any) int {
 	tA := a.(elem).expires
 	tB := b.(elem).expires
 	switch {
@@ -114,55 +125,100 @@ func timeComparator(a, b interface{}) int {
 	}
 }
 
-func (m *Mem) Monitor() {
+func (m *Mem) Monitor(ctx context.Context) {
 	go func() {
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			if m.heartbeat.cleanup != nil {
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.cleanup <- struct{}{}:
+				}
+			}
 			now := time.Now()
 			m.syncVisitors.Lock()
 			for k, v := range m.visitors {
-				if now.Sub(v.seen) >= m.conf.timeToLive {
+				if now.Sub(v.seen) >= m.conf.TimeToLive {
 					delete(m.visitors, k)
 				}
 			}
 			m.syncVisitors.Unlock()
-			time.Sleep(m.conf.cleanupInterval)
+			time.Sleep(m.conf.CleanupInterval)
+			if m.heartbeat.cleanup != nil {
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.cleanup <- struct{}{}:
+				}
+			}
 		}
 	}()
 	go func() {
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 			if m.heartbeat.pair != nil {
-				m.heartbeat.pair <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.pair <- struct{}{}:
+				}
 			}
 			now := time.Now()
 			m.syncPairs.Lock()
 			for k, v := range m.pairs {
-				if now.Sub(v.seen) >= m.conf.timeToLive {
+				if now.Sub(v.seen) >= m.conf.TimeToLive {
 					delete(m.pairs, k)
 				}
 			}
 			m.syncPairs.Unlock()
-			time.Sleep(m.conf.cleanupInterval)
+			time.Sleep(m.conf.CleanupInterval)
 			if m.heartbeat.pair != nil {
-				m.heartbeat.pair <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.pair <- struct{}{}:
+				}
 			}
 		}
 	}()
 	go func() {
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 			if m.heartbeat.token != nil {
-				m.heartbeat.token <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.token <- struct{}{}:
+				}
 			}
 			now := time.Now()
 			m.syncTokens.Lock()
 			for k, v := range m.tokens {
-				if now.Sub(v.seen) >= m.conf.timeToLive {
+				if now.Sub(v.seen) >= m.conf.TimeToLive {
 					delete(m.tokens, k)
 				}
 			}
 			m.syncTokens.Unlock()
-			time.Sleep(m.conf.cleanupInterval)
+			time.Sleep(m.conf.CleanupInterval)
 			if m.heartbeat.token != nil {
-				m.heartbeat.token <- struct{}{}
+				select {
+				case <-ctx.Done():
+					return
+				case m.heartbeat.token <- struct{}{}:
+				}
 			}
 		}
 	}()
@@ -173,7 +229,7 @@ func (m *Mem) Allow(_ context.Context, ip uint64) (bool, error) {
 	defer m.syncVisitors.Unlock()
 	v, ok := m.visitors[ip]
 	if !ok {
-		l := rate.NewLimiter(rate.Limit(m.conf.limiterRequestsPerSecond), m.conf.limiterBurst)
+		l := rate.NewLimiter(rate.Limit(m.conf.LimiterRequestsPerSecond), m.conf.LimiterBurst)
 		v = &visitorTime{limiter: l}
 		m.visitors[ip] = v
 	}
@@ -289,7 +345,7 @@ func (m *Mem) Pop(_ context.Context, album uint64) (uint64, uint64, error) {
 	return images[0], images[1], nil
 }
 
-func (m *Mem) Set(_ context.Context, _ uint64, token uint64, image uint64) error {
+func (m *Mem) Set(_ context.Context, token uint64, album uint64, image uint64) error {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
 	_, ok := m.tokens[token]
@@ -297,19 +353,49 @@ func (m *Mem) Set(_ context.Context, _ uint64, token uint64, image uint64) error
 		return errors.Wrap(domain.ErrTokenAlreadyExists)
 	}
 	t := &tokenTime{}
-	t.token = image
+	t.album = album
+	t.image = image
 	t.seen = time.Now()
 	m.tokens[token] = t
 	return nil
 }
 
-func (m *Mem) Get(_ context.Context, _ uint64, token uint64) (uint64, error) {
+func (m *Mem) Get(_ context.Context, token uint64) (uint64, uint64, error) {
 	m.syncTokens.Lock()
 	defer m.syncTokens.Unlock()
-	image, ok := m.tokens[token]
+	t, ok := m.tokens[token]
 	if !ok {
-		return 0x0, errors.Wrap(domain.ErrTokenNotFound)
+		return 0x0, 0x0, errors.Wrap(domain.ErrTokenNotFound)
 	}
+	return t.album, t.image, nil
+}
+
+func (m *Mem) Del(_ context.Context, token uint64) error {
+	m.syncTokens.Lock()
+	defer m.syncTokens.Unlock()
 	delete(m.tokens, token)
-	return image.token, nil
+	return nil
+}
+
+func (m *Mem) Health(_ context.Context) (bool, error) {
+	return true, nil
+}
+
+func (m *Mem) Reset() error {
+	m.syncVisitors.Lock()
+	defer m.syncVisitors.Unlock()
+	m.visitors = map[uint64]*visitorTime{}
+	m.syncQueues.Lock()
+	defer m.syncQueues.Unlock()
+	m.queues = map[uint64]*linkedhashset.Set{}
+	m.syncPQueues.Lock()
+	defer m.syncPQueues.Unlock()
+	m.pqueues = map[uint64]*binaryheap.Heap{}
+	m.syncPairs.Lock()
+	defer m.syncPairs.Unlock()
+	m.pairs = map[uint64]*pairsTime{}
+	m.syncTokens.Lock()
+	defer m.syncTokens.Unlock()
+	m.tokens = map[uint64]*tokenTime{}
+	return nil
 }

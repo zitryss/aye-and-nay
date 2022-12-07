@@ -1,4 +1,7 @@
 /.git/
+healthcheck
+aye-and-nay
+coverage.txt
 /badger/
 /build/badger/
 /build/caddy/

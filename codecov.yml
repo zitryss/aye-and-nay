@@ -8,5 +8,8 @@ ignore:
   - "main.go"
   - "tools.go"
   - "cmd/loadtest/main.go"
+  - "cmd/healthcheck/main.go"
   - "delivery/http/requests_easyjson.go"
   - "delivery/http/responses_easyjson.go"
+  - "internal/**/*"
+  - "pkg/log/level_string.go"

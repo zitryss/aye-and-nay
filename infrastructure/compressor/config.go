@@ -2,54 +2,59 @@ package compressor
 
 import (
 	"time"
-
-	"github.com/spf13/viper"
 )
 
-func newImaginaryConfig() imaginaryConfig {
-	return imaginaryConfig{
-		host:    viper.GetString("compressor.imaginary.host"),
-		port:    viper.GetString("compressor.imaginary.port"),
-		times:   viper.GetInt("compressor.imaginary.retry.times"),
-		pause:   viper.GetDuration("compressor.imaginary.retry.pause"),
-		timeout: viper.GetDuration("compressor.imaginary.retry.timeout"),
+type CompressorConfig struct {
+	Compressor string           `mapstructure:"APP_COMPRESSOR" validate:"required"`
+	Shortpixel ShortpixelConfig `mapstructure:",squash"`
+	Imaginary  ImaginaryConfig  `mapstructure:",squash"`
+}
+
+type ShortpixelConfig struct {
+	Url             string        `mapstructure:"COMPRESSOR_SHORTPIXEL_URL"              validate:"required"`
+	Url2            string        `mapstructure:"COMPRESSOR_SHORTPIXEL_URL2"             validate:"required"`
+	ApiKey          string        `mapstructure:"COMPRESSOR_SHORTPIXEL_API_KEY"          validate:"required"`
+	RetryTimes      int           `mapstructure:"COMPRESSOR_SHORTPIXEL_RETRY_TIMES"      validate:"required"`
+	RetryPause      time.Duration `mapstructure:"COMPRESSOR_SHORTPIXEL_RETRY_PAUSE"      validate:"required"`
+	Timeout         time.Duration `mapstructure:"COMPRESSOR_SHORTPIXEL_TIMEOUT"          validate:"required"`
+	Wait            string        `mapstructure:"COMPRESSOR_SHORTPIXEL_WAIT"             validate:"required"`
+	UploadTimeout   time.Duration `mapstructure:"COMPRESSOR_SHORTPIXEL_UPLOAD_TIMEOUT"   validate:"required"`
+	DownloadTimeout time.Duration `mapstructure:"COMPRESSOR_SHORTPIXEL_DOWNLOAD_TIMEOUT" validate:"required"`
+	RepeatIn        time.Duration `mapstructure:"COMPRESSOR_SHORTPIXEL_REPEAT_IN"        validate:"required"`
+	RestartIn       time.Duration `mapstructure:"COMPRESSOR_SHORTPIXEL_RESTART_IN"       validate:"required"`
+}
+
+type ImaginaryConfig struct {
+	Host       string        `mapstructure:"COMPRESSOR_IMAGINARY_HOST"        validate:"required"`
+	Port       string        `mapstructure:"COMPRESSOR_IMAGINARY_PORT"        validate:"required"`
+	RetryTimes int           `mapstructure:"COMPRESSOR_IMAGINARY_RETRY_TIMES" validate:"required"`
+	RetryPause time.Duration `mapstructure:"COMPRESSOR_IMAGINARY_RETRY_PAUSE" validate:"required"`
+	Timeout    time.Duration `mapstructure:"COMPRESSOR_IMAGINARY_TIMEOUT"     validate:"required"`
+}
+
+func (c CompressorConfig) IsMock() bool {
+	return c.Compressor == "mock"
+}
+
+var (
+	DefaultShortpixelConfig = ShortpixelConfig{
+		Url:             "",
+		Url2:            "",
+		ApiKey:          "",
+		RetryTimes:      0,
+		RetryPause:      0,
+		Timeout:         0,
+		Wait:            "",
+		UploadTimeout:   250 * time.Millisecond,
+		DownloadTimeout: 250 * time.Millisecond,
+		RepeatIn:        0,
+		RestartIn:       0,
 	}
-}
-
-type imaginaryConfig struct {
-	host    string
-	port    string
-	times   int
-	pause   time.Duration
-	timeout time.Duration
-}
-
-func newShortPixelConfig() shortPixelConfig {
-	return shortPixelConfig{
-		url:             viper.GetString("compressor.shortpixel.url"),
-		url2:            viper.GetString("compressor.shortpixel.url2"),
-		apiKey:          viper.GetString("compressor.shortpixel.apiKey"),
-		times:           viper.GetInt("compressor.shortpixel.retry.times"),
-		pause:           viper.GetDuration("compressor.shortpixel.retry.pause"),
-		timeout:         viper.GetDuration("compressor.shortpixel.retry.timeout"),
-		wait:            viper.GetString("compressor.shortpixel.wait"),
-		uploadTimeout:   viper.GetDuration("compressor.shortpixel.uploadTimeout"),
-		downloadTimeout: viper.GetDuration("compressor.shortpixel.downloadTimeout"),
-		repeatIn:        viper.GetDuration("compressor.shortpixel.repeatIn"),
-		restartIn:       viper.GetDuration("compressor.shortpixel.restartIn"),
+	DefaultImaginaryConfig = ImaginaryConfig{
+		Host:       "localhost",
+		Port:       "9001",
+		RetryTimes: 4,
+		RetryPause: 5 * time.Second,
+		Timeout:    30 * time.Second,
 	}
-}
-
-type shortPixelConfig struct {
-	url             string
-	url2            string
-	apiKey          string
-	times           int
-	pause           time.Duration
-	timeout         time.Duration
-	wait            string
-	uploadTimeout   time.Duration
-	downloadTimeout time.Duration
-	repeatIn        time.Duration
-	restartIn       time.Duration
-}
+)

@@ -1,5 +1,3 @@
-//go:build unit
-
 package compressor
 
 import (
@@ -11,17 +9,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
-	_ "github.com/zitryss/aye-and-nay/internal/config"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
-	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
 type response []struct {
 	Status struct {
-		Code    interface{}
+		Code    any
 		Message string
 	}
 	OriginalURL        string `json:"OriginalURL,omitempty"`
@@ -42,13 +38,14 @@ type response []struct {
 	LocalPath          string `json:"LocalPath,omitempty"`
 }
 
-func TestShortPixel(t *testing.T) {
+func TestShortpixel(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	t.Run("Positive1", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, Png())
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -56,7 +53,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -81,25 +78,20 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 	})
 	t.Run("Positive2", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, Png())
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -129,30 +121,26 @@ func TestShortPixel(t *testing.T) {
 				}
 			]`
 			_, err := io.WriteString(w, resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 	})
 	t.Run("NegativeInvalidUrl1", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeInvalidUrl2", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
@@ -163,7 +151,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -188,37 +176,32 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeTimeout1", func(t *testing.T) {
-		d := viper.GetDuration("compressor.shortpixel.uploadTimeout") + viper.GetDuration("compressor.shortpixel.downloadTimeout")
+		conf := DefaultShortpixelConfig
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(2 * d)
+			time.Sleep(2 * (conf.UploadTimeout + conf.DownloadTimeout))
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeTimeout2", func(t *testing.T) {
-		d := viper.GetDuration("compressor.shortpixel.uploadTimeout") + viper.GetDuration("compressor.shortpixel.downloadTimeout")
+		conf := DefaultShortpixelConfig
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(2 * d)
+			time.Sleep(2 * (conf.UploadTimeout + conf.DownloadTimeout))
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -226,7 +209,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -251,18 +234,14 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeErrorHttpCode1", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
@@ -270,12 +249,11 @@ func TestShortPixel(t *testing.T) {
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeErrorHttpCode2", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
@@ -287,7 +265,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -312,18 +290,15 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeInvalidJson", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
@@ -351,25 +326,22 @@ func TestShortPixel(t *testing.T) {
 					}
 			`
 			_, err := io.WriteString(w, resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeErrorStatusCode1", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    -110,
@@ -378,25 +350,22 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp[0])
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeErrorStatusCode2", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    -201,
@@ -405,25 +374,22 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp[0])
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrNotImage) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrNotImage)
 	})
 	t.Run("NegativeErrorStatusCode3", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    -202,
@@ -432,25 +398,20 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp[0])
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
-		viper.Set("compressor.shortpixel.url", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrNotImage) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrNotImage)
 	})
 	t.Run("PositiveRecovery1", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, Png())
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -458,7 +419,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "2",
@@ -483,9 +444,7 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
@@ -493,7 +452,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -505,26 +464,21 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver3 := httptest.NewServer(http.HandlerFunc(fn3))
 		defer mockserver3.Close()
-		viper.Set("compressor.shortpixel.url", mockserver3.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver3.URL
+		conf.Url2 = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 	})
 	t.Run("PositiveRecovery2", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			_, err := io.Copy(w, Png())
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -554,9 +508,7 @@ func TestShortPixel(t *testing.T) {
 				}
 			]`
 			_, err := io.WriteString(w, resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
@@ -573,19 +525,16 @@ func TestShortPixel(t *testing.T) {
 				}
 			]`
 			_, err := io.WriteString(w, resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver3 := httptest.NewServer(http.HandlerFunc(fn3))
 		defer mockserver3.Close()
-		viper.Set("compressor.shortpixel.url", mockserver3.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver2.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver3.URL
+		conf.Url2 = mockserver2.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if err != nil {
-			t.Error(err)
-		}
+		assert.NoError(t, err)
 	})
 	t.Run("NegativeRecoveryInvalidUrl", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
@@ -596,7 +545,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -608,24 +557,21 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeRecoveryTimeout", func(t *testing.T) {
-		d := viper.GetDuration("compressor.shortpixel.uploadTimeout") + viper.GetDuration("compressor.shortpixel.downloadTimeout")
+		conf := DefaultShortpixelConfig
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(2 * d)
+			time.Sleep(2 * (conf.UploadTimeout + conf.DownloadTimeout))
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -633,7 +579,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -645,19 +591,15 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeRecoveryErrorHttpCode", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
@@ -669,7 +611,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -681,19 +623,16 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeRecoveryInvalidJson", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
@@ -721,9 +660,7 @@ func TestShortPixel(t *testing.T) {
 					}
 			`
 			_, err := io.WriteString(w, resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -731,7 +668,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -743,26 +680,23 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeRecoveryErrorStatusCode", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    -110,
@@ -771,9 +705,7 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp[0])
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -781,7 +713,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -793,26 +725,23 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 	t.Run("NegativeRecoveryProcessingStatusCode", func(t *testing.T) {
 		fn1 := func(w http.ResponseWriter, r *http.Request) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -824,9 +753,7 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp[0])
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver1 := httptest.NewServer(http.HandlerFunc(fn1))
 		defer mockserver1.Close()
@@ -834,7 +761,7 @@ func TestShortPixel(t *testing.T) {
 			resp := response{
 				{
 					Status: struct {
-						Code    interface{}
+						Code    any
 						Message string
 					}{
 						Code:    "1",
@@ -846,18 +773,15 @@ func TestShortPixel(t *testing.T) {
 				},
 			}
 			err := json.NewEncoder(w).Encode(resp)
-			if err != nil {
-				t.Error(err)
-			}
+			assert.NoError(t, err)
 		}
 		mockserver2 := httptest.NewServer(http.HandlerFunc(fn2))
 		defer mockserver2.Close()
-		viper.Set("compressor.shortpixel.url", mockserver2.URL)
-		viper.Set("compressor.shortpixel.url2", mockserver1.URL)
-		sp := NewShortPixel()
+		conf := DefaultShortpixelConfig
+		conf.Url = mockserver2.URL
+		conf.Url2 = mockserver1.URL
+		sp := NewShortpixel(conf)
 		_, err := sp.Compress(context.Background(), Png())
-		if !errors.Is(err, domain.ErrThirdPartyUnavailable) {
-			t.Error(err)
-		}
+		assert.ErrorIs(t, err, domain.ErrThirdPartyUnavailable)
 	})
 }

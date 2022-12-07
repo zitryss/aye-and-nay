@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -17,14 +19,14 @@ import (
 )
 
 func newController(
+	conf ControllerConfig,
 	serv domain.Servicer,
 ) controller {
-	conf := newContrConfig()
 	return controller{conf, serv}
 }
 
 type controller struct {
-	conf contrConfig
+	conf ControllerConfig
 	serv domain.Servicer
 }
 
@@ -35,7 +37,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		if !strings.HasPrefix(ct, "multipart/form-data") {
 			return nil, albumRequest{}, errors.Wrap(domain.ErrWrongContentType)
 		}
-		maxBodySize := int64(c.conf.maxNumberOfFiles) * c.conf.maxFileSize
+		maxBodySize := int64(c.conf.MaxNumberOfFiles) * c.conf.MaxFileSize
 		if r.ContentLength > maxBodySize {
 			return nil, albumRequest{}, errors.Wrap(domain.ErrBodyTooLarge)
 		}
@@ -47,18 +49,18 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		if len(fhs) < 2 {
 			return nil, albumRequest{}, errors.Wrap(domain.ErrNotEnoughImages)
 		}
-		if len(fhs) > c.conf.maxNumberOfFiles {
+		if len(fhs) > c.conf.MaxNumberOfFiles {
 			return nil, albumRequest{}, errors.Wrap(domain.ErrTooManyImages)
 		}
 		req := albumRequest{ff: make([]model.File, 0, len(fhs)), multi: r.MultipartForm}
 		defer func() {
 			for _, f := range req.ff {
-				_ = f.Reader.(io.Closer).Close()
+				_ = f.Close()
 			}
 			_ = req.multi.RemoveAll()
 		}()
 		for _, fh := range fhs {
-			if fh.Size > c.conf.maxFileSize {
+			if fh.Size > c.conf.MaxFileSize {
 				return nil, albumRequest{}, errors.Wrap(domain.ErrImageTooLarge)
 			}
 			f, err := fh.Open()
@@ -81,7 +83,25 @@ func (c *controller) handleAlbum() httprouter.Handle {
 				_ = f.Close()
 				return nil, albumRequest{}, errors.Wrap(domain.ErrNotImage)
 			}
-			req.ff = append(req.ff, model.File{Reader: f, Size: fh.Size})
+			F := model.File{}
+			switch v := f.(type) {
+			case *os.File:
+				closeFn := func() error {
+					_ = v.Close()
+					_ = os.Remove(v.Name())
+					return nil
+				}
+				F = model.NewFile(v, closeFn, fh.Size)
+			case multipart.File:
+				closeFn := func() error {
+					_ = v.Close()
+					return nil
+				}
+				F = model.NewFile(v, closeFn, fh.Size)
+			default:
+				return nil, albumRequest{}, errors.Wrap(domain.ErrUnknown)
+			}
+			req.ff = append(req.ff, F)
 		}
 		vals := r.MultipartForm.Value["duration"]
 		if len(vals) == 0 {
@@ -97,7 +117,7 @@ func (c *controller) handleAlbum() httprouter.Handle {
 	process := func(ctx context.Context, req albumRequest) (albumResponse, error) {
 		defer func() {
 			for _, f := range req.ff {
-				_ = f.Reader.(io.Closer).Close()
+				_ = f.Close()
 			}
 			_ = req.multi.RemoveAll()
 		}()
@@ -120,45 +140,45 @@ func (c *controller) handleAlbum() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }
 
-func (c *controller) handleReady() httprouter.Handle {
-	input := func(r *http.Request, ps httprouter.Params) (context.Context, readyRequest, error) {
+func (c *controller) handleStatus() httprouter.Handle {
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, statusRequest, error) {
 		ctx := r.Context()
-		req := readyRequest{}
+		req := statusRequest{}
 		req.album.id = ps.ByName("album")
 		return ctx, req, nil
 	}
-	process := func(ctx context.Context, req readyRequest) (readyResponse, error) {
+	process := func(ctx context.Context, req statusRequest) (statusResponse, error) {
 		album, err := base64.ToUint64(req.album.id)
 		if err != nil {
-			return readyResponse{}, errors.Wrap(err)
+			return statusResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		p, err := c.serv.Progress(ctx, album)
 		if err != nil {
-			return readyResponse{}, errors.Wrap(err)
+			return statusResponse{}, errors.Wrap(err)
 		}
-		resp := readyResponse{}
-		resp.Album.Progress = p
+		resp := statusResponse{}
+		resp.Album.Compression.Progress = p
 		return resp, nil
 	}
-	output := func(ctx context.Context, w http.ResponseWriter, resp readyResponse) error {
+	output := func(ctx context.Context, w http.ResponseWriter, resp statusResponse) error {
 		w.Header().Set("Content-Type", "application/json; charset=utf-8")
 		err := json.NewEncoder(w).Encode(resp)
 		if err != nil {
@@ -167,20 +187,20 @@ func (c *controller) handleReady() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }
@@ -195,7 +215,7 @@ func (c *controller) handlePair() httprouter.Handle {
 	process := func(ctx context.Context, req pairRequest) (pairResponse, error) {
 		album, err := base64.ToUint64(req.album.id)
 		if err != nil {
-			return pairResponse{}, errors.Wrap(err)
+			return pairResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		img1, img2, err := c.serv.Pair(ctx, album)
 		if err != nil {
@@ -219,20 +239,66 @@ func (c *controller) handlePair() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
+		},
+	)
+}
+
+func (c *controller) handleImage() httprouter.Handle {
+	input := func(r *http.Request, ps httprouter.Params) (context.Context, imageRequest, error) {
+		ctx := r.Context()
+		req := imageRequest{}
+		req.image.token = ps.ByName("token")
+		return ctx, req, nil
+	}
+	process := func(ctx context.Context, req imageRequest) (imageResponse, error) {
+		token, err := base64.ToUint64(req.image.token)
+		if err != nil {
+			return imageResponse{}, errors.Wrap(domain.ErrInvalidId)
+		}
+		f, err := c.serv.Image(ctx, token)
+		if err != nil {
+			return imageResponse{}, errors.Wrap(err)
+		}
+		resp := imageResponse{f}
+		return resp, nil
+	}
+	output := func(ctx context.Context, w http.ResponseWriter, resp imageResponse) error {
+		defer resp.f.Close()
+		_, err := io.Copy(w, resp.f.Reader)
+		if err != nil {
+			return errors.Wrap(err)
+		}
+		return nil
+	}
+	return handleHttpRouterError(
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
+			ctx, req, err := input(r, ps)
+			if err != nil {
+				return ctx, errors.Wrap(err)
+			}
+			resp, err := process(ctx, req)
+			if err != nil {
+				return ctx, errors.Wrap(err)
+			}
+			err = output(ctx, w, resp)
+			if err != nil {
+				return ctx, errors.Wrap(err)
+			}
+			return ctx, nil
 		},
 	)
 }
@@ -255,15 +321,15 @@ func (c *controller) handleVote() httprouter.Handle {
 	process := func(ctx context.Context, req voteRequest) (voteResponse, error) {
 		album, err := base64.ToUint64(req.Album.id)
 		if err != nil {
-			return voteResponse{}, errors.Wrap(err)
+			return voteResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		imgFromToken, err := base64.ToUint64(req.Album.ImgFrom.Token)
 		if err != nil {
-			return voteResponse{}, errors.Wrap(err)
+			return voteResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		imgToToken, err := base64.ToUint64(req.Album.ImgTo.Token)
 		if err != nil {
-			return voteResponse{}, errors.Wrap(err)
+			return voteResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		err = c.serv.Vote(ctx, album, imgFromToken, imgToToken)
 		if err != nil {
@@ -276,20 +342,20 @@ func (c *controller) handleVote() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
 		},
 	)
 }
@@ -304,7 +370,7 @@ func (c *controller) handleTop() httprouter.Handle {
 	process := func(ctx context.Context, req topRequest) (topResponse, error) {
 		album, err := base64.ToUint64(req.album.id)
 		if err != nil {
-			return topResponse{}, errors.Wrap(err)
+			return topResponse{}, errors.Wrap(domain.ErrInvalidId)
 		}
 		imgs, err := c.serv.Top(ctx, album)
 		if err != nil {
@@ -327,20 +393,33 @@ func (c *controller) handleTop() httprouter.Handle {
 		return nil
 	}
 	return handleHttpRouterError(
-		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) error {
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
 			ctx, req, err := input(r, ps)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			resp, err := process(ctx, req)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
 			err = output(ctx, w, resp)
 			if err != nil {
-				return errors.Wrap(err)
+				return ctx, errors.Wrap(err)
 			}
-			return nil
+			return ctx, nil
+		},
+	)
+}
+
+func (c *controller) handleHealth() httprouter.Handle {
+	return handleHttpRouterError(
+		func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) (context.Context, error) {
+			ctx := r.Context()
+			_, err := c.serv.Health(ctx)
+			if err != nil {
+				return ctx, errors.Wrap(err)
+			}
+			return ctx, nil
 		},
 	)
 }

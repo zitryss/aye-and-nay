@@ -2,46 +2,49 @@ package cache
 
 import (
 	"time"
-
-	"github.com/spf13/viper"
 )
 
-func newMemConfig() memConfig {
-	return memConfig{
-		limiterRequestsPerSecond: viper.GetFloat64("middleware.limiter.requestsPerSecond"),
-		limiterBurst:             viper.GetInt("middleware.limiter.burst"),
-		timeToLive:               viper.GetDuration("cache.redis.timeToLive"),
-		cleanupInterval:          viper.GetDuration("cache.redis.cleanupInterval"),
+type CacheConfig struct {
+	Cache string      `mapstructure:"APP_CACHE" validate:"required"`
+	Mem   MemConfig   `mapstructure:",squash"`
+	Redis RedisConfig `mapstructure:",squash"`
+}
+
+type MemConfig struct {
+	CleanupInterval          time.Duration `mapstructure:"CACHE_MEM_CLEANUP_INTERVAL"             validate:"required"`
+	LimiterRequestsPerSecond float64       `mapstructure:"MIDDLEWARE_LIMITER_REQUESTS_PER_SECOND" validate:"required"`
+	LimiterBurst             int           `mapstructure:"MIDDLEWARE_LIMITER_BURST"               validate:"required"`
+	TimeToLive               time.Duration `mapstructure:"CACHE_REDIS_TIME_TO_LIVE"               validate:"required"`
+}
+
+type RedisConfig struct {
+	Host                     string        `mapstructure:"CACHE_REDIS_HOST"                       validate:"required"`
+	Port                     string        `mapstructure:"CACHE_REDIS_PORT"                       validate:"required"`
+	RetryTimes               int           `mapstructure:"CACHE_REDIS_RETRY_TIMES"                validate:"required"`
+	RetryPause               time.Duration `mapstructure:"CACHE_REDIS_RETRY_PAUSE"                validate:"required"`
+	Timeout                  time.Duration `mapstructure:"CACHE_REDIS_TIMEOUT"                    validate:"required"`
+	LimiterRequestsPerSecond int           `mapstructure:"MIDDLEWARE_LIMITER_REQUESTS_PER_SECOND" validate:"required"`
+	LimiterBurst             int64         `mapstructure:"MIDDLEWARE_LIMITER_BURST"               validate:"required"`
+	TimeToLive               time.Duration `mapstructure:"CACHE_REDIS_TIME_TO_LIVE"               validate:"required"`
+	TxRetries                int           `mapstructure:"CACHE_REDIS_TX_RETRIES"                 validate:"required"`
+}
+
+var (
+	DefaultMemConfig = MemConfig{
+		CleanupInterval:          0,
+		LimiterRequestsPerSecond: 30000,
+		LimiterBurst:             300,
+		TimeToLive:               0,
 	}
-}
-
-type memConfig struct {
-	limiterRequestsPerSecond float64
-	limiterBurst             int
-	timeToLive               time.Duration
-	cleanupInterval          time.Duration
-}
-
-func newRedisConfig() redisConfig {
-	return redisConfig{
-		host:                     viper.GetString("cache.redis.host"),
-		port:                     viper.GetString("cache.redis.port"),
-		times:                    viper.GetInt("cache.redis.retry.times"),
-		pause:                    viper.GetDuration("cache.redis.retry.pause"),
-		timeout:                  viper.GetDuration("cache.redis.retry.timeout"),
-		limiterRequestsPerMinute: viper.GetInt("middleware.limiter.requestsPerSecond"),
-		limiterBurst:             viper.GetInt64("middleware.limiter.burst"),
-		timeToLive:               viper.GetDuration("cache.redis.timeToLive"),
+	DefaultRedisConfig = RedisConfig{
+		Host:                     "localhost",
+		Port:                     "6379",
+		RetryTimes:               4,
+		RetryPause:               5 * time.Second,
+		Timeout:                  30 * time.Second,
+		LimiterRequestsPerSecond: 1,
+		LimiterBurst:             1,
+		TimeToLive:               3 * time.Second,
+		TxRetries:                1,
 	}
-}
-
-type redisConfig struct {
-	host                     string
-	port                     string
-	times                    int
-	pause                    time.Duration
-	timeout                  time.Duration
-	limiterRequestsPerMinute int
-	limiterBurst             int64
-	timeToLive               time.Duration
-}
+)

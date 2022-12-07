@@ -1,88 +1,102 @@
-//go:build integration
-
 package storage
 
 import (
 	"context"
 	"testing"
 
-	minios3 "github.com/minio/minio-go/v7"
+	minioS3 "github.com/minio/minio-go/v7"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 
-	_ "github.com/zitryss/aye-and-nay/internal/config"
+	"github.com/zitryss/aye-and-nay/domain/domain"
+	. "github.com/zitryss/aye-and-nay/internal/generator"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
-	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func TestMinio(t *testing.T) {
-	t.Run("", func(t *testing.T) {
-		minio, err := NewMinio()
-		if err != nil {
-			t.Fatal(err)
-		}
-		f, err := minio.Get(context.Background(), 0x70D8, 0xD5C7)
-		e := (*minios3.ErrorResponse)(nil)
-		if errors.As(err, &e) {
-			t.Error(err)
-		}
-		if f.Reader != nil {
-			t.Error("f.Reader != nil")
-		}
-		src, err := minio.Put(context.Background(), 0x70D8, 0xD5C7, Png())
-		if err != nil {
-			t.Error(err)
-		}
-		if src != "/aye-and-nay/albums/2HAAAAAAAAA/images/x9UAAAAAAAA" {
-			t.Error("src != \"/aye-and-nay/albums/2HAAAAAAAAA/images/x9UAAAAAAAA\"")
-		}
-		f, err = minio.Get(context.Background(), 0x70D8, 0xD5C7)
-		if err != nil {
-			t.Error(err)
-		}
-		if !EqualFile(f, Png()) {
-			t.Error("!EqualFile(f, Png())")
-		}
-		err = minio.Remove(context.Background(), 0x70D8, 0xD5C7)
-		if err != nil {
-			t.Error(err)
-		}
-		f, err = minio.Get(context.Background(), 0x70D8, 0xD5C7)
-		e = (*minios3.ErrorResponse)(nil)
-		if errors.As(err, &e) {
-			t.Error(err)
-		}
-		if f.Reader != nil {
-			t.Error("f.Reader != nil")
-		}
+func TestMinioTestSuite(t *testing.T) {
+	suite.Run(t, &MinioTestSuite{})
+}
+
+type MinioTestSuite struct {
+	suite.Suite
+	ctx         context.Context
+	cancel      context.CancelFunc
+	storage     domain.Storager
+	setupTestFn func()
+}
+
+func (suite *MinioTestSuite) SetupSuite() {
+	if !*integration {
+		suite.T().Skip()
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	minio, err := NewMinio(ctx, DefaultMinioConfig)
+	require.NoError(suite.T(), err)
+	suite.ctx = ctx
+	suite.cancel = cancel
+	suite.storage = minio
+	suite.setupTestFn = suite.SetupTest
+}
+
+func (suite *MinioTestSuite) SetupTest() {
+	err := suite.storage.(*Minio).Reset()
+	require.NoError(suite.T(), err)
+}
+
+func (suite *MinioTestSuite) TearDownTest() {
+
+}
+
+func (suite *MinioTestSuite) TearDownSuite() {
+	err := suite.storage.(*Minio).Reset()
+	require.NoError(suite.T(), err)
+	suite.cancel()
+}
+
+func (suite *MinioTestSuite) TestMinio() {
+	suite.T().Run("", func(t *testing.T) {
+		suite.setupTestFn()
+		id, ids := GenId()
+		album := id()
+		image := id()
+		f, err := suite.storage.Get(suite.ctx, album, image)
+		e := minioS3.ErrorResponse{}
+		assert.ErrorAs(t, err, &e)
+		assert.Nil(t, f.Reader)
+		src, err := suite.storage.Put(suite.ctx, album, image, Png())
+		assert.NoError(t, err)
+		assert.Equal(t, "/aye-and-nay/albums/"+ids.Base64(0)+"/images/"+ids.Base64(1), src)
+		f, err = suite.storage.Get(suite.ctx, album, image)
+		assert.NoError(t, err)
+		AssertEqualFile(t, f, Png())
+		err = suite.storage.Remove(suite.ctx, album, image)
+		assert.NoError(t, err)
+		f, err = suite.storage.Get(suite.ctx, album, image)
+		e = minioS3.ErrorResponse{}
+		assert.ErrorAs(t, err, &e)
+		assert.Nil(t, f.Reader)
 	})
-	t.Run("", func(t *testing.T) {
-		minio, err := NewMinio()
-		if err != nil {
-			t.Fatal(err)
-		}
-		src, err := minio.Put(context.Background(), 0x872D, 0x882D, Png())
-		if err != nil {
-			t.Error(err)
-		}
-		if src != "/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA" {
-			t.Error("src != \"/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA\"")
-		}
-		f, err := minio.Get(context.Background(), 0x872D, 0x882D)
-		if err != nil {
-			t.Error(err)
-		}
-		if !EqualFile(f, Png()) {
-			t.Error("!EqualFile(f, Png())")
-		}
-		err = minio.Remove(context.Background(), 0x872D, 0x882D)
-		if err != nil {
-			t.Error(err)
-		}
-		src, err = minio.Put(context.Background(), 0x872D, 0x882D, Png())
-		if err != nil {
-			t.Error(err)
-		}
-		if src != "/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA" {
-			t.Error("src != \"/aye-and-nay/albums/LYcAAAAAAAA/images/LYgAAAAAAAA\"")
-		}
+	suite.T().Run("", func(t *testing.T) {
+		suite.setupTestFn()
+		id, ids := GenId()
+		album := id()
+		image := id()
+		src, err := suite.storage.Put(suite.ctx, album, image, Png())
+		assert.NoError(t, err)
+		assert.Equal(t, "/aye-and-nay/albums/"+ids.Base64(0)+"/images/"+ids.Base64(1), src)
+		f, err := suite.storage.Get(suite.ctx, album, image)
+		assert.NoError(t, err)
+		AssertEqualFile(t, f, Png())
+		err = suite.storage.Remove(suite.ctx, album, image)
+		assert.NoError(t, err)
+		src, err = suite.storage.Put(suite.ctx, album, image, Png())
+		assert.NoError(t, err)
+		assert.Equal(t, "/aye-and-nay/albums/"+ids.Base64(0)+"/images/"+ids.Base64(1), src)
 	})
+}
+
+func (suite *MinioTestSuite) TestMinioHealth() {
+	_, err := suite.storage.Health(suite.ctx)
+	assert.NoError(suite.T(), err)
 }

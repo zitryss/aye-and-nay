@@ -11,13 +11,13 @@ jobs:
       - uses: actions/setup-go@v3
         with:
           go-version: 1.19
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: ${{ runner.os }}-go-
       - run: make test-unit-ci
-      - uses: codecov/codecov-action@v2
+      - uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.txt

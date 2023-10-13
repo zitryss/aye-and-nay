@@ -1,11 +1,8 @@
 package storage
 
 import (
-	"bytes"
 	"context"
 	"io"
-	"mime/multipart"
-	"os"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -13,6 +10,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/base64"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/pool"
+)
+
+var (
+	_ domain.Storager = (*Mock)(nil)
 )
 
 func NewMock() *Mock {
@@ -23,36 +24,33 @@ type Mock struct {
 }
 
 func (m *Mock) Put(_ context.Context, album uint64, image uint64, f model.File) (string, error) {
-	defer func() {
-		switch v := f.Reader.(type) {
-		case *os.File:
-			_ = v.Close()
-			_ = os.Remove(v.Name())
-		case multipart.File:
-			_ = v.Close()
-		case *bytes.Buffer:
-			pool.PutBuffer(v)
-		default:
-			panic(errors.Wrap(domain.ErrUnknown))
-		}
-	}()
+	defer f.Close()
 	albumB64 := base64.FromUint64(album)
 	imageB64 := base64.FromUint64(image)
 	filename := "albums/" + albumB64 + "/images/" + imageB64
+	_, _ = io.Copy(io.Discard, f.Reader)
 	src := "/aye-and-nay/" + filename
 	return src, nil
 }
 
 func (m *Mock) Get(_ context.Context, _ uint64, _ uint64) (model.File, error) {
-	buf := pool.GetBuffer()
 	f := Png()
-	n, err := io.CopyN(buf, f, f.Size)
+	buf := pool.GetBufferN(f.Size)
+	n, err := io.Copy(buf, f.Reader)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	return model.File{Reader: buf, Size: n}, nil
+	closeFn := func() error {
+		pool.PutBuffer(buf)
+		return nil
+	}
+	return model.NewFile(buf, closeFn, n), nil
 }
 
 func (m *Mock) Remove(_ context.Context, _ uint64, _ uint64) error {
 	return nil
+}
+
+func (m *Mock) Health(_ context.Context) (bool, error) {
+	return true, nil
 }

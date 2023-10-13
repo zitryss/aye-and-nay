@@ -1,16 +1,25 @@
-//go:build unit
-
 package errors_test
 
 import (
+	"flag"
 	"fmt"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
+var (
+	unit        = flag.Bool("unit", false, "")
+	integration = flag.Bool("int", false, "")
+	ci          = flag.Bool("ci", false, "")
+)
+
 func TestCause(t *testing.T) {
+	if !*unit {
+		t.Skip()
+	}
 	tests := []struct {
 		give error
 		want error
@@ -56,12 +65,13 @@ func TestCause(t *testing.T) {
 			want: errors.New("1"),
 		},
 	}
+	t.Parallel()
 	for _, tt := range tests {
+		tt := tt
 		t.Run("", func(t *testing.T) {
+			t.Parallel()
 			got := errors.Cause(tt.give)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Cause(%v) = %v, want %v", tt.give, got, tt.want)
-			}
+			assert.Equal(t, tt.want, got)
 		})
 	}
 }

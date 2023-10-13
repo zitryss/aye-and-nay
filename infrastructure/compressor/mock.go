@@ -1,16 +1,17 @@
 package compressor
 
 import (
-	"bytes"
 	"context"
 	"io"
-	"mime/multipart"
-	"os"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
 	"github.com/zitryss/aye-and-nay/pkg/errors"
 	"github.com/zitryss/aye-and-nay/pkg/pool"
+)
+
+var (
+	_ domain.Compresser = (*Mock)(nil)
 )
 
 func NewMock() *Mock {
@@ -21,23 +22,19 @@ type Mock struct {
 }
 
 func (m *Mock) Compress(_ context.Context, f model.File) (model.File, error) {
-	defer func() {
-		switch v := f.Reader.(type) {
-		case *os.File:
-			_ = v.Close()
-			_ = os.Remove(v.Name())
-		case multipart.File:
-			_ = v.Close()
-		case *bytes.Buffer:
-			pool.PutBuffer(v)
-		default:
-			panic(errors.Wrap(domain.ErrUnknown))
-		}
-	}()
-	buf := pool.GetBuffer()
-	n, err := io.CopyN(buf, f, f.Size)
+	defer f.Close()
+	buf := pool.GetBufferN(f.Size)
+	n, err := io.Copy(buf, f.Reader)
 	if err != nil {
 		return model.File{}, errors.Wrap(err)
 	}
-	return model.File{Reader: buf, Size: n}, nil
+	closeFn := func() error {
+		pool.PutBuffer(buf)
+		return nil
+	}
+	return model.NewFile(buf, closeFn, n), nil
+}
+
+func (m *Mock) Health(_ context.Context) (bool, error) {
+	return true, nil
 }

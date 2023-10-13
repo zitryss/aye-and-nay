@@ -18,3 +18,7 @@ localhost {
 # www.aye-and-nay.de {
 #     redir https://aye-and-nay.de{uri} permanent
 # }
+
+:8080 {
+    respond /health 200
+}

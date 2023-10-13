@@ -5,12 +5,12 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"runtime"
-	"sort"
 	"time"
 
 	"github.com/dgraph-io/badger/v3"
 	"github.com/dgraph-io/badger/v3/options"
 	lru "github.com/hashicorp/golang-lru"
+	"golang.org/x/exp/slices"
 
 	"github.com/zitryss/aye-and-nay/domain/domain"
 	"github.com/zitryss/aye-and-nay/domain/model"
@@ -18,26 +18,22 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/pool"
 )
 
-type mode bool
-
-const (
-	disk     mode = false
-	inMemory mode = true
+var (
+	_ domain.Databaser = (*Badger)(nil)
 )
 
-func NewBadger(mode mode) (*Badger, error) {
+func NewBadger(conf BadgerConfig) (*Badger, error) {
 	_ = runtime.GOMAXPROCS(128)
-	conf := newBadgerConfig()
 	path := "./badger"
-	if mode == inMemory {
+	if conf.InMemory {
 		path = ""
 	}
-	opts := badger.DefaultOptions(path).WithCompression(options.None).WithLogger(nil).WithInMemory(bool(mode))
+	opts := badger.DefaultOptions(path).WithCompression(options.None).WithLogger(nil).WithInMemory(conf.InMemory)
 	db, err := badger.Open(opts)
 	if err != nil {
 		return nil, errors.Wrap(err)
 	}
-	cache, err := lru.New(conf.lru)
+	cache, err := lru.New(conf.LRU)
 	if err != nil {
 		return &Badger{}, errors.Wrap(err)
 	}
@@ -45,16 +41,21 @@ func NewBadger(mode mode) (*Badger, error) {
 }
 
 type Badger struct {
-	conf  badgerConfig
+	conf  BadgerConfig
 	db    *badger.DB
 	cache *lru.Cache
 }
 
-func (b *Badger) Monitor() {
+func (b *Badger) Monitor(ctx context.Context) {
 	go func() {
 		for {
-			_ = b.db.RunValueLogGC(b.conf.gcRatio)
-			time.Sleep(b.conf.cleanupInterval)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+			_ = b.db.RunValueLogGC(b.conf.GcRatio)
+			time.Sleep(b.conf.CleanupInterval)
 		}
 	}()
 }
@@ -68,7 +69,7 @@ func (b *Badger) SaveAlbum(_ context.Context, alb model.Album) error {
 	albLru := make(albumLru, len(alb.Images))
 	for i := range alb.Images {
 		img := &alb.Images[i]
-		img.Compressed = b.conf.compressed
+		img.Compressed = b.conf.Compressed
 		edgs[img.Id] = make(map[uint64]int, len(alb.Images))
 		albLru[img.Id] = img.Src
 	}
@@ -198,7 +199,7 @@ func (b *Badger) GetImagesOrdered(_ context.Context, album uint64) ([]model.Imag
 	if errors.Is(err, badger.ErrKeyNotFound) {
 		return nil, errors.Wrap(domain.ErrAlbumNotFound)
 	}
-	sort.Slice(alb.Images, func(i, j int) bool { return alb.Images[i].Rating > alb.Images[j].Rating })
+	slices.SortFunc(alb.Images, func(a, b model.Image) bool { return a.Rating > b.Rating })
 	return alb.Images, nil
 }
 
@@ -345,10 +346,23 @@ func (b *Badger) lruAdd(album uint64) error {
 	return nil
 }
 
-func (b *Badger) Close() error {
+func (b *Badger) Health(_ context.Context) (bool, error) {
+	return true, nil
+}
+
+func (b *Badger) Close(_ context.Context) error {
 	err := b.db.Close()
 	if err != nil {
 		return errors.Wrap(err)
 	}
+	return nil
+}
+
+func (b *Badger) Reset() error {
+	err := b.db.DropAll()
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	b.cache.Purge()
 	return nil
 }

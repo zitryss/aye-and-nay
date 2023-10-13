@@ -1,22 +1,24 @@
 package cache
 
 import (
+	"context"
+
 	"github.com/zitryss/aye-and-nay/domain/domain"
-	"github.com/zitryss/aye-and-nay/pkg/log"
+	"github.com/zitryss/aye-and-nay/internal/log"
 )
 
-func New(s string) (domain.Cacher, error) {
-	switch s {
+func New(ctx context.Context, conf CacheConfig) (domain.Cacher, error) {
+	switch conf.Cache {
 	case "redis":
-		log.Info("connecting to cache")
-		return NewRedis()
+		log.Info(context.Background(), "connecting to cache")
+		return NewRedis(ctx, conf.Redis)
 	case "mem":
-		mem := NewMem()
-		mem.Monitor()
+		mem := NewMem(conf.Mem)
+		mem.Monitor(ctx)
 		return mem, nil
 	default:
-		mem := NewMem()
-		mem.Monitor()
+		mem := NewMem(conf.Mem)
+		mem.Monitor(ctx)
 		return mem, nil
 	}
 }

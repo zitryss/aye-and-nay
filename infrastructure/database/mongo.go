@@ -17,6 +17,10 @@ import (
 	"github.com/zitryss/aye-and-nay/pkg/retry"
 )
 
+var (
+	_ domain.Databaser = (*Mongo)(nil)
+)
+
 type albumLru map[uint64]string
 
 type imageDao struct {
@@ -35,17 +39,24 @@ type edgeDao struct {
 	Weight int
 }
 
-func NewMongo() (*Mongo, error) {
-	conf := newMongoConfig()
-	ctx, cancel := context.WithTimeout(context.Background(), conf.timeout)
+func NewMongo(ctx context.Context, conf MongoConfig) (*Mongo, error) {
+	ctx, cancel := context.WithTimeout(ctx, conf.Timeout)
 	defer cancel()
-	opts := optionsdb.Client().ApplyURI("mongodb://" + conf.host + ":" + conf.port)
+	opts := optionsdb.Client().ApplyURI("mongodb://" + conf.Host + ":" + conf.Port)
 	client, err := mongodb.Connect(ctx, opts)
 	if err != nil {
 		return &Mongo{}, errors.Wrap(err)
 	}
-	err = retry.Do(conf.times, conf.pause, func() error {
-		err := client.Ping(ctx, readpref.Primary())
+	db := client.Database("aye-and-nay")
+	images := db.Collection("images")
+	edges := db.Collection("edges")
+	cache, err := lru.New(conf.LRU)
+	if err != nil {
+		return &Mongo{}, errors.Wrap(err)
+	}
+	m := &Mongo{conf, client, db, images, edges, cache}
+	err = retry.Do(conf.RetryTimes, conf.RetryPause, func() error {
+		_, err := m.Health(ctx)
 		if err != nil {
 			return errors.Wrap(err)
 		}
@@ -54,18 +65,11 @@ func NewMongo() (*Mongo, error) {
 	if err != nil {
 		return &Mongo{}, errors.Wrap(err)
 	}
-	db := client.Database("aye-and-nay")
-	images := db.Collection("images")
-	edges := db.Collection("edges")
-	cache, err := lru.New(conf.lru)
-	if err != nil {
-		return &Mongo{}, errors.Wrap(err)
-	}
-	return &Mongo{conf, client, db, images, edges, cache}, nil
+	return m, nil
 }
 
 type Mongo struct {
-	conf   mongoConfig
+	conf   MongoConfig
 	client *mongodb.Client
 	db     *mongodb.Database
 	images *mongodb.Collection
@@ -82,10 +86,10 @@ func (m *Mongo) SaveAlbum(ctx context.Context, alb model.Album) error {
 	if n > 0 {
 		return errors.Wrap(domain.ErrAlbumAlreadyExists)
 	}
-	imgsDao := make([]interface{}, 0, len(alb.Images))
+	imgsDao := make([]any, 0, len(alb.Images))
 	albLru := make(albumLru, len(alb.Images))
 	for _, img := range alb.Images {
-		imgDao := imageDao{int64(alb.Id), int64(img.Id), img.Src, img.Rating, m.conf.compressed, alb.Expires}
+		imgDao := imageDao{int64(alb.Id), int64(img.Id), img.Src, img.Rating, m.conf.Compressed, alb.Expires}
 		imgsDao = append(imgsDao, imgDao)
 		albLru[img.Id] = img.Src
 	}
@@ -341,12 +345,29 @@ func (m *Mongo) lruAdd(ctx context.Context, album uint64) error {
 	return nil
 }
 
-func (m *Mongo) Close() error {
-	ctx, cancel := context.WithTimeout(context.Background(), m.conf.timeout)
+func (m *Mongo) Health(ctx context.Context) (bool, error) {
+	err := m.client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		return false, errors.Wrapf(domain.ErrBadHealthDatabase, "%s", err)
+	}
+	return true, err
+}
+
+func (m *Mongo) Close(ctx context.Context) error {
+	ctx, cancel := context.WithTimeout(ctx, m.conf.Timeout)
 	defer cancel()
 	err := m.client.Disconnect(ctx)
 	if err != nil {
 		return errors.Wrap(err)
 	}
+	return nil
+}
+
+func (m *Mongo) Reset() error {
+	err := m.db.Drop(context.Background())
+	if err != nil {
+		return errors.Wrap(err)
+	}
+	m.cache.Purge()
 	return nil
 }

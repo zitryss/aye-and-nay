@@ -1,5 +1,3 @@
-//go:build unit
-
 package cache
 
 import (
@@ -7,132 +5,190 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/zitryss/aye-and-nay/domain/domain"
-	_ "github.com/zitryss/aye-and-nay/internal/config"
+	. "github.com/zitryss/aye-and-nay/internal/generator"
 	. "github.com/zitryss/aye-and-nay/internal/testing"
-	"github.com/zitryss/aye-and-nay/pkg/errors"
 )
 
-func TestMemPair(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		mem := NewMem()
-		err := mem.Push(context.Background(), 0x23D2, [][2]uint64{{0x3E3D, 0xB399}})
-		if err != nil {
-			t.Error(err)
-		}
-		image1, image2, err := mem.Pop(context.Background(), 0x23D2)
-		if err != nil {
-			t.Error(err)
-		}
-		if image1 != 0x3E3D {
-			t.Error("image1 != 0x3E3D")
-		}
-		if image2 != 0xB399 {
-			t.Error("image2 != 0xB399")
-		}
+func TestMemTestSuite(t *testing.T) {
+	suite.Run(t, &MemTestSuite{})
+}
+
+type MemTestSuite struct {
+	suite.Suite
+	ctx              context.Context
+	cancel           context.CancelFunc
+	conf             MemConfig
+	heartbeatCleanup chan any
+	heartbeatPair    chan any
+	heartbeatToken   chan any
+	cache            domain.Cacher
+	setupTestFn      func()
+}
+
+func (suite *MemTestSuite) SetupSuite() {
+	if !*unit {
+		suite.T().Skip()
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	conf := DefaultMemConfig
+	hc := make(chan any)
+	hp := make(chan any)
+	ht := make(chan any)
+	mem := NewMem(conf, WithHeartbeatCleanup(hc), WithHeartbeatPair(hp), WithHeartbeatToken(ht))
+	mem.Monitor(ctx)
+	suite.ctx = ctx
+	suite.cancel = cancel
+	suite.conf = conf
+	suite.heartbeatCleanup = hc
+	suite.heartbeatPair = hp
+	suite.heartbeatToken = ht
+	suite.cache = mem
+	suite.setupTestFn = suite.SetupTest
+}
+
+func (suite *MemTestSuite) SetupTest() {
+	err := suite.cache.(*Mem).Reset()
+	require.NoError(suite.T(), err)
+}
+
+func (suite *MemTestSuite) TearDownTest() {
+
+}
+
+func (suite *MemTestSuite) TearDownSuite() {
+	err := suite.cache.(*Mem).Reset()
+	require.NoError(suite.T(), err)
+	suite.cancel()
+}
+
+func (suite *MemTestSuite) TestPair() {
+	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
+		id, ids := GenId()
+		album := id()
+		pairs := [][2]uint64{{id(), id()}}
+		err := suite.cache.Push(suite.ctx, album, pairs)
+		assert.NoError(t, err)
+		image1, image2, err := suite.cache.Pop(suite.ctx, album)
+		assert.NoError(t, err)
+		assert.Equal(t, ids.Uint64(1), image1)
+		assert.Equal(t, ids.Uint64(2), image2)
 	})
-	t.Run("Negative1", func(t *testing.T) {
-		mem := NewMem()
-		_, _, err := mem.Pop(context.Background(), 0x73BF)
-		if !errors.Is(err, domain.ErrPairNotFound) {
-			t.Error(err)
-		}
+	suite.T().Run("Negative1", func(t *testing.T) {
+		suite.setupTestFn()
+		id, _ := GenId()
+		album := id()
+		_, _, err := suite.cache.Pop(suite.ctx, album)
+		assert.ErrorIs(t, err, domain.ErrPairNotFound)
 	})
-	t.Run("Negative2", func(t *testing.T) {
-		mem := NewMem()
-		err := mem.Push(context.Background(), 0x1AE9, [][2]uint64{{0x44DC, 0x721B}})
-		if err != nil {
-			t.Error(err)
-		}
-		_, _, err = mem.Pop(context.Background(), 0x1AE9)
-		if err != nil {
-			t.Error(err)
-		}
-		_, _, err = mem.Pop(context.Background(), 0x1AE9)
-		if !errors.Is(err, domain.ErrPairNotFound) {
-			t.Error(err)
-		}
+	suite.T().Run("Negative2", func(t *testing.T) {
+		suite.setupTestFn()
+		id, _ := GenId()
+		album := id()
+		pairs := [][2]uint64{{id(), id()}}
+		err := suite.cache.Push(suite.ctx, album, pairs)
+		assert.NoError(t, err)
+		_, _, err = suite.cache.Pop(suite.ctx, album)
+		assert.NoError(t, err)
+		_, _, err = suite.cache.Pop(suite.ctx, album)
+		assert.ErrorIs(t, err, domain.ErrPairNotFound)
 	})
-	t.Run("Negative3", func(t *testing.T) {
-		heartbeatPair := make(chan interface{})
-		mem := NewMem(WithHeartbeatPair(heartbeatPair))
-		mem.Monitor()
-		err := mem.Push(context.Background(), 0xF51A, [][2]uint64{{0x4BB0, 0x3A87}})
-		if err != nil {
-			t.Error(err)
+	suite.T().Run("Negative3", func(t *testing.T) {
+		suite.setupTestFn()
+		_, ok := suite.cache.(*Redis)
+		if testing.Short() && ok {
+			t.Skip("short flag is set")
 		}
-		time.Sleep(mem.conf.timeToLive)
-		CheckChannel(t, heartbeatPair)
-		CheckChannel(t, heartbeatPair)
-		_, _, err = mem.Pop(context.Background(), 0xF51A)
-		if !errors.Is(err, domain.ErrPairNotFound) {
-			t.Error(err)
-		}
+		id, _ := GenId()
+		album := id()
+		pairs := [][2]uint64{{id(), id()}}
+		err := suite.cache.Push(suite.ctx, album, pairs)
+		assert.NoError(t, err)
+		time.Sleep(suite.conf.TimeToLive * 2)
+		AssertChannel(t, suite.heartbeatPair)
+		AssertChannel(t, suite.heartbeatPair)
+		_, _, err = suite.cache.Pop(suite.ctx, album)
+		assert.ErrorIs(t, err, domain.ErrPairNotFound)
 	})
 }
 
-func TestMemToken(t *testing.T) {
-	t.Run("Positive", func(t *testing.T) {
-		mem := NewMem()
-		err := mem.Set(context.Background(), 0xC2E7, 0xB41C, 0x52BD)
-		if err != nil {
-			t.Error(err)
-		}
-		image, err := mem.Get(context.Background(), 0xC2E7, 0xB41C)
-		if err != nil {
-			t.Error(err)
-		}
-		if image != 0x52BD {
-			t.Error("image != 0x52BD")
-		}
+func (suite *MemTestSuite) TestToken() {
+	suite.T().Run("Positive", func(t *testing.T) {
+		suite.setupTestFn()
+		id, _ := GenId()
+		token := id()
+		album1 := id()
+		image1 := id()
+		err := suite.cache.Set(suite.ctx, token, album1, image1)
+		assert.NoError(t, err)
+		album2, image2, err := suite.cache.Get(suite.ctx, token)
+		assert.NoError(t, err)
+		assert.Equal(t, album1, album2)
+		assert.Equal(t, image1, image2)
 	})
-	t.Run("Negative1", func(t *testing.T) {
-		mem := NewMem()
-		err := mem.Set(context.Background(), 0x1C4A, 0xF0EE, 0x583C)
-		if err != nil {
-			t.Error(err)
-		}
-		err = mem.Set(context.Background(), 0x1C4A, 0xF0EE, 0x583C)
-		if !errors.Is(err, domain.ErrTokenAlreadyExists) {
-			t.Error(err)
-		}
+	suite.T().Run("Negative1", func(t *testing.T) {
+		suite.setupTestFn()
+		id, _ := GenId()
+		token := id()
+		album := id()
+		image := id()
+		err := suite.cache.Set(suite.ctx, token, album, image)
+		assert.NoError(t, err)
+		err = suite.cache.Set(suite.ctx, token, album, image)
+		assert.ErrorIs(t, err, domain.ErrTokenAlreadyExists)
 	})
-	t.Run("Negative2", func(t *testing.T) {
-		mem := NewMem()
-		_, err := mem.Get(context.Background(), 0x1C4A, 0xC4F8)
-		if !errors.Is(err, domain.ErrTokenNotFound) {
-			t.Error(err)
-		}
+	suite.T().Run("Negative2", func(t *testing.T) {
+		suite.setupTestFn()
+		id, _ := GenId()
+		token := id()
+		_, _, err := suite.cache.Get(suite.ctx, token)
+		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
-	t.Run("Negative3", func(t *testing.T) {
-		mem := NewMem()
-		err := mem.Set(context.Background(), 0xEB96, 0xC67F, 0x7C45)
-		if err != nil {
-			t.Error(err)
-		}
-		_, err = mem.Get(context.Background(), 0xEB96, 0xC67F)
-		if err != nil {
-			t.Error(err)
-		}
-		_, err = mem.Get(context.Background(), 0xEB96, 0xC67F)
-		if !errors.Is(err, domain.ErrTokenNotFound) {
-			t.Error(err)
-		}
+	suite.T().Run("Negative3", func(t *testing.T) {
+		suite.setupTestFn()
+		id, _ := GenId()
+		token := id()
+		album := id()
+		image := id()
+		err := suite.cache.Set(suite.ctx, token, album, image)
+		assert.NoError(t, err)
+		_, _, err = suite.cache.Get(suite.ctx, token)
+		assert.NoError(t, err)
+		err = suite.cache.Del(suite.ctx, token)
+		assert.NoError(t, err)
+		err = suite.cache.Del(suite.ctx, token)
+		assert.NoError(t, err)
+		_, _, err = suite.cache.Get(suite.ctx, token)
+		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
-	t.Run("Negative4", func(t *testing.T) {
-		heartbeatToken := make(chan interface{})
-		mem := NewMem(WithHeartbeatToken(heartbeatToken))
-		mem.Monitor()
-		err := mem.Set(context.Background(), 0xE0AF, 0xCF1E, 0xDD0A)
-		if err != nil {
-			t.Error(err)
+	suite.T().Run("Negative4", func(t *testing.T) {
+		suite.setupTestFn()
+		id, _ := GenId()
+		token := id()
+		err := suite.cache.Del(suite.ctx, token)
+		assert.NoError(t, err)
+	})
+	suite.T().Run("Negative5", func(t *testing.T) {
+		suite.setupTestFn()
+		_, ok := suite.cache.(*Redis)
+		if testing.Short() && ok {
+			t.Skip("short flag is set")
 		}
-		time.Sleep(mem.conf.timeToLive)
-		CheckChannel(t, heartbeatToken)
-		CheckChannel(t, heartbeatToken)
-		_, err = mem.Get(context.Background(), 0xE0AF, 0xCF1E)
-		if !errors.Is(err, domain.ErrTokenNotFound) {
-			t.Error(err)
-		}
+		id, _ := GenId()
+		token := id()
+		album := id()
+		image := id()
+		err := suite.cache.Set(suite.ctx, token, album, image)
+		assert.NoError(t, err)
+		time.Sleep(suite.conf.TimeToLive * 2)
+		AssertChannel(t, suite.heartbeatToken)
+		AssertChannel(t, suite.heartbeatToken)
+		_, _, err = suite.cache.Get(suite.ctx, token)
+		assert.ErrorIs(t, err, domain.ErrTokenNotFound)
 	})
 }
